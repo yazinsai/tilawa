@@ -1,0 +1,50 @@
+{
+ "version": 1,
+ "kind": "listener-rtf",
+ "commit": "441dddc3",
+ "machine": "Mac mini, Apple M4 (4P+6E), 16 GB, macOS 26.6.2, Node 22.22.2, onnxruntime-node 1.30.0, CPU EP, 1 thread",
+ "method": "createListener (packages/sdk) only: fbank + streaming Zipformer + greedy CTC, posteriors on; two lab-v1.5u phone sessions (lab-v1.5-p05, lab-v1.4-e01), 476.5 s audio; RTF = compute / audio. Desktop only: not a device-floor measurement.",
+ "runs": [
+  {
+   "tier": "full",
+   "model": "spliced-clean-int8",
+   "pushMs": 20,
+   "audioS": 476.5,
+   "computeS": 12.51,
+   "rtf": 0.0263
+  },
+  {
+   "tier": "full",
+   "model": "spliced-clean-int8",
+   "pushMs": 320,
+   "audioS": 476.5,
+   "computeS": 12.36,
+   "rtf": 0.0259
+  },
+  {
+   "tier": "lite",
+   "model": "spliced-clean-lite-int8",
+   "pushMs": 20,
+   "audioS": 476.5,
+   "computeS": 8.7,
+   "rtf": 0.0183
+  },
+  {
+   "tier": "lite",
+   "model": "spliced-clean-lite-int8",
+   "pushMs": 320,
+   "audioS": 476.5,
+   "computeS": 8.7,
+   "rtf": 0.0183
+  }
+ ],
+ "endToEnd": {
+  "note": "pnpm bench:help (session API: listener + tracker + checker, free and declared arms, 20 ms pushes) over the 388 help eval clips; rtf = compute / audio / 2",
+  "full": 0.0552,
+  "lite": 0.0369
+ },
+ "sha256": {
+  "full": "714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b",
+  "lite": "4974de78d3c35d2542e7a24d99b747e1160d6e31e366fb68492b74a789890f1b"
+ }
+}

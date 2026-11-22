@@ -1,0 +1,3318 @@
+{
+ "version": 1,
+ "rulesOf": "lab-v1.4",
+ "testSet": "lab-v1.3",
+ "summary": {
+  "splices": 375,
+  "planner": {
+   "linkDepth": 0,
+   "onset": 0,
+   "donorShort": 0,
+   "pauseForm": 0,
+   "otherRecording": 0,
+   "breakLinked": 0,
+   "reenterLinked": 29,
+   "insertLinked": 182
+  },
+  "plannerAny": 211,
+  "plannerMovedOnly": 5,
+  "gate": {
+   "reenterLinked": 29,
+   "insertLinked": 182
+  },
+  "gateAny": 211
+ },
+ "splices": {
+  "lab-v1.3-e01-x1": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 20:130:20 with no pause before it (-14.7 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 20:130:20 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e02-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e02-x2": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 39:36:13 with no pause before it (-8.8 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 39:36:13 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e02-x3": {
+   "refused": {
+    "insertLinked": [
+     "39:38:21 (link) to 39:63:6 (link)",
+     "39:63:6 (link) to 39:38:23 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 39:38:21 (link) to 39:63:6 (link), not pause to pause",
+    "inserted audio joins 39:63:6 (link) to 39:38:23 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e02-x4": {
+   "refused": {
+    "insertLinked": [
+     "39:39:8 (link) to 39:63:6 (link)",
+     "39:63:6 (link) to 39:39:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 39:39:8 (link) to 39:63:6 (link), not pause to pause",
+    "inserted audio joins 39:63:6 (link) to 39:39:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e02-x5": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "39:42:1",
+     "srcS": 817.175,
+     "movedS": 0.25
+    }
+   ],
+   "gate": []
+  },
+  "lab-v1.3-e02-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e03-x1": {
+   "refused": {
+    "insertLinked": [
+     "12:88:3 (link) to 12:50:11 (link)",
+     "12:50:11 (link) to 12:88:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 12:88:3 (link) to 12:50:11 (link), not pause to pause",
+    "inserted audio joins 12:50:11 (link) to 12:88:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e03-x2": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 12:89:10 with no pause before it (-6.0 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 12:89:10 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e03-x3": {
+   "refused": {
+    "insertLinked": [
+     "12:91:9 (pause) to 12:34:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 12:91:9 (pause) to 12:34:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e03-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e03-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e03-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e03-x7": {
+   "refused": {
+    "insertLinked": [
+     "12:101:9 (link) to 12:10:12 (link)",
+     "12:10:12 (link) to 12:101:11 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 12:101:9 (link) to 12:10:12 (link), not pause to pause",
+    "inserted audio joins 12:10:12 (link) to 12:101:11 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e03-x8": {
+   "refused": {
+    "insertLinked": [
+     "12:101:21 (pause) to 12:18:18 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 12:101:21 (pause) to 12:18:18 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e03-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e04-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e05-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e05-x2": {
+   "refused": {
+    "insertLinked": [
+     "26:113:7 (pause) to 26:117:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:113:7 (pause) to 26:117:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e05-x3": {
+   "refused": {
+    "insertLinked": [
+     "26:117:4 (link) to 26:161:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:117:4 (link) to 26:161:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e05-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e05-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e05-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e05-x7": {
+   "refused": {
+    "insertLinked": [
+     "26:130:3 (link) to 26:117:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:130:3 (link) to 26:117:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e05-x8": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 26:132:5 with no pause before it (-22.1 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 26:132:5 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e05-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e05-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e05-x11": {
+   "refused": {
+    "insertLinked": [
+     "26:213:1 (link) to 26:139:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:213:1 (link) to 26:139:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e05-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e06-x1": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 17:32:2 with no pause before it (-13.9 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 17:32:2 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e07-x1": {
+   "refused": {
+    "insertLinked": [
+     "6:39:1 (link) to 6:74:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 6:39:1 (link) to 6:74:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e07-x2": {
+   "refused": {
+    "insertLinked": [
+     "6:76:15 (pause) to 6:81:22 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 6:76:15 (pause) to 6:81:22 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e07-x3": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 6:78:17 with no pause before it (-8.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 6:78:17 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e07-x4": {
+   "refused": {
+    "insertLinked": [
+     "6:83:5 (link) to 6:40:15 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 6:83:5 (link) to 6:40:15 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e07-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e07-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e08-x1": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 26:117:4 with no pause before it (-12.1 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 26:117:4 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e09-x1": {
+   "refused": {
+    "insertLinked": [
+     "78:4:2 (pause) to 78:40:14 (link)",
+     "78:40:14 (link) to 78:5:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 78:4:2 (pause) to 78:40:14 (link), not pause to pause",
+    "inserted audio joins 78:40:14 (link) to 78:5:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e09-x2": {
+   "refused": {
+    "insertLinked": [
+     "78:9:2 (link) to 78:28:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 78:9:2 (link) to 78:28:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e09-x3": {
+   "refused": {
+    "insertLinked": [
+     "78:12:4 (pause) to 78:28:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 78:12:4 (pause) to 78:28:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e09-x4": {
+   "refused": {
+    "insertLinked": [
+     "78:14:5 (pause) to 78:40:14 (link)",
+     "78:40:14 (link) to 78:15:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 78:14:5 (pause) to 78:40:14 (link), not pause to pause",
+    "inserted audio joins 78:40:14 (link) to 78:15:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e09-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e09-x6": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 78:20:4 with no pause before it (-13.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 78:20:4 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e09-x7": {
+   "refused": {
+    "insertLinked": [
+     "78:24:2 (link) to 78:40:14 (link)",
+     "78:40:14 (link) to 78:24:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 78:24:2 (link) to 78:40:14 (link), not pause to pause",
+    "inserted audio joins 78:40:14 (link) to 78:24:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e09-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e09-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e09-x10": {
+   "refused": {
+    "insertLinked": [
+     "78:32:2 (pause) to 78:6:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 78:32:2 (pause) to 78:6:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e10-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e10-x2": {
+   "refused": {
+    "insertLinked": [
+     "44:15:6 (pause) to 44:27:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:15:6 (pause) to 44:27:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e10-x3": {
+   "refused": {
+    "insertLinked": [
+     "44:17:3 (link) to 44:55:2 (link)",
+     "44:55:2 (link) to 44:17:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:17:3 (link) to 44:55:2 (link), not pause to pause",
+    "inserted audio joins 44:55:2 (link) to 44:17:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e10-x4": {
+   "refused": {
+    "insertLinked": [
+     "44:18:7 (link) to 44:55:2 (link)",
+     "44:55:2 (link) to 44:18:8 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:18:7 (link) to 44:55:2 (link), not pause to pause",
+    "inserted audio joins 44:55:2 (link) to 44:18:8 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e10-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e10-x6": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 44:27:4 with no pause before it (-13.6 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 44:27:4 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e10-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e10-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e10-x9": {
+   "refused": {
+    "insertLinked": [
+     "44:35:7 (link) to 44:58:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:35:7 (link) to 44:58:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e10-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e10-x11": {
+   "refused": {
+    "insertLinked": [
+     "44:39:3 (link) to 44:55:3 (link)",
+     "44:55:3 (link) to 44:39:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:39:3 (link) to 44:55:3 (link), not pause to pause",
+    "inserted audio joins 44:55:3 (link) to 44:39:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e11-x1": {
+   "refused": {
+    "insertLinked": [
+     "55:30:3 (link) to 55:24:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 55:30:3 (link) to 55:24:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e11-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e11-x3": {
+   "refused": {
+    "insertLinked": [
+     "55:34:3 (link) to 55:24:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 55:34:3 (link) to 55:24:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e11-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e11-x5": {
+   "refused": {
+    "insertLinked": [
+     "55:39:7 (link) to 55:62:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 55:39:7 (link) to 55:62:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e11-x6": {
+   "refused": {
+    "insertLinked": [
+     "55:41:4 (link) to 55:37:4 (link)",
+     "55:37:4 (link) to 55:41:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 55:41:4 (link) to 55:37:4 (link), not pause to pause",
+    "inserted audio joins 55:37:4 (link) to 55:41:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e11-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e11-x8": {
+   "refused": {
+    "insertLinked": [
+     "55:46:5 (pause) to 55:75:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 55:46:5 (pause) to 55:75:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e11-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e11-x10": {
+   "refused": {
+    "insertLinked": [
+     "55:53:3 (link) to 55:62:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 55:53:3 (link) to 55:62:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e11-x11": {
+   "refused": {
+    "insertLinked": [
+     "55:55:3 (link) to 55:24:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 55:55:3 (link) to 55:24:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e11-x12": {
+   "refused": {
+    "insertLinked": [
+     "55:57:3 (link) to 55:24:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 55:57:3 (link) to 55:24:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e11-x13": {
+   "refused": {
+    "insertLinked": [
+     "55:11:1 (link) to 55:60:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 55:11:1 (link) to 55:60:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e12-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e12-x2": {
+   "refused": {
+    "insertLinked": [
+     "11:78:16 (pause) to 11:34:18 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 11:78:16 (pause) to 11:34:18 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e12-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e12-x4": {
+   "refused": {
+    "insertLinked": [
+     "11:85:9 (link) to 11:38:18 (link)",
+     "11:38:18 (link) to 11:85:11 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 11:85:9 (link) to 11:38:18 (link), not pause to pause",
+    "inserted audio joins 11:38:18 (link) to 11:85:11 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e13-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e13-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e13-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e13-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e13-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e13-x6": {
+   "refused": {
+    "insertLinked": [
+     "50:12:7 (pause) to 50:17:8 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 50:12:7 (pause) to 50:17:8 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e13-x7": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 50:14:8 with no pause before it (-9.3 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 50:14:8 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e13-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e13-x9": {
+   "refused": {
+    "insertLinked": [
+     "50:17:1 (link) to 50:39:8 (link)",
+     "50:39:8 (link) to 50:17:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 50:17:1 (link) to 50:39:8 (link), not pause to pause",
+    "inserted audio joins 50:39:8 (link) to 50:17:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e13-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e13-x11": {
+   "refused": {
+    "insertLinked": [
+     "50:21:4 (link) to 50:16:6 (link)",
+     "50:16:6 (link) to 50:21:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 50:21:4 (link) to 50:16:6 (link), not pause to pause",
+    "inserted audio joins 50:16:6 (link) to 50:21:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e13-x12": {
+   "refused": {
+    "insertLinked": [
+     "50:22:12 (pause) to 50:16:6 (link)",
+     "50:16:6 (link) to 50:23:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 50:22:12 (pause) to 50:16:6 (link), not pause to pause",
+    "inserted audio joins 50:16:6 (link) to 50:23:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e13-x13": {
+   "refused": {
+    "insertLinked": [
+     "50:24:4 (link) to 50:6:6 (link)",
+     "50:6:6 (link) to 50:24:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 50:24:4 (link) to 50:6:6 (link), not pause to pause",
+    "inserted audio joins 50:6:6 (link) to 50:24:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e13-x14": {
+   "refused": {
+    "insertLinked": [
+     "50:26:6 (link) to 50:11:3 (link)",
+     "50:11:3 (link) to 50:26:8 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 50:26:6 (link) to 50:11:3 (link), not pause to pause",
+    "inserted audio joins 50:11:3 (link) to 50:26:8 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e13-x15": {
+   "refused": {
+    "insertLinked": [
+     "50:30:9 (pause) to 50:19:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 50:30:9 (pause) to 50:19:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e13-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e13-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e14-x1": {
+   "refused": {
+    "insertLinked": [
+     "23:47:7 (pause) to 23:19:13 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:47:7 (pause) to 23:19:13 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x2": {
+   "refused": {
+    "insertLinked": [
+     "23:49:5 (link) to 23:66:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:49:5 (link) to 23:66:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x3": {
+   "refused": {
+    "insertLinked": [
+     "23:50:9 (link) to 23:118:4 (link)",
+     "23:118:4 (link) to 23:50:10 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:50:9 (link) to 23:118:4 (link), not pause to pause",
+    "inserted audio joins 23:118:4 (link) to 23:50:10 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x4": {
+   "refused": {
+    "insertLinked": [
+     "23:30:1 (link) to 23:51:9 (link)"
+    ]
+   },
+   "moved": [
+    {
+     "before": "23:30:1",
+     "srcS": 330.015,
+     "movedS": 0.01
+    }
+   ],
+   "gate": [
+    "inserted audio joins 23:30:1 (link) to 23:51:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x5": {
+   "refused": {
+    "insertLinked": [
+     "23:52:7 (link) to 23:89:4 (link)",
+     "23:89:4 (link) to 23:52:8 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:52:7 (link) to 23:89:4 (link), not pause to pause",
+    "inserted audio joins 23:89:4 (link) to 23:52:8 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x6": {
+   "refused": {
+    "insertLinked": [
+     "23:53:8 (link) to 23:21:15 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:53:8 (link) to 23:21:15 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x7": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 23:56:5 with no pause before it (-14.9 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 23:56:5 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e14-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e14-x9": {
+   "refused": {
+    "insertLinked": [
+     "23:61:5 (link) to 23:118:4 (link)",
+     "23:118:4 (link) to 23:61:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:61:5 (link) to 23:118:4 (link), not pause to pause",
+    "inserted audio joins 23:118:4 (link) to 23:61:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x10": {
+   "refused": {
+    "insertLinked": [
+     "23:105:1 (link) to 23:63:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:105:1 (link) to 23:63:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x11": {
+   "refused": {
+    "insertLinked": [
+     "23:63:14 (pause) to 23:70:10 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:63:14 (pause) to 23:70:10 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e14-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e14-x14": {
+   "refused": {
+    "insertLinked": [
+     "23:68:10 (pause) to 23:114:9 (link)"
+    ]
+   },
+   "moved": [
+    {
+     "before": "23:69:1",
+     "srcS": 705.735,
+     "movedS": 0.21
+    }
+   ],
+   "gate": [
+    "inserted audio joins 23:68:10 (pause) to 23:114:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x15": {
+   "refused": {
+    "insertLinked": [
+     "23:105:1 (link) to 23:70:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:105:1 (link) to 23:70:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x16": {
+   "refused": {
+    "insertLinked": [
+     "23:71:8 (pause) to 23:114:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:71:8 (pause) to 23:114:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e14-x18": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e14-x19": {
+   "refused": {
+    "insertLinked": [
+     "23:75:8 (link) to 23:51:9 (link)",
+     "23:51:9 (link) to 23:75:10 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:75:8 (link) to 23:51:9 (link), not pause to pause",
+    "inserted audio joins 23:51:9 (link) to 23:75:10 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x20": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e14-x21": {
+   "refused": {
+    "insertLinked": [
+     "23:78:9 (link) to 23:66:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:78:9 (link) to 23:66:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x22": {
+   "refused": {
+    "insertLinked": [
+     "23:80:9 (link) to 23:66:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:80:9 (link) to 23:66:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x23": {
+   "refused": {
+    "insertLinked": [
+     "23:82:4 (link) to 23:89:4 (link)",
+     "23:89:4 (link) to 23:82:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:82:4 (link) to 23:89:4 (link), not pause to pause",
+    "inserted audio joins 23:89:4 (link) to 23:82:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x24": {
+   "refused": {
+    "insertLinked": [
+     "23:84:7 (link) to 23:19:13 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:84:7 (link) to 23:19:13 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x25": {
+   "refused": {
+    "insertLinked": [
+     "23:86:8 (pause) to 23:21:15 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:86:8 (pause) to 23:21:15 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e14-x26": {
+   "refused": {
+    "insertLinked": [
+     "23:88:13 (link) to 23:66:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 23:88:13 (link) to 23:66:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e15-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e15-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e15-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e15-x5": {
+   "refused": {
+    "insertLinked": [
+     "26:112:3 (link) to 26:158:4 (link)",
+     "26:158:4 (link) to 26:112:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:112:3 (link) to 26:158:4 (link), not pause to pause",
+    "inserted audio joins 26:158:4 (link) to 26:112:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x6": {
+   "refused": {
+    "insertLinked": [
+     "26:113:7 (pause) to 26:72:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:113:7 (pause) to 26:72:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x7": {
+   "refused": {
+    "insertLinked": [
+     "26:115:5 (pause) to 26:72:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:115:5 (pause) to 26:72:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x8": {
+   "refused": {
+    "insertLinked": [
+     "26:117:4 (link) to 26:75:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:117:4 (link) to 26:75:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x9": {
+   "refused": {
+    "insertLinked": [
+     "26:119:6 (pause) to 26:75:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:119:6 (pause) to 26:75:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x10": {
+   "refused": {
+    "insertLinked": [
+     "26:121:8 (pause) to 26:106:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:121:8 (pause) to 26:106:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e15-x12": {
+   "refused": {
+    "insertLinked": [
+     "26:127:11 (pause) to 26:223:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:127:11 (pause) to 26:223:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x13": {
+   "refused": {
+    "insertLinked": [
+     "26:129:3 (link) to 26:113:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:129:3 (link) to 26:113:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e15-x15": {
+   "refused": {
+    "insertLinked": [
+     "26:138:3 (pause) to 26:92:5 (link)",
+     "26:92:5 (link) to 26:139:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:138:3 (pause) to 26:92:5 (link), not pause to pause",
+    "inserted audio joins 26:92:5 (link) to 26:139:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x16": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 26:142:5 with no pause before it (-8.9 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 26:142:5 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e15-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e15-x18": {
+   "refused": {
+    "insertLinked": [
+     "26:149:3 (link) to 26:49:13 (link)",
+     "26:49:13 (link) to 26:149:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:149:3 (link) to 26:49:13 (link), not pause to pause",
+    "inserted audio joins 26:49:13 (link) to 26:149:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x19": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e15-x20": {
+   "refused": {
+    "insertLinked": [
+     "26:154:10 (link) to 26:191:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:154:10 (link) to 26:191:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e15-x21": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e15-x22": {
+   "refused": {
+    "insertLinked": [
+     "26:94:1 (link) to 26:160:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:94:1 (link) to 26:160:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e16-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e16-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e16-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e16-x4": {
+   "refused": {
+    "insertLinked": [
+     "26:103:8 (pause) to 26:129:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:103:8 (pause) to 26:129:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e16-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e16-x6": {
+   "refused": {
+    "insertLinked": [
+     "26:108:3 (pause) to 26:70:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:108:3 (pause) to 26:70:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e16-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e16-x8": {
+   "refused": {
+    "insertLinked": [
+     "26:113:6 (link) to 26:28:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:113:6 (link) to 26:28:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e16-x9": {
+   "refused": {
+    "insertLinked": [
+     "26:116:3 (link) to 26:174:2 (link)",
+     "26:174:2 (link) to 26:116:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:116:3 (link) to 26:174:2 (link), not pause to pause",
+    "inserted audio joins 26:174:2 (link) to 26:116:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e16-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e16-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e16-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e16-x13": {
+   "refused": {
+    "insertLinked": [
+     "26:129:3 (link) to 26:218:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:129:3 (link) to 26:218:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e16-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e16-x15": {
+   "refused": {
+    "insertLinked": [
+     "26:13:1 (link) to 26:136:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:13:1 (link) to 26:136:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e16-x16": {
+   "refused": {
+    "insertLinked": [
+     "26:138:2 (link) to 26:129:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:138:2 (link) to 26:129:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e16-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e17-x1": {
+   "refused": {
+    "insertLinked": [
+     "54:25:9 (pause) to 54:36:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 54:25:9 (pause) to 54:36:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e17-x2": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 54:29:3 with no pause before it (-20.8 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 54:29:3 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e17-x3": {
+   "refused": {
+    "insertLinked": [
+     "54:16:1 (link) to 54:31:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 54:16:1 (link) to 54:31:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e17-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e17-x5": {
+   "refused": {
+    "insertLinked": [
+     "54:36:4 (link) to 54:49:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 54:36:4 (link) to 54:49:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e18-x1": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 77:21:3 with no pause before it (-14.9 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 77:21:3 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e19-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x3": {
+   "refused": {
+    "insertLinked": [
+     "37:86:4 (link) to 37:96:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:86:4 (link) to 37:96:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x4": {
+   "refused": {
+    "insertLinked": [
+     "37:89:3 (pause) to 37:8:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:89:3 (pause) to 37:8:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x6": {
+   "refused": {
+    "insertLinked": [
+     "37:96:2 (link) to 37:144:2 (link)",
+     "37:144:2 (link) to 37:96:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:96:2 (link) to 37:144:2 (link), not pause to pause",
+    "inserted audio joins 37:144:2 (link) to 37:96:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x9": {
+   "refused": {
+    "insertLinked": [
+     "37:102:15 (link) to 37:154:3 (link)",
+     "37:154:3 (link) to 37:102:16 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:102:15 (link) to 37:154:3 (link), not pause to pause",
+    "inserted audio joins 37:154:3 (link) to 37:102:16 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x10": {
+   "refused": {
+    "insertLinked": [
+     "37:102:26 (pause) to 37:18:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:102:26 (pause) to 37:18:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x13": {
+   "refused": {
+    "insertLinked": [
+     "37:113:10 (pause) to 37:124:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:113:10 (pause) to 37:124:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x14": {
+   "refused": {
+    "insertLinked": [
+     "37:65:1 (link) to 37:116:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:65:1 (link) to 37:116:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x17": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 37:124:5 with no pause before it (-8.7 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 37:124:5 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e19-x18": {
+   "refused": {
+    "insertLinked": [
+     "37:127:3 (pause) to 37:96:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:127:3 (pause) to 37:96:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x19": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x20": {
+   "refused": {
+    "insertLinked": [
+     "37:39:1 (link) to 37:134:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:39:1 (link) to 37:134:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x21": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x22": {
+   "refused": {
+    "insertLinked": [
+     "37:138:3 (pause) to 37:124:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:138:3 (pause) to 37:124:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x23": {
+   "refused": {
+    "insertLinked": [
+     "37:141:4 (pause) to 37:96:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:141:4 (pause) to 37:96:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x24": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e19-x25": {
+   "refused": {
+    "insertLinked": [
+     "37:145:4 (pause) to 37:85:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:145:4 (pause) to 37:85:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e19-x26": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e20-x1": {
+   "refused": {
+    "insertLinked": [
+     "83:5:2 (pause) to 83:31:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 83:5:2 (pause) to 83:31:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e20-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e20-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e20-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e20-x5": {
+   "refused": {
+    "insertLinked": [
+     "83:23:3 (pause) to 83:31:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 83:23:3 (pause) to 83:31:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-e20-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-e20-x7": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 83:30:3 with no pause before it (-8.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 83:30:3 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-e20-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p01-x1": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "26:115:1",
+     "srcS": 666.055,
+     "movedS": 0.01
+    }
+   ],
+   "gate": []
+  },
+  "lab-v1.3-p01-x2": {
+   "refused": {
+    "insertLinked": [
+     "26:117:3 (link) to 26:49:14 (link)",
+     "26:49:14 (link) to 26:117:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:117:3 (link) to 26:49:14 (link), not pause to pause",
+    "inserted audio joins 26:49:14 (link) to 26:117:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p01-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p01-x4": {
+   "refused": {
+    "insertLinked": [
+     "26:121:1 (link) to 26:183:6 (link)",
+     "26:183:6 (link) to 26:121:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:121:1 (link) to 26:183:6 (link), not pause to pause",
+    "inserted audio joins 26:183:6 (link) to 26:121:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p01-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p01-x6": {
+   "refused": {
+    "insertLinked": [
+     "26:128:1 (link) to 26:63:10 (link)",
+     "26:63:10 (link) to 26:128:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:128:1 (link) to 26:63:10 (link), not pause to pause",
+    "inserted audio joins 26:63:10 (link) to 26:128:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p01-x7": {
+   "refused": {
+    "insertLinked": [
+     "26:130:3 (link) to 26:35:8 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:130:3 (link) to 26:35:8 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p01-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p01-x9": {
+   "refused": {
+    "insertLinked": [
+     "26:136:6 (link) to 26:49:14 (link)",
+     "26:49:14 (link) to 26:136:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:136:6 (link) to 26:49:14 (link), not pause to pause",
+    "inserted audio joins 26:49:14 (link) to 26:136:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p01-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p01-x11": {
+   "refused": {
+    "insertLinked": [
+     "26:140:4 (link) to 26:86:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:140:4 (link) to 26:86:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p01-x12": {
+   "refused": {
+    "insertLinked": [
+     "26:143:4 (pause) to 26:209:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:143:4 (pause) to 26:209:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p01-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p01-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p02-x1": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 55:55:4 with no pause before it (-13.2 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 55:55:4 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p03-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p03-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p03-x3": {
+   "refused": {
+    "insertLinked": [
+     "36:15:4 (link) to 36:34:2 (link)",
+     "36:34:2 (link) to 36:15:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 36:15:4 (link) to 36:34:2 (link), not pause to pause",
+    "inserted audio joins 36:34:2 (link) to 36:15:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p03-x4": {
+   "refused": {
+    "insertLinked": [
+     "36:17:5 (pause) to 36:25:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 36:17:5 (pause) to 36:25:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p03-x5": {
+   "refused": {
+    "insertLinked": [
+     "36:57:1 (link) to 36:19:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 36:57:1 (link) to 36:19:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p03-x6": {
+   "refused": {
+    "insertLinked": [
+     "36:19:9 (pause) to 36:15:15 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 36:19:9 (pause) to 36:15:15 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p03-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p03-x8": {
+   "refused": {
+    "insertLinked": [
+     "36:22:7 (link) to 36:15:15 (link)"
+    ]
+   },
+   "moved": [
+    {
+     "before": "36:23:1",
+     "srcS": 215.395,
+     "movedS": 0.01
+    }
+   ],
+   "gate": [
+    "inserted audio joins 36:22:7 (link) to 36:15:15 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p03-x9": {
+   "refused": {
+    "insertLinked": [
+     "36:25:3 (link) to 36:76:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 36:25:3 (link) to 36:76:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p03-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p03-x11": {
+   "refused": {
+    "insertLinked": [
+     "36:31:4 (link) to 36:11:8 (link)",
+     "36:11:8 (link) to 36:31:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 36:31:4 (link) to 36:11:8 (link), not pause to pause",
+    "inserted audio joins 36:11:8 (link) to 36:31:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p03-x12": {
+   "refused": {
+    "insertLinked": [
+     "36:32:3 (link) to 36:11:9 (link)",
+     "36:11:9 (link) to 36:32:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 36:32:3 (link) to 36:11:9 (link), not pause to pause",
+    "inserted audio joins 36:11:9 (link) to 36:32:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p03-x13": {
+   "refused": {
+    "insertLinked": [
+     "36:12:9 (link) to 36:34:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 36:12:9 (link) to 36:34:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p03-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p03-x15": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 36:38:6 with no pause before it (-11.0 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 36:38:6 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p03-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p03-x17": {
+   "refused": {
+    "insertLinked": [
+     "36:43:2 (link) to 36:34:2 (link)",
+     "36:34:2 (link) to 36:43:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 36:43:2 (link) to 36:34:2 (link), not pause to pause",
+    "inserted audio joins 36:34:2 (link) to 36:43:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p04-x1": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 72:20:7 with no pause before it (-10.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 72:20:7 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p05-x1": {
+   "refused": {
+    "insertLinked": [
+     "7:189:17 (link) to 7:37:37 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 7:189:17 (link) to 7:37:37 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p05-x2": {
+   "refused": {
+    "insertLinked": [
+     "7:190:8 (pause) to 7:85:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 7:190:8 (pause) to 7:85:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p05-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p05-x4": {
+   "refused": {
+    "insertLinked": [
+     "7:194:13 (link) to 7:37:37 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 7:194:13 (link) to 7:37:37 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p05-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p05-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p05-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p05-x8": {
+   "refused": {
+    "insertLinked": [
+     "7:203:15 (pause) to 7:29:16 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 7:203:15 (pause) to 7:29:16 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p05-x9": {
+   "refused": {
+    "insertLinked": [
+     "7:204:7 (link) to 7:110:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 7:204:7 (link) to 7:110:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p06-x1": {
+   "refused": {
+    "insertLinked": [
+     "8:2:7 (link) to 8:31:5 (link)",
+     "8:31:5 (link) to 8:2:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 8:2:7 (link) to 8:31:5 (link), not pause to pause",
+    "inserted audio joins 8:31:5 (link) to 8:2:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p06-x2": {
+   "refused": {
+    "insertLinked": [
+     "8:3:6 (pause) to 8:20:11 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 8:3:6 (pause) to 8:20:11 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p06-x3": {
+   "refused": {
+    "insertLinked": [
+     "8:4:11 (pause) to 8:24:20 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 8:4:11 (pause) to 8:24:20 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p06-x4": {
+   "refused": {
+    "insertLinked": [
+     "8:6:5 (link) to 8:2:8 (link)",
+     "8:2:8 (link) to 8:6:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 8:6:5 (link) to 8:2:8 (link), not pause to pause",
+    "inserted audio joins 8:2:8 (link) to 8:6:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p06-x5": {
+   "refused": {
+    "insertLinked": [
+     "8:7:14 (pause) to 8:24:20 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 8:7:14 (pause) to 8:24:20 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p06-x6": {
+   "refused": {
+    "insertLinked": [
+     "8:32:1 (link) to 8:9:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 8:32:1 (link) to 8:9:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p06-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p06-x8": {
+   "refused": {
+    "insertLinked": [
+     "8:12:10 (link) to 8:2:8 (link)",
+     "8:2:8 (link) to 8:12:12 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 8:12:10 (link) to 8:2:8 (link), not pause to pause",
+    "inserted audio joins 8:2:8 (link) to 8:12:12 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p06-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p07-x1": {
+   "refused": {
+    "insertLinked": [
+     "18:55:18 (link) to 18:76:8 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 18:55:18 (link) to 18:76:8 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p07-x2": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 18:57:11 with no pause before it (-17.2 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 18:57:11 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p07-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p07-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p07-x5": {
+   "refused": {
+    "insertLinked": [
+     "18:63:16 (link) to 18:76:7 (link)",
+     "18:76:7 (link) to 18:63:17 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 18:63:16 (link) to 18:76:7 (link), not pause to pause",
+    "inserted audio joins 18:76:7 (link) to 18:63:17 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p08-x1": {
+   "refused": {
+    "insertLinked": [
+     "2:20:12 (link) to 2:74:11 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 2:20:12 (link) to 2:74:11 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p08-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p08-x3": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 2:22:23 with no pause before it (-16.3 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 2:22:23 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p08-x4": {
+   "refused": {
+    "insertLinked": [
+     "2:23:8 (link) to 2:282:78 (link)",
+     "2:282:78 (link) to 2:23:10 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 2:23:8 (link) to 2:282:78 (link), not pause to pause",
+    "inserted audio joins 2:282:78 (link) to 2:23:10 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p08-x5": {
+   "refused": {
+    "insertLinked": [
+     "2:23:20 (pause) to 2:56:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 2:23:20 (pause) to 2:56:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p09-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p09-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p09-x3": {
+   "refused": {
+    "insertLinked": [
+     "19:68:8 (pause) to 19:63:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 19:68:8 (pause) to 19:63:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p09-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p09-x5": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 19:75:25 with no pause before it (-8.4 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 19:75:25 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p09-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p09-x7": {
+   "refused": {
+    "insertLinked": [
+     "19:80:4 (link) to 19:20:11 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 19:80:4 (link) to 19:20:11 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p09-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p09-x9": {
+   "refused": {
+    "insertLinked": [
+     "19:83:9 (pause) to 19:80:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 19:83:9 (pause) to 19:80:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p09-x10": {
+   "refused": {
+    "insertLinked": [
+     "19:85:6 (pause) to 19:80:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 19:85:6 (pause) to 19:80:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p10-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x2": {
+   "refused": {
+    "insertLinked": [
+     "26:101:1 (link) to 26:154:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:101:1 (link) to 26:154:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x3": {
+   "refused": {
+    "insertLinked": [
+     "26:215:1 (link) to 26:156:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:215:1 (link) to 26:156:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x4": {
+   "refused": {
+    "insertLinked": [
+     "26:158:4 (link) to 26:6:6 (link)",
+     "26:6:6 (link) to 26:158:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:158:4 (link) to 26:6:6 (link), not pause to pause",
+    "inserted audio joins 26:6:6 (link) to 26:158:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x7": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 26:166:10 with no pause before it (-13.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 26:166:10 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p11-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x11": {
+   "refused": {
+    "insertLinked": [
+     "26:176:4 (pause) to 26:75:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:176:4 (pause) to 26:75:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x14": {
+   "refused": {
+    "insertLinked": [
+     "26:183:9 (pause) to 26:28:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:183:9 (pause) to 26:28:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x17": {
+   "refused": {
+    "insertLinked": [
+     "26:101:1 (link) to 26:190:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:101:1 (link) to 26:190:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x18": {
+   "refused": {
+    "insertLinked": [
+     "26:87:1 (link) to 26:193:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:87:1 (link) to 26:193:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x19": {
+   "refused": {
+    "insertLinked": [
+     "26:195:3 (pause) to 26:129:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:195:3 (pause) to 26:129:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x20": {
+   "refused": {
+    "insertLinked": [
+     "26:198:5 (pause) to 26:117:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:198:5 (pause) to 26:117:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x21": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p11-x22": {
+   "refused": {
+    "insertLinked": [
+     "26:202:5 (pause) to 26:117:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:202:5 (pause) to 26:117:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x23": {
+   "refused": {
+    "insertLinked": [
+     "26:205:3 (link) to 26:75:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:205:3 (link) to 26:75:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p11-x24": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p12-x1": {
+   "refused": {
+    "insertLinked": [
+     "77:8:2 (link) to 77:25:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 77:8:2 (link) to 77:25:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p12-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p12-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p12-x4": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 77:22:2 with no pause before it (-12.2 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 77:22:2 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p12-x5": {
+   "refused": {
+    "insertLinked": [
+     "77:27:7 (pause) to 77:43:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 77:27:7 (pause) to 77:43:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p12-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p12-x7": {
+   "refused": {
+    "insertLinked": [
+     "77:34:3 (pause) to 77:8:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 77:34:3 (pause) to 77:8:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p12-x8": {
+   "refused": {
+    "insertLinked": [
+     "77:38:4 (link) to 77:43:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 77:38:4 (link) to 77:43:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p12-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p12-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p12-x11": {
+   "refused": {
+    "insertLinked": [
+     "77:45:3 (pause) to 77:9:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 77:45:3 (pause) to 77:9:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p12-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p13-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p13-x2": {
+   "refused": {
+    "insertLinked": [
+     "5:11:19 (link) to 5:67:11 (link)",
+     "5:67:11 (link) to 5:11:20 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 5:11:19 (link) to 5:67:11 (link), not pause to pause",
+    "inserted audio joins 5:67:11 (link) to 5:11:20 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p13-x3": {
+   "refused": {
+    "insertLinked": [
+     "5:12:15 (pause) to 5:8:26 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 5:12:15 (pause) to 5:8:26 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p13-x4": {
+   "refused": {
+    "insertLinked": [
+     "5:86:1 (link) to 5:13:18 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 5:86:1 (link) to 5:13:18 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p13-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p13-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p14-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p14-x2": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 37:157:5 with no pause before it (-10.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 37:157:5 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p14-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p14-x4": {
+   "refused": {
+    "insertLinked": [
+     "37:166:3 (pause) to 37:18:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:166:3 (pause) to 37:18:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p14-x5": {
+   "refused": {
+    "insertLinked": [
+     "37:49:1 (link) to 37:170:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 37:49:1 (link) to 37:170:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p14-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p14-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p14-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p15-x1": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 51:5:2 with no pause before it (-15.4 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 51:5:2 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p15-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p15-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p15-x4": {
+   "refused": {
+    "insertLinked": [
+     "51:5:1 (link) to 51:16:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 51:5:1 (link) to 51:16:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p15-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p15-x6": {
+   "refused": {
+    "insertLinked": [
+     "51:21:3 (link) to 51:25:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 51:21:3 (link) to 51:25:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p15-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p16-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p16-x2": {
+   "refused": {
+    "insertLinked": [
+     "54:22:7 (pause) to 54:42:3 (link)",
+     "54:42:3 (link) to 54:23:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 54:22:7 (pause) to 54:42:3 (link), not pause to pause",
+    "inserted audio joins 54:42:3 (link) to 54:23:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p16-x3": {
+   "refused": {
+    "insertLinked": [
+     "54:25:5 (link) to 54:36:4 (link)",
+     "54:36:4 (link) to 54:25:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 54:25:5 (link) to 54:36:4 (link), not pause to pause",
+    "inserted audio joins 54:36:4 (link) to 54:25:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p16-x4": {
+   "refused": {
+    "insertLinked": [
+     "54:28:5 (link) to 54:42:3 (link)",
+     "54:42:3 (link) to 54:28:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 54:28:5 (link) to 54:42:3 (link), not pause to pause",
+    "inserted audio joins 54:42:3 (link) to 54:28:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p16-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p16-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p16-x7": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 54:36:4 with no pause before it (-14.2 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 54:36:4 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p16-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p16-x9": {
+   "refused": {
+    "insertLinked": [
+     "54:40:7 (pause) to 54:49:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 54:40:7 (pause) to 54:49:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p17-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p18-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p19-x1": {
+   "refused": {
+    "insertLinked": [
+     "44:28:4 (pause) to 44:33:5 (link)",
+     "44:33:5 (link) to 44:29:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:28:4 (pause) to 44:33:5 (link), not pause to pause",
+    "inserted audio joins 44:33:5 (link) to 44:29:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p19-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p19-x3": {
+   "refused": {
+    "insertLinked": [
+     "44:31:7 (pause) to 44:15:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:31:7 (pause) to 44:15:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p19-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p19-x5": {
+   "refused": {
+    "insertLinked": [
+     "44:35:7 (link) to 44:15:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:35:7 (link) to 44:15:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p19-x6": {
+   "refused": {
+    "insertLinked": [
+     "44:37:9 (pause) to 44:27:3 (link)",
+     "44:27:3 (link) to 44:37:11 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:37:9 (pause) to 44:27:3 (link), not pause to pause",
+    "inserted audio joins 44:27:3 (link) to 44:37:11 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p19-x7": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 44:38:6 with no pause before it (-10.9 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 44:38:6 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p19-x8": {
+   "refused": {
+    "insertLinked": [
+     "44:39:8 (pause) to 44:36:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:39:8 (pause) to 44:36:5 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p19-x9": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "44:43:1",
+     "srcS": 348.865,
+     "movedS": 0.05
+    }
+   ],
+   "gate": []
+  },
+  "lab-v1.3-p19-x10": {
+   "refused": {
+    "insertLinked": [
+     "44:45:2 (link) to 44:17:3 (link)",
+     "44:17:3 (link) to 44:45:3 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:45:2 (link) to 44:17:3 (link), not pause to pause",
+    "inserted audio joins 44:17:3 (link) to 44:45:3 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p19-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p19-x12": {
+   "refused": {
+    "insertLinked": [
+     "44:29:1 (link) to 44:52:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:29:1 (link) to 44:52:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p19-x13": {
+   "refused": {
+    "insertLinked": [
+     "44:53:5 (pause) to 44:27:3 (link)",
+     "44:27:3 (link) to 44:54:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 44:53:5 (pause) to 44:27:3 (link), not pause to pause",
+    "inserted audio joins 44:27:3 (link) to 44:54:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p19-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p20-x1": {
+   "refused": {
+    "insertLinked": [
+     "26:128:4 (pause) to 26:139:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:128:4 (pause) to 26:139:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x2": {
+   "refused": {
+    "insertLinked": [
+     "26:130:3 (link) to 26:28:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:130:3 (link) to 26:28:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x3": {
+   "refused": {
+    "insertLinked": [
+     "26:133:3 (pause) to 26:28:9 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:133:3 (pause) to 26:28:9 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p20-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p20-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p20-x7": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "26:143:1",
+     "srcS": 1018.895,
+     "movedS": 0.01
+    }
+   ],
+   "gate": []
+  },
+  "lab-v1.3-p20-x8": {
+   "refused": {
+    "insertLinked": [
+     "26:28:8 (link) to 26:146:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:28:8 (link) to 26:146:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p20-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p20-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p20-x12": {
+   "refused": {
+    "insertLinked": [
+     "26:154:3 (link) to 26:188:4 (link)",
+     "26:188:4 (link) to 26:154:4 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:154:3 (link) to 26:188:4 (link), not pause to pause",
+    "inserted audio joins 26:188:4 (link) to 26:154:4 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p20-x14": {
+   "refused": {
+    "insertLinked": [
+     "26:28:8 (link) to 26:158:8 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:28:8 (link) to 26:158:8 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x15": {
+   "refused": {
+    "insertLinked": [
+     "26:151:1 (link) to 26:160:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:151:1 (link) to 26:160:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x16": {
+   "refused": {
+    "reenterLinked": [
+     "goes back to 26:161:7 with no pause before it (-15.1 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat re-enters before 26:161:7 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.3-p20-x17": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "26:165:1",
+     "srcS": 1161.885,
+     "movedS": 0.01
+    }
+   ],
+   "gate": []
+  },
+  "lab-v1.3-p20-x18": {
+   "refused": {
+    "insertLinked": [
+     "26:166:11 (pause) to 26:161:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:166:11 (pause) to 26:161:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x19": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p20-x20": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.3-p20-x21": {
+   "refused": {
+    "insertLinked": [
+     "26:105:1 (link) to 26:174:6 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:105:1 (link) to 26:174:6 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x22": {
+   "refused": {
+    "insertLinked": [
+     "26:118:1 (link) to 26:177:2 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:118:1 (link) to 26:177:2 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x23": {
+   "refused": {
+    "insertLinked": [
+     "26:179:3 (pause) to 26:113:7 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:179:3 (pause) to 26:113:7 (link), not pause to pause"
+   ]
+  },
+  "lab-v1.3-p20-x24": {
+   "refused": {
+    "insertLinked": [
+     "26:181:5 (link) to 26:175:5 (link)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "inserted audio joins 26:181:5 (link) to 26:175:5 (link), not pause to pause"
+   ]
+  }
+ }
+}

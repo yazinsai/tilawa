@@ -1,0 +1,450 @@
+{
+ "version": "v1",
+ "commit": "7b28629",
+ "model": "obadx/muaalem-model-v3_2",
+ "thresholds": {
+  "min_positives": 20,
+  "viable": {
+   "recall": 0.5,
+   "fp": 0.02
+  },
+  "posterior_only": {
+   "recall": 0.5,
+   "fp": 0.05
+  },
+  "max_clip_per": 0.5
+ },
+ "datasets": {
+  "obadx/qdat_bench": {
+   "clips": 159,
+   "scored": 159
+  },
+  "azizbekphd/ikhlas_recitations": {
+   "clips": 1503,
+   "skipped: teacher decode too far from label": 50,
+   "scored": 1453
+  }
+ },
+ "canonicals": {
+  "112:1": "قُلهُوَللَااهُءَحَدڇ",
+  "112:2": "ءَللَااهُصصَمَدڇ",
+  "112:3": "لَميَلِدڇوَلَميُۥۥلَدڇ",
+  "112:4": "وَلَميَكُللَهُۥۥكُفُوَنءَحَدڇ",
+  "5:109": "قَاالُۥۥلَااعِلمَلَنَااااءِننننَكَءَںںںتَعَللَاامُلغُيُۥۥۥۥبڇ"
+ },
+ "classes": [
+  {
+   "name": "short vowel",
+   "verdict": "posterior-only",
+   "pos": 21,
+   "greedy_hit": 9,
+   "greedy_canon": 6,
+   "greedy_other": 6,
+   "top5_hit": 20,
+   "llr_hit": 12,
+   "neg": 13408,
+   "greedy_fp": 63,
+   "top5_fp": 8528,
+   "llr_fp": 145,
+   "examples": [
+    {
+     "id": "a298aab2",
+     "ayah": "5:109",
+     "site": 52,
+     "canonical": "ُ",
+     "said": "ِ",
+     "greedy": "ِ",
+     "label": "قَاالُۥۥ لَاا عِلمَ لَنَااا ءِننننَكَ ءَنتَ عَللَاامُ لغِيُۥۥب",
+     "hyp": "قَاالُۥۥلَااعِلمَلَنَااااءِننننَكَءَنتَعَللَاامُلغِيُۥۥب"
+    },
+    {
+     "id": "ID86V3F",
+     "ayah": "112:3",
+     "site": 6,
+     "canonical": "ِ",
+     "said": "َ",
+     "greedy": "َ",
+     "label": "لﹶميَﹶلﹶݚوﹶلﹶميٌلﹶݚ",
+     "hyp": "لَميَلَتَلم"
+    },
+    {
+     "id": "ID85V3F",
+     "ayah": "112:3",
+     "site": 6,
+     "canonical": "ِ",
+     "said": "َ",
+     "greedy": "َ",
+     "label": "لﹶميَﹶلﹶݚوﹶلﹶميٌلﹶݚ",
+     "hyp": "لَميلَتوَلَميُۥۥلَد"
+    },
+    {
+     "id": "ID69V3F",
+     "ayah": "112:3",
+     "site": 6,
+     "canonical": "ِ",
+     "said": "َ",
+     "greedy": "َ",
+     "label": "لﹶميَﹶلﹶݚوﹶلﹶميٌلﹶݚ",
+     "hyp": "لَميَلَدَلَميلَت"
+    },
+    {
+     "id": "ID97V4F",
+     "ayah": "112:4",
+     "site": 11,
+     "canonical": "َ",
+     "said": "ُ",
+     "greedy": null,
+     "label": "وﹶلﹶميﹶكﹸللﹸھٌكﹸفوﹶنﹶحﹶݚ",
+     "hyp": "وَلَميَكِلُكُن"
+    },
+    {
+     "id": "ID57V3F",
+     "ayah": "112:3",
+     "site": 6,
+     "canonical": "ِ",
+     "said": "َ",
+     "greedy": "َ",
+     "label": "لﹶميَﹶلﹶݚوﹶلﹶميٌلﹶݚ",
+     "hyp": "لَميَلَدوَلَميُۥۥلَت"
+    },
+    {
+     "id": "ID82V4F",
+     "ayah": "112:4",
+     "site": 11,
+     "canonical": "َ",
+     "said": "ُ",
+     "greedy": null,
+     "label": "وﹶلﹶميﹶكﹸللﹸھٌكﹸفوﹶنﹶحﹶݚ",
+     "hyp": "وَلَميَكُللهُكُفنَحَد"
+    },
+    {
+     "id": "ID165V3F",
+     "ayah": "112:3",
+     "site": 6,
+     "canonical": "ِ",
+     "said": "َ",
+     "greedy": "َ",
+     "label": "لﹶميَﹶلﹶݚوﹶلﹶميٌلﹶݚ",
+     "hyp": "لَميَلَتوَلَميُۥۥلَت"
+    },
+    {
+     "id": "ID174V3F",
+     "ayah": "112:3",
+     "site": 6,
+     "canonical": "ِ",
+     "said": "َ",
+     "greedy": "َ",
+     "label": "لﹶميَﹶلﹶݚوﹶلﹶميٌلﹶݚ",
+     "hyp": "لَميَلَتوَلَميُۥۥلَت"
+    },
+    {
+     "id": "ID100V3F",
+     "ayah": "112:3",
+     "site": 6,
+     "canonical": "ِ",
+     "said": "َ",
+     "greedy": "ِ",
+     "label": "لﹶميَﹶلﹶݚوﹶلﹶميٌلﹶݚ",
+     "hyp": "لَميَلِدوَلَميُۥۥلَد"
+    },
+    {
+     "id": "ID105V4F",
+     "ayah": "112:4",
+     "site": 11,
+     "canonical": "َ",
+     "said": "ُ",
+     "greedy": "و",
+     "label": "وﹶلﹶميﹶكﹸللﹸھٌكﹸفوﹶنﹶحﹶݚ",
+     "hyp": "وَلَميَكُللوكُفنحَت"
+    },
+    {
+     "id": "ID63V4F",
+     "ayah": "112:4",
+     "site": 11,
+     "canonical": "َ",
+     "said": "ُ",
+     "greedy": null,
+     "label": "وﹶلﹶميﹶكﹸللﹸھٌكﹸفوﹶنﹶحﹶݚ",
+     "hyp": "وَلَميكُلُكُفوَنءَحَد"
+    },
+    {
+     "id": "ID64V3F",
+     "ayah": "112:3",
+     "site": 6,
+     "canonical": "ِ",
+     "said": "َ",
+     "greedy": "َ",
+     "label": "لﹶميَﹶلﹶݚوﹶلﹶميٌلﹶݚ",
+     "hyp": "لَميَلَدوَلَميُۥۥلَد"
+    },
+    {
+     "id": "ID178V3F",
+     "ayah": "112:3",
+     "site": 6,
+     "canonical": "ِ",
+     "said": "َ",
+     "greedy": "ِ",
+     "label": "لﹶميَﹶلﹶݚوﹶلﹶميٌلﹶݚ",
+     "hyp": "لَميَلِدوَلَميُۥۥلَت"
+    },
+    {
+     "id": "ID61V3F",
+     "ayah": "112:3",
+     "site": 6,
+     "canonical": "ِ",
+     "said": "َ",
+     "greedy": "َ",
+     "label": "لﹶࢧيَﹶلﹶݚوﹶلﹶميٌلﹶݚ",
+     "hyp": "لَمميَلَتوَلَممِلَ"
+    },
+    {
+     "id": "ID62V4F",
+     "ayah": "112:4",
+     "site": 11,
+     "canonical": "َ",
+     "said": "ُ",
+     "greedy": "َ",
+     "label": "وﹶلﹶميﹶكﹸللﹸھٌكﹸفوﹶنﹶحﹶݚ",
+     "hyp": "وَلَميَكُللَهُۥقُفُوَنءَحَد"
+    },
+    {
+     "id": "ID58V4F",
+     "ayah": "112:4",
+     "site": 11,
+     "canonical": "َ",
+     "said": "ُ",
+     "greedy": null,
+     "label": "وﹶلﹶميﹶكﹸللﹸھٌكﹸفوﹶنﹶحﹶݚ",
+     "hyp": "وَلَميَكُلُۥكُفُوَنعَد"
+    },
+    {
+     "id": "ID143V4F",
+     "ayah": "112:4",
+     "site": 8,
+     "canonical": "ُ",
+     "said": "َ",
+     "greedy": "ُ",
+     "label": "وﹶلﹶميﹶكﹶللﹶھٌكﹸفوﹶنﹶحﹶݚ",
+     "hyp": "وَلَميَكُللَهُۥۥكُفوَنءَحَد"
+    },
+    {
+     "id": "ID257V4F",
+     "ayah": "112:4",
+     "site": 6,
+     "canonical": "َ",
+     "said": "ِ",
+     "greedy": "َ",
+     "label": "وﹶلﹶميﹺكﹸللﹸھٌكﹸفوﹶنﹶحﹶݚ",
+     "hyp": "وَلَميَكُللَهُۥۥكُفوَنءَحَد"
+    },
+    {
+     "id": "ID257V4F",
+     "ayah": "112:4",
+     "site": 11,
+     "canonical": "َ",
+     "said": "ُ",
+     "greedy": "َ",
+     "label": "وﹶلﹶميﹺكﹸللﹸھٌكﹸفوﹶنﹶحﹶݚ",
+     "hyp": "وَلَميَكُللَهُۥۥكُفوَنءَحَد"
+    },
+    {
+     "id": "ID270V4F",
+     "ayah": "112:4",
+     "site": 8,
+     "canonical": "ُ",
+     "said": "َ",
+     "greedy": "ِ",
+     "label": "وﹶلﹶميﹶكﹶللﹶھٌكﹸفوﹶنﹶحﹶݚ",
+     "hyp": "وَلَميَقِللَقُووَنحَت"
+    }
+   ]
+  },
+  {
+   "name": "ح/ه",
+   "verdict": "unsupported",
+   "pos": 0,
+   "greedy_hit": 0,
+   "greedy_canon": 0,
+   "greedy_other": 0,
+   "top5_hit": 0,
+   "llr_hit": 0,
+   "neg": 2167,
+   "greedy_fp": 2,
+   "top5_fp": 131,
+   "llr_fp": 4,
+   "examples": []
+  },
+  {
+   "name": "ع/ء",
+   "verdict": "unsupported",
+   "pos": 1,
+   "greedy_hit": 1,
+   "greedy_canon": 0,
+   "greedy_other": 0,
+   "top5_hit": 1,
+   "llr_hit": 1,
+   "neg": 635,
+   "greedy_fp": 1,
+   "top5_fp": 351,
+   "llr_fp": 2,
+   "examples": [
+    {
+     "id": "289cbb94",
+     "ayah": "5:109",
+     "site": 34,
+     "canonical": "ء",
+     "said": "ع",
+     "greedy": "ع",
+     "label": "قَاالُ لَاا عِلمَ لَنَاااااا ءِنننَكَ عَ ءَنتَ عَللَاامُ لغُيُۥۥبڇ",
+     "hyp": "قَاالُلَااعِلمَلَنَااااءِننننَكَعَنءَںتَعَللَاامُلغُيُۥۥبڇ"
+    }
+   ]
+  },
+  {
+   "name": "ص/س",
+   "verdict": "unsupported",
+   "pos": 0,
+   "greedy_hit": 0,
+   "greedy_canon": 0,
+   "greedy_other": 0,
+   "top5_hit": 0,
+   "llr_hit": 0,
+   "neg": 730,
+   "greedy_fp": 33,
+   "top5_fp": 641,
+   "llr_fp": 73,
+   "examples": []
+  },
+  {
+   "name": "ض/د",
+   "verdict": "unsupported",
+   "pos": 0,
+   "greedy_hit": 0,
+   "greedy_canon": 0,
+   "greedy_other": 0,
+   "top5_hit": 0,
+   "llr_hit": 0,
+   "neg": 1821,
+   "greedy_fp": 1,
+   "top5_fp": 191,
+   "llr_fp": 1,
+   "examples": []
+  },
+  {
+   "name": "ط/ت",
+   "verdict": "unsupported",
+   "pos": 0,
+   "greedy_hit": 0,
+   "greedy_canon": 0,
+   "greedy_other": 0,
+   "top5_hit": 0,
+   "llr_hit": 0,
+   "neg": 158,
+   "greedy_fp": 0,
+   "top5_fp": 49,
+   "llr_fp": 0,
+   "examples": []
+  },
+  {
+   "name": "ق/ك",
+   "verdict": "unsupported",
+   "pos": 0,
+   "greedy_hit": 0,
+   "greedy_canon": 0,
+   "greedy_other": 0,
+   "top5_hit": 0,
+   "llr_hit": 0,
+   "neg": 1395,
+   "greedy_fp": 29,
+   "top5_fp": 1270,
+   "llr_fp": 40,
+   "examples": []
+  },
+  {
+   "name": "ذ/ز",
+   "verdict": "unsupported",
+   "pos": 0,
+   "greedy_hit": 0,
+   "greedy_canon": 0,
+   "greedy_other": 0,
+   "top5_hit": 0,
+   "llr_hit": 0,
+   "neg": 0,
+   "greedy_fp": 0,
+   "top5_fp": 0,
+   "llr_fp": 0,
+   "examples": []
+  },
+  {
+   "name": "ث/س",
+   "verdict": "unsupported",
+   "pos": 0,
+   "greedy_hit": 0,
+   "greedy_canon": 0,
+   "greedy_other": 0,
+   "top5_hit": 0,
+   "llr_hit": 0,
+   "neg": 0,
+   "greedy_fp": 0,
+   "top5_fp": 0,
+   "llr_fp": 0,
+   "examples": []
+  },
+  {
+   "name": "missing shadda",
+   "verdict": "unsupported",
+   "pos": 4,
+   "greedy_hit": 1,
+   "greedy_canon": 3,
+   "greedy_other": 0,
+   "top5_hit": 0,
+   "llr_hit": 1,
+   "neg": 1764,
+   "greedy_fp": 98,
+   "top5_fp": 0,
+   "llr_fp": 111,
+   "examples": [
+    {
+     "id": "ID114V4F",
+     "ayah": "112:4",
+     "site": 9,
+     "canonical": "لل",
+     "said": "نل",
+     "greedy": "لل",
+     "label": "وﹶلﹶࢧيﹶكﹸنلﹶھٌكﹸفوﹶڽﹶحﹶۮ",
+     "hyp": "وَلَمميَكُللَهُۥۥكُفرُننءحَد"
+    },
+    {
+     "id": "ID194V4F",
+     "ayah": "112:4",
+     "site": 9,
+     "canonical": "لل",
+     "said": "نل",
+     "greedy": "نل",
+     "label": "وﹶلﹶࢧيﹶكﹸنلﹶھٌكﹸفﹸوﹶڽﹶحﹶݚ",
+     "hyp": "وَلَميَكُنلَهُۥۥقُفُنءَحَد"
+    },
+    {
+     "id": "ID196V4F",
+     "ayah": "112:4",
+     "site": 9,
+     "canonical": "لل",
+     "said": "نل",
+     "greedy": "لل",
+     "label": "وﹶلﹶࢧيﹶكﹸنلﹶھٌكﹸفوﹶنﹶحﹶۮ",
+     "hyp": "وَلَميَكُللَهُۥۥكُفوَنءَحَدڇ"
+    },
+    {
+     "id": "ID273V4F",
+     "ayah": "112:4",
+     "site": 9,
+     "canonical": "لل",
+     "said": "نل",
+     "greedy": "لل",
+     "label": "وﹶلﹶࢧيﹶكﹸنلﹶھٌكﹸفوﹶڽﹶحﹶۮ",
+     "hyp": "وَلَممميَكُللَهُۥۥكُفوَنننءَحَد"
+    }
+   ]
+  }
+ ]
+}

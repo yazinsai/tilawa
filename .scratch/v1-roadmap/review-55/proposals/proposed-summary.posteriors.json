@@ -1,0 +1,62 @@
+{
+  "labelKind": "proposed",
+  "note": "Proposed labels from a dry run. Not training labels: the training data is unchanged, and acceptance happens in ticket 07.",
+  "clips": 970,
+  "outcomes": {
+    "locked": 418,
+    "ambiguous": 199,
+    "lost": 181,
+    "decode_failed": 124,
+    "insufficient_evidence": 48
+  },
+  "agreement": {
+    "locked": 418,
+    "agree": 160,
+    "rate": 0.3827751196172249
+  },
+  "patterns": {
+    "filename ayah": 152,
+    "contains 2 ayahs (-2..-1)": 72,
+    "off by -1 ayah": 72,
+    "other surah": 40,
+    "contains 2 ayahs (-1..+0)": 22,
+    "contains 2 ayahs (+0..+1)": 9,
+    "part of filename ayah": 8,
+    "contains 2 ayahs (-3..-2)": 5,
+    "contains 3 ayahs (-2..+0)": 4,
+    "contains 2 ayahs (-4..-3)": 3,
+    "contains 2 ayahs (-8..-7)": 2,
+    "contains 3 ayahs (-1..+1)": 2,
+    "off by -6 ayah": 2,
+    "off by -9 ayah": 2,
+    "contains 2 ayahs (+1..+2)": 1,
+    "contains 2 ayahs (-10..-9)": 1,
+    "contains 2 ayahs (-13..-12)": 1,
+    "contains 2 ayahs (-5..-4)": 1,
+    "contains 2 ayahs (-6..-5)": 1,
+    "contains 2 ayahs (-7..-6)": 1,
+    "contains 2 ayahs (-9..-8)": 1,
+    "contains 3 ayahs (-4..-2)": 1,
+    "contains 3 ayahs (-9..-7)": 1,
+    "contains 4 ayahs (-5..-2)": 1,
+    "contains 4 ayahs (-6..-3)": 1,
+    "contains 5 ayahs (-4..+0)": 1,
+    "contains 6 ayahs (-4..+1)": 1,
+    "off by +21 ayah": 1,
+    "off by -11 ayah": 1,
+    "off by -24 ayah": 1,
+    "off by -25 ayah": 1,
+    "off by -26 ayah": 1,
+    "off by -3 ayah": 1,
+    "off by -4 ayah": 1,
+    "off by -5 ayah": 1,
+    "off by -7 ayah": 1,
+    "off by -8 ayah": 1
+  },
+  "input": "/tmp/s258.pass1.jsonl",
+  "referenceVersion": "ref-v2",
+  "options": {
+    "posteriors": true,
+    "priorWeight": 1
+  }
+}

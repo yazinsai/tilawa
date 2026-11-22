@@ -1,0 +1,350 @@
+{
+ "version": 1,
+ "testSet": "realuser-v1",
+ "split": "practice",
+ "run": "realuser-main-3fab08f-dirty-20261030T194041Z",
+ "sha": "3fab08f-dirty",
+ "listener": "spliced-clean-int8",
+ "teacher": "teacher",
+ "policy": "free recitation, no context; lab scorer (packages/core/src/bench/lab.ts); practice only, exam never looked at",
+ "independentModel": {
+  "vendor": "soniox",
+  "model": "stt-async-v5",
+  "request": "audio only (16 kHz mono PCM16 window), language hint ar; no text, label or context",
+  "calibration": "docs/benchmarks/lab-triage-v1.md, 'Soniox margin v2' (judge rule reach, calibrated on the user's lab-v1.x listens); not recalibrated on phone audio of real users",
+  "record": "/lab/reviews/realuser-v1/asr-soniox.json"
+ },
+ "queue": "realuser-v1/review/false-warnings.json",
+ "falseWarnings": [
+  {
+   "case": "realuser-v1-ret-015/phone/warning:skipped_passage/2:255:12/4.40",
+   "session": "realuser-v1-ret-015",
+   "timeS": 4.4,
+   "errorClass": "skipped_passage",
+   "word": "2:255:12",
+   "component": "checker",
+   "oracle": true,
+   "truePosition": true,
+   "teacher": false,
+   "expected": "نَومُللَهُۥۥمَاافِسسَمَااوَااتِوَمَاافِلءَرضِمَںںںذَ",
+   "observed": "وَهُوَلعَلزِۦيُلعَظِۦۦممََ",
+   "incident": "join seam",
+   "resolution": "bad_splice (automatic): a jump seam just before it; the reciter's 2:255 fragments skip words. Excluded by realuser-v1/flags-v1.json (every jump seam, -1 s to +3 s)."
+  },
+  {
+   "case": "realuser-v1-ret-017/phone/warning:skipped_passage/110:1:5/12.08",
+   "session": "realuser-v1-ret-017",
+   "timeS": 12.08,
+   "errorClass": "skipped_passage",
+   "word": "110:1:5",
+   "component": "listener",
+   "oracle": false,
+   "truePosition": true,
+   "teacher": false,
+   "expected": "وَلفَتحوَرَءَيتَننننَااسَيَدڇخُلُۥۥنَفِۦۦدِۦۦنِللَااهِءَفوَااجَاا",
+   "observed": null,
+   "incident": "join seam",
+   "resolution": "bad_splice (automatic): a jump seam just before it; the reciter has no 110:2 clip. Excluded by realuser-v1/flags-v1.json (every jump seam, -1 s to +3 s)."
+  },
+  {
+   "case": "realuser-v1-ret-023/phone/warning:skipped_passage/1:4:1/13.60",
+   "session": "realuser-v1-ret-023",
+   "timeS": 13.6,
+   "errorClass": "skipped_passage",
+   "word": "1:4:1",
+   "component": "checker",
+   "oracle": true,
+   "truePosition": true,
+   "teacher": true,
+   "expected": "مَاالِكِيَومِددِۦۦن",
+   "observed": null,
+   "incident": "join seam",
+   "resolution": "bad_splice (automatic): a jump seam just before it; the reciter's clips skip 1:4 and go from 112 to 114. Excluded by realuser-v1/flags-v1.json (every jump seam, -1 s to +3 s)."
+  },
+  {
+   "case": "realuser-v1-ret-023/phone/warning:added_word/112:4:1/34.52",
+   "session": "realuser-v1-ret-023",
+   "timeS": 34.52,
+   "errorClass": "added_word",
+   "word": "112:4:1",
+   "component": "checker",
+   "oracle": true,
+   "truePosition": true,
+   "teacher": true,
+   "expected": "وَلَميَكُللَهُۥۥكُفُوَنءَحَدڇقُل",
+   "observed": null,
+   "incident": "join seam",
+   "resolution": "bad_splice (automatic): a jump seam just before it; the reciter's clips skip 1:4 and go from 112 to 114. Excluded by realuser-v1/flags-v1.json (every jump seam, -1 s to +3 s)."
+  },
+  {
+   "case": "realuser-v1-ret-031/phone/warning:omitted_word/1:3:1/4.60",
+   "session": "realuser-v1-ret-031",
+   "timeS": 4.6,
+   "errorClass": "omitted_word",
+   "word": "1:3:1",
+   "component": "checker",
+   "oracle": true,
+   "truePosition": true,
+   "teacher": true,
+   "expected": "ءَررَحمَاانِررَحِۦۦم",
+   "observed": null,
+   "incident": "join seam",
+   "resolution": "bad_splice (automatic): a jump seam just before it; the reciter has no 1:3 clip. Excluded by realuser-v1/flags-v1.json (every jump seam, -1 s to +3 s)."
+  },
+  {
+   "case": "realuser-v1-ret-034/phone/warning:omitted_word/1:3:1/6.52",
+   "session": "realuser-v1-ret-034",
+   "timeS": 6.52,
+   "errorClass": "omitted_word",
+   "word": "1:3:1",
+   "component": "checker",
+   "oracle": true,
+   "truePosition": true,
+   "teacher": true,
+   "expected": "ءَررَحمَاانِررَحِۦۦم",
+   "observed": null,
+   "incident": "join seam",
+   "resolution": "bad_splice (automatic): a jump seam just before it; the reciter has no 1:3 clip. Excluded by realuser-v1/flags-v1.json (every jump seam, -1 s to +3 s)."
+  },
+  {
+   "case": "realuser-v1-sob-025/phone/warning:skipped_passage/108:2:1/4.80",
+   "session": "realuser-v1-sob-025",
+   "timeS": 4.8,
+   "errorClass": "skipped_passage",
+   "word": "108:2:1",
+   "component": "checker",
+   "oracle": true,
+   "truePosition": true,
+   "teacher": true,
+   "expected": "فَصَللِلِرَببِكَوَنحَر",
+   "observed": null,
+   "incident": "join seam",
+   "resolution": "bad_splice (automatic): a jump seam just before it; chunk c1 (108:2) is not in the dataset. Excluded by realuser-v1/flags-v1.json (every jump seam, -1 s to +3 s)."
+  },
+  {
+   "case": "realuser-v1-sob-028/phone/warning:omitted_word/103:2:4/4.56",
+   "session": "realuser-v1-sob-028",
+   "timeS": 4.56,
+   "errorClass": "omitted_word",
+   "word": "103:2:4",
+   "component": "listener",
+   "oracle": false,
+   "truePosition": true,
+   "teacher": true,
+   "expected": "خُسر",
+   "observed": null,
+   "incident": "listener",
+   "audio": {
+    "path": "realuser-v1/sessions/realuser-v1-sob-028.phone.wav",
+    "startS": 1.06,
+    "endS": 6.26
+   },
+   "claimed": "ٱلْإِنسَـٰنَ لَفِى خُسْرٍ إِلَّا ٱلَّذِينَ",
+   "soniox": {
+    "model": "stt-async-v5",
+    "audioSha256": "24d3b382bea63f5363b74c939f468442c5aa6995da0ee5ee75692b27413e1c90",
+    "transcript": "إِنَّ الْإِنْسَانَ لَا. إِلَّا الَّذِينَ.",
+    "judge": [
+     {
+      "alternative": 4,
+      "text": "ٱلْإِنسَـٰنَ لَفِى إِلَّا ٱلَّذِينَ",
+      "decision": "mismatch",
+      "reason": null,
+      "claimed": 6,
+      "diff": -2,
+      "need": 2,
+      "needAgainst": 2
+     },
+     {
+      "alternative": 3,
+      "text": "ٱلْإِنسَـٰنَ إِلَّا ٱلَّذِينَ",
+      "decision": "mismatch",
+      "reason": null,
+      "claimed": 6,
+      "diff": -3,
+      "need": 3.0,
+      "needAgainst": 2
+     }
+    ],
+    "opinion": "mismatch"
+   },
+   "resolution": "real mistake: your listen, bad_label 'خُسْرٍ is never said'. Relabelled as omitted_word at 103:2:4; caught.",
+   "provisional": "bad_audio (provisional): the app chunk stops inside 103:2 (it starts and ends at speech level, no edge silence); teacher, student and Soniox all hear no خسر"
+  },
+  {
+   "case": "realuser-v1-sob-032/phone/warning:omitted_word/81:15:3/62.84",
+   "session": "realuser-v1-sob-032",
+   "timeS": 62.84,
+   "errorClass": "omitted_word",
+   "word": "81:15:3",
+   "component": "listener",
+   "oracle": false,
+   "truePosition": true,
+   "teacher": false,
+   "expected": "بِلخُننننَس",
+   "observed": null,
+   "incident": "listener",
+   "audio": {
+    "path": "realuser-v1/sessions/realuser-v1-sob-032.phone.wav",
+    "startS": 57.74,
+    "endS": 66.62
+   },
+   "claimed": "فَلَآ أُقْسِمُ بِٱلْخُنَّسِ ٱلْجَوَارِ ٱلْكُنَّسِ",
+   "soniox": {
+    "model": "stt-async-v5",
+    "audioSha256": "e830dcc72d7ba31346d1ce666634dea31763e25155b6f00f8633130ed584bf91",
+    "transcript": "فلا أقسم بالجواري الكنّ.",
+    "judge": [
+     {
+      "alternative": 3,
+      "text": "فَلَآ أُقْسِمُ ٱلْجَوَارِ ٱلْكُنَّسِ",
+      "decision": "unsure",
+      "reason": "too close to call",
+      "claimed": 5,
+      "diff": -2,
+      "need": 3.0,
+      "needAgainst": 2.5
+     }
+    ],
+    "opinion": "mismatch"
+   },
+   "resolution": "real mistake: your listen, bad_label 'ٱلْخُنَّسِ is never said'. Relabelled as omitted_word at 81:15:3; caught.",
+   "provisional": "unresolved: Soniox hears no بالخنس (opinion mismatch, judge too close to call); teacher doesn't warn"
+  },
+  {
+   "case": "realuser-v1-sob-034/phone/warning:skipped_passage/79:43:1/99.96",
+   "session": "realuser-v1-sob-034",
+   "timeS": 99.96,
+   "errorClass": "skipped_passage",
+   "word": "79:43:1",
+   "component": "checker",
+   "oracle": true,
+   "truePosition": true,
+   "teacher": true,
+   "expected": "فِۦۦمَءَںںںتَمِںںںذِكرَااهَااءِلَاارَببِكَمُںںںتَهَااهَاا",
+   "observed": null,
+   "incident": "join seam",
+   "resolution": "bad_splice (automatic): a jump seam just before it; chunks c17-c18 (79:43-44) are not in the dataset. Excluded by realuser-v1/flags-v1.json (every jump seam, -1 s to +3 s)."
+  },
+  {
+   "case": "realuser-v1-sob-049/phone/warning:wrong_word/92:13:1/36.44",
+   "session": "realuser-v1-sob-049",
+   "timeS": 36.44,
+   "errorClass": "wrong_word",
+   "word": "92:13:1",
+   "component": "listener",
+   "oracle": false,
+   "truePosition": true,
+   "teacher": false,
+   "expected": "وَءِننننَ",
+   "observed": "وَءِليَ",
+   "incident": "listener",
+   "audio": {
+    "path": "realuser-v1/sessions/realuser-v1-sob-049.phone.wav",
+    "startS": 33.5,
+    "endS": 38.22
+   },
+   "claimed": "عَلَيْنَا لَلْهُدَىٰ وَإِنَّ لَنَا لَلْـَٔاخِرَةَ",
+   "soniox": {
+    "model": "stt-async-v5",
+    "audioSha256": "d6baccb70d6b59d831affd3c9e416007711eff95cc21393fbac40345fea4fabc",
+    "transcript": "علينا للهدى، وإن لنا للآخرة.",
+    "judge": [
+     {
+      "alternative": 2,
+      "text": "عَلَيْنَا لَلْهُدَىٰ وَإِلَى لَنَا لَلْـَٔاخِرَةَ",
+      "decision": "match",
+      "reason": null,
+      "claimed": 0,
+      "diff": 2,
+      "need": 2,
+      "needAgainst": 2
+     }
+    ],
+    "opinion": "match"
+   },
+   "resolution": "false warning (listener): your listen, ok, 'وَإِنَّ is said but there's no long 'n' at the end - a tajweed mistake'. Said as written for memorization.",
+   "provisional": "listener (provisional): Soniox hears the text as written (judge match)"
+  },
+  {
+   "case": "realuser-v1-sob-055/phone/warning:skipped_passage/83:14:1/58.72",
+   "session": "realuser-v1-sob-055",
+   "timeS": 58.72,
+   "errorClass": "skipped_passage",
+   "word": "83:14:1",
+   "component": "checker",
+   "oracle": true,
+   "truePosition": true,
+   "teacher": true,
+   "expected": "كَللَاابَلۜرَاانَ",
+   "observed": null,
+   "incident": "join seam",
+   "resolution": "bad_splice (automatic): a jump seam just before it; chunk c2 (83:14 start) is not in the dataset. Excluded by realuser-v1/flags-v1.json (every jump seam, -1 s to +3 s)."
+  },
+  {
+   "case": "realuser-v1-tlo-281/phone/warning:omitted_word/2:21:11/45.84",
+   "session": "realuser-v1-tlo-281",
+   "timeS": 45.84,
+   "errorClass": "omitted_word",
+   "word": "2:21:11",
+   "component": "listener",
+   "oracle": false,
+   "truePosition": true,
+   "teacher": false,
+   "expected": "تَتتَقُۥۥن",
+   "observed": null,
+   "incident": "listener",
+   "audio": {
+    "path": "realuser-v1/sessions/realuser-v1-tlo-281.phone.wav",
+    "startS": 40.94,
+    "endS": 47.1
+   },
+   "claimed": "قَبْلِكُمْ لَعَلَّكُمْ تَتَّقُونَ ٱلَّذِى جَعَلَ",
+   "soniox": {
+    "model": "stt-async-v5",
+    "audioSha256": "157d0fdd83bdc70b719ff0b8ec76d0ff33340b47666fd2b6649dcbce8841cca0",
+    "transcript": "من قبلكم، لعلكم تهتدون. الذي جعلنا.",
+    "judge": [
+     {
+      "alternative": 9,
+      "text": "قَبْلِكُمْ لَعَلَّكُمْ ٱلَّذِى جَعَلَ",
+      "decision": "match",
+      "reason": null,
+      "claimed": 5,
+      "diff": 4,
+      "need": 2.5,
+      "needAgainst": 2.5
+     },
+     {
+      "alternative": 3,
+      "text": "قَبْلِكُمْ لَعَلَّكُمْ تَهْتَدُونَ ٱلَّذِى جَعَلَ",
+      "decision": "mismatch",
+      "reason": null,
+      "claimed": 5,
+      "diff": -2,
+      "need": 2,
+      "needAgainst": 2
+     }
+    ],
+    "opinion": "unsure"
+   },
+   "resolution": "bad audio: your listen, bad_audio. Window 40.94-47.1 s excluded.",
+   "provisional": "unresolved, likely a real wrong word: Soniox hears تهتدون for تتقون (judge mismatch against the claimed text); the engine's omission warning sits on that word"
+  }
+ ],
+ "counts": {
+  "falseWarnings": 13,
+  "joinSeam": 9,
+  "toListen": 4,
+  "realMistakes": 2,
+  "badAudio": 1,
+  "falseWarningsLeft": 1
+ },
+ "human": {
+  "reviewer": "me",
+  "record": "/lab/reviews/realuser-v1/me.json",
+  "at": "2026-10-31",
+  "corrections": "docs/benchmarks/lab-realuser-v1-corrections.json",
+  "soniox": "agreed with the listen on sob-032 (word missing) and sob-049 (as written); on sob-028 it heard the word missing as you did (the cut-chunk reading was mine); on tlo-281 it heard تهتدون where you heard bad audio"
+ }
+}

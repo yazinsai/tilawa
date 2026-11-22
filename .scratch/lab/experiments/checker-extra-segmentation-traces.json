@@ -1,0 +1,4053 @@
+[
+ {
+  "case": {
+   "key": "lab-v1.5-p09/phone/mistake:added_word/37:151:1/109.83",
+   "kind": "mistake",
+   "session": "lab-v1.5-p09",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "37:151:1",
+   "startS": 109.835,
+   "endS": 110.675,
+   "outcome": "hit",
+   "component": null,
+   "confirmedS": 114.6,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "hit",
+   "teacher": "miss",
+   "trackerOnPlace": 0.75,
+   "allFail": false,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p09.phone.wav",
+    "startS": 106.84,
+    "endS": 113.68
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 37,
+    "ayah": 151,
+    "word": 1
+   },
+   "startS": 109.835,
+   "endS": 110.675,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "سَلِيمٍ",
+   "said": "سَلِۦۦم",
+   "donor": "37:84:5",
+   "splice": "x6"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 150,
+     "word": 5,
+     "start": 482632,
+     "end": 482637
+    },
+    "reference": "وَهُم",
+    "heard": "وَهُم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 5
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 150,
+     "word": 6,
+     "start": 482637,
+     "end": 482648
+    },
+    "reference": "شَااهِدُۥۥن",
+    "heard": "شَااهِدُۥۥن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 145,
+     "word": 4,
+     "start": 482413,
+     "end": 482420
+    },
+    "reference": "سَقِۦۦم",
+    "heard": "سَلِۦۦم",
+    "cost": 10,
+    "hard": 1,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 151,
+     "word": 1,
+     "start": 482648,
+     "end": 482656
+    },
+    "reference": "ءَلَاااا",
+    "heard": "ءَلَاااا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 151,
+     "word": 2,
+     "start": 482656,
+     "end": 482668
+    },
+    "reference": "ءِننننَهُممم",
+    "heard": "ءِننننَهُممم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 12
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:148:1#5",
+    "timeMs": 102280,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 37,
+     "ayah": 148,
+     "word": 1
+    },
+    "expected": "فَءَاامَنُۥۥ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p77/phone/mistake:added_word/9:61:1/29.55",
+   "kind": "mistake",
+   "session": "lab-v1.5-p77",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "9:61:1",
+   "startS": 29.555,
+   "endS": 30.395,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.821,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p77.phone.wav",
+    "startS": 26.56,
+    "endS": 33.39
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 9,
+    "ayah": 61,
+    "word": 1
+   },
+   "startS": 29.555,
+   "endS": 30.395,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "فِيهَا",
+   "said": "فِۦۦهَاا",
+   "donor": "9:63:13",
+   "splice": "x1"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 60,
+     "word": 21,
+     "start": 207807,
+     "end": 207816
+    },
+    "reference": "عَلِۦۦمُن",
+    "heard": "عَلِۦۦمُن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 60,
+     "word": 22,
+     "start": 207816,
+     "end": 207823
+    },
+    "reference": "حَكِۦۦم",
+    "heard": "حَكِۦۦم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 63,
+     "word": 13,
+     "start": 208251,
+     "end": 208259
+    },
+    "reference": "فِۦۦهَاا",
+    "heard": "فِۦۦهَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 61,
+     "word": 1,
+     "start": 207823,
+     "end": 207832
+    },
+    "reference": "وَمِنهُمُ",
+    "heard": "وَمِنهُمُ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 61,
+     "word": 2,
+     "start": 207832,
+     "end": 207841
+    },
+    "reference": "للَذِۦۦنَ",
+    "heard": "للَذِۦۦنَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 61,
+     "word": 3,
+     "start": 207841,
+     "end": 207850
+    },
+    "reference": "يُءذُۥۥنَ",
+    "heard": "يُءذُۥۥنَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "9:61:1#1",
+    "timeMs": 31320,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 9,
+     "ayah": 61,
+     "word": 1
+    },
+    "expected": "وَمِنهُمُ",
+    "observed": "فِۦۦهَاا",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "9:61:1#1",
+    "timeMs": 31720,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 9,
+     "ayah": 61,
+     "word": 1
+    },
+    "expected": "وَمِنهُمُ",
+    "observed": "فِۦۦهَاا",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "9:64:9#3",
+    "timeMs": 113380,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 9,
+     "ayah": 64,
+     "word": 9
+    },
+    "expected": "فِۦۦ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p77/phone/mistake:added_word/9:65:8/110.13",
+   "kind": "mistake",
+   "session": "lab-v1.5-p77",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "9:65:8",
+   "startS": 110.125,
+   "endS": 110.965,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.536,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p77.phone.wav",
+    "startS": 107.13,
+    "endS": 113.97
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 9,
+    "ayah": 65,
+    "word": 8
+   },
+   "startS": 110.125,
+   "endS": 110.965,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "فِيهَا",
+   "said": "فِۦۦهَاا",
+   "donor": "9:63:13",
+   "splice": "x5"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 65,
+     "word": 5,
+     "start": 208470,
+     "end": 208479
+    },
+    "reference": "كُننننَاا",
+    "heard": "كُننننَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 65,
+     "word": 6,
+     "start": 208479,
+     "end": 208487
+    },
+    "reference": "نَخُۥۥضُ",
+    "heard": "نَخُۥۥضُ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 65,
+     "word": 7,
+     "start": 208487,
+     "end": 208496
+    },
+    "reference": "وَنَلعَبُ",
+    "heard": "وَنَلعَبُ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 63,
+     "word": 13,
+     "start": 208251,
+     "end": 208259
+    },
+    "reference": "فِۦۦهَاا",
+    "heard": "فِۦۦهَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 65,
+     "word": 8,
+     "start": 208496,
+     "end": 208499
+    },
+    "reference": "قُل",
+    "heard": "قُل",
+    "cost": 0,
+    "hard": 0,
+    "covered": 3
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 65,
+     "word": 9,
+     "start": 208499,
+     "end": 208510
+    },
+    "reference": "ءَبِللَااهِ",
+    "heard": "ءَبِللَااهِ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   },
+   {
+    "word": {
+     "surah": 9,
+     "ayah": 65,
+     "word": 10,
+     "start": 208510,
+     "end": 208526
+    },
+    "reference": "وَءَاايَااتِهِۦۦ",
+    "heard": "وَءَاايَااتِهِۦۦ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 16
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "9:61:1#1",
+    "timeMs": 31320,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 9,
+     "ayah": 61,
+     "word": 1
+    },
+    "expected": "وَمِنهُمُ",
+    "observed": "فِۦۦهَاا",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "9:61:1#1",
+    "timeMs": 31720,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 9,
+     "ayah": 61,
+     "word": 1
+    },
+    "expected": "وَمِنهُمُ",
+    "observed": "فِۦۦهَاا",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "9:64:9#3",
+    "timeMs": 113380,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 9,
+     "ayah": 64,
+     "word": 9
+    },
+    "expected": "فِۦۦ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p70/phone/mistake:added_word/35:43:23/135.01",
+   "kind": "mistake",
+   "session": "lab-v1.5-p70",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "35:43:23",
+   "startS": 135.015,
+   "endS": 136.095,
+   "outcome": "hit",
+   "component": null,
+   "confirmedS": 141.96,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "hit",
+   "teacher": "miss",
+   "trackerOnPlace": 0.567,
+   "allFail": false,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p70.phone.wav",
+    "startS": 132.01,
+    "endS": 139.1
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 35,
+    "ayah": 43,
+    "word": 23
+   },
+   "startS": 135.015,
+   "endS": 136.095,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "تَزُولَا",
+   "said": "تَزُۥۥلَاا",
+   "donor": "35:41:7",
+   "splice": "x4"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 43,
+     "word": 21,
+     "start": 469890,
+     "end": 469902
+    },
+    "reference": "تَبڇدِۦۦلَوو",
+    "heard": "تَبڇدِۦۦلَوو",
+    "cost": 0,
+    "hard": 0,
+    "covered": 12
+   },
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 43,
+     "word": 22,
+     "start": 469902,
+     "end": 469909
+    },
+    "reference": "وَلَںںں",
+    "heard": "وَلَںںں",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 43,
+     "word": 23,
+     "start": 469909,
+     "end": 469915
+    },
+    "reference": "تَجِدَ",
+    "heard": "تَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 2
+   },
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 43,
+     "word": 22,
+     "start": 469902,
+     "end": 469909
+    },
+    "reference": "وَلَںںں",
+    "heard": "زُۥۥلَا",
+    "cost": 25,
+    "hard": 1,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 43,
+     "word": 23,
+     "start": 469909,
+     "end": 469915
+    },
+    "reference": "تَجِدَ",
+    "heard": "تَجِدَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 43,
+     "word": 24,
+     "start": 469915,
+     "end": 469926
+    },
+    "reference": "لِسُننننَتِ",
+    "heard": "لِسُننننَتِ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   },
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 43,
+     "word": 25,
+     "start": 469926,
+     "end": 469933
+    },
+    "reference": "للَااهِ",
+    "heard": "للَااهِ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "35:42:13#2",
+    "timeMs": 135120,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 35,
+     "ayah": 42,
+     "word": 13
+    },
+    "expected": "فَلَممممَاا",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "35:43:23#3",
+    "timeMs": 135780,
+    "state": "suspected",
+    "errorClass": "wrong_word",
+    "location": {
+     "surah": 35,
+     "ayah": 43,
+     "word": 23
+    },
+    "expected": "تَجِدَ",
+    "observed": "تَزُۥۥلَ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "35:43:23#3",
+    "timeMs": 135900,
+    "state": "resolved",
+    "errorClass": "wrong_word",
+    "location": {
+     "surah": 35,
+     "ayah": 43,
+     "word": 23
+    },
+    "expected": "تَجِدَ",
+    "observed": "تَزُۥۥلَ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p08/phone/mistake:added_word/37:102:16/72.17",
+   "kind": "mistake",
+   "session": "lab-v1.5-p08",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "37:102:16",
+   "startS": 72.165,
+   "endS": 73.005,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "hit",
+   "trackerOnPlace": 0.69,
+   "allFail": false,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p08.phone.wav",
+    "startS": 69.17,
+    "endS": 76.01
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 37,
+    "ayah": 102,
+    "word": 16
+   },
+   "startS": 72.165,
+   "endS": 73.005,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "سَلِيمٍ",
+   "said": "سَلِۦۦم",
+   "donor": "37:84:5",
+   "splice": "x3"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 102,
+     "word": 13,
+     "start": 480644,
+     "end": 480652
+    },
+    "reference": "فَںںںظُر",
+    "heard": "فَںںںظُر",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 102,
+     "word": 14,
+     "start": 480652,
+     "end": 480660
+    },
+    "reference": "مَااذَاا",
+    "heard": "مَااذَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 102,
+     "word": 15,
+     "start": 480660,
+     "end": 480666
+    },
+    "reference": "تَرَاا",
+    "heard": "تَرَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 102,
+     "word": 16,
+     "start": 480666,
+     "end": 480672
+    },
+    "reference": "قَاالَ",
+    "heard": "سَ",
+    "cost": 10,
+    "hard": 1,
+    "covered": 2
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 100,
+     "word": 3,
+     "start": 480498,
+     "end": 480502
+    },
+    "reference": "لِۦۦ",
+    "heard": "لِۦۦ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 4
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 100,
+     "word": 4,
+     "start": 480502,
+     "end": 480506
+    },
+    "reference": "مِنَ",
+    "heard": "م",
+    "cost": 0,
+    "hard": 0,
+    "covered": 1
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 102,
+     "word": 16,
+     "start": 480666,
+     "end": 480672
+    },
+    "reference": "قَاالَ",
+    "heard": "قَاالَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 102,
+     "word": 17,
+     "start": 480672,
+     "end": 480684
+    },
+    "reference": "يَااااءَبَتِ",
+    "heard": "يَااااءَبَتِ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 12
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:101:1#2",
+    "timeMs": 82640,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 37,
+     "ayah": 101,
+     "word": 1
+    },
+    "expected": "فَبَششَرنَااهُ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p08/phone/mistake:added_word/37:103:1/89.39",
+   "kind": "mistake",
+   "session": "lab-v1.5-p08",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "37:103:1",
+   "startS": 89.395,
+   "endS": 90.235,
+   "outcome": "hit",
+   "component": null,
+   "confirmedS": 96.72,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "hit",
+   "teacher": "miss",
+   "trackerOnPlace": 0.586,
+   "allFail": false,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p08.phone.wav",
+    "startS": 86.4,
+    "endS": 93.24
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 37,
+    "ayah": 103,
+    "word": 1
+   },
+   "startS": 89.395,
+   "endS": 90.235,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "سَلِيمٍ",
+   "said": "سَلِۦۦم",
+   "donor": "37:84:5",
+   "splice": "x4"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 102,
+     "word": 26,
+     "start": 480737,
+     "end": 480749
+    },
+    "reference": "صصَاابِرِۦۦن",
+    "heard": "صصَاابِرِۦۦن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 12
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 103,
+     "word": 1,
+     "start": 480749,
+     "end": 480762
+    },
+    "reference": "فَلَممممَاااا",
+    "heard": "سَلِۦۦم",
+    "cost": 18,
+    "hard": 1,
+    "covered": 5
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 103,
+     "word": 1,
+     "start": 480749,
+     "end": 480762
+    },
+    "reference": "فَلَممممَاااا",
+    "heard": "فَلَممممَاااا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 13
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:101:1#2",
+    "timeMs": 82640,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 37,
+     "ayah": 101,
+     "word": 1
+    },
+    "expected": "فَبَششَرنَااهُ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p50/phone/mistake:added_word/37:99:1/146.47",
+   "kind": "mistake",
+   "session": "lab-v1.5-p50",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "37:99:1",
+   "startS": 146.465,
+   "endS": 147.745,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.455,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p50.phone.wav",
+    "startS": 143.47,
+    "endS": 150.75
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 37,
+    "ayah": 99,
+    "word": 1
+   },
+   "startS": 146.465,
+   "endS": 147.745,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "وَقِفُوهُمْ",
+   "said": "وَقِفُۥۥهُم",
+   "donor": "37:24:1",
+   "splice": "x6"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 98,
+     "word": 5,
+     "start": 480429,
+     "end": 480440
+    },
+    "reference": "لءَسفَلِۦۦن",
+    "heard": "لءَسفَلِۦۦن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 99,
+     "word": 1,
+     "start": 480440,
+     "end": 480448
+    },
+    "reference": "وَقَاالَ",
+    "heard": "وَق",
+    "cost": 0,
+    "hard": 0,
+    "covered": 3
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 99,
+     "word": 1,
+     "start": 480440,
+     "end": 480448
+    },
+    "reference": "وَقَاالَ",
+    "heard": "وَقَاالَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 99,
+     "word": 2,
+     "start": 480448,
+     "end": 480457
+    },
+    "reference": "ءِننننِۦۦ",
+    "heard": "ءِننننِۦۦ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:99:1#8",
+    "timeMs": 147420,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 99,
+     "word": 1
+    },
+    "expected": "وَقَاالَ",
+    "observed": "ِفُۥۥه",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:99:1#8",
+    "timeMs": 149480,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 99,
+     "word": 1
+    },
+    "expected": "وَقَاالَ",
+    "observed": "ِفُۥۥهُمو",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:6#15",
+    "timeMs": 265640,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 6
+    },
+    "expected": "ذُررِييَتِهِمَاا",
+    "observed": "فُۥۥه",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:6#15",
+    "timeMs": 265760,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 6
+    },
+    "expected": "ذُررِييَتِهِمَاا",
+    "observed": "فُۥۥه",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:5#16",
+    "timeMs": 265880,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 5
+    },
+    "expected": "وَمِںںں",
+    "observed": "قِفُۥۥهُ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:5#16",
+    "timeMs": 267420,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 5
+    },
+    "expected": "وَمِںںں",
+    "observed": "قِفُۥۥهُ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:5#17",
+    "timeMs": 267540,
+    "state": "suspected",
+    "errorClass": "skipped_passage",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 5
+    },
+    "expected": "وَمِںںںذُررِييَتِهِمَاامُحسِنُوووَظَاالِمُللِنَفسِهِۦۦمُبِۦۦنوَلَقَدڇمَنَننننَااعَلَاامُۥۥسَااوَهَاارُۥۥنوَنَججَينَااهُمَاا",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:115:2#18",
+    "timeMs": 267540,
+    "state": "suspected",
+    "errorClass": "wrong_word",
+    "location": {
+     "surah": 37,
+     "ayah": 115,
+     "word": 2
+    },
+    "expected": "وَقَومَهُمَاا",
+    "observed": "وَقِفُۥۥهُموَ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:112:1#14",
+    "timeMs": 267640,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 37,
+     "ayah": 112,
+     "word": 1
+    },
+    "expected": "وَبَششَرنَااهُ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:5#17",
+    "timeMs": 267640,
+    "state": "resolved",
+    "errorClass": "skipped_passage",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 5
+    },
+    "expected": "وَمِںںںذُررِييَتِهِمَاامُحسِنُوووَظَاالِمُللِنَفسِهِۦۦمُبِۦۦنوَلَقَدڇمَنَننننَااعَلَاامُۥۥسَااوَهَاارُۥۥنوَنَججَينَااهُمَاا",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:115:2#18",
+    "timeMs": 267640,
+    "state": "resolved",
+    "errorClass": "wrong_word",
+    "location": {
+     "surah": 37,
+     "ayah": 115,
+     "word": 2
+    },
+    "expected": "وَقَومَهُمَاا",
+    "observed": "وَقِفُۥۥهُموَ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p50/phone/mistake:added_word/37:113:5/264.69",
+   "kind": "mistake",
+   "session": "lab-v1.5-p50",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "37:113:5",
+   "startS": 264.695,
+   "endS": 265.975,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.424,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p50.phone.wav",
+    "startS": 261.7,
+    "endS": 268.98
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 37,
+    "ayah": 113,
+    "word": 5
+   },
+   "startS": 264.695,
+   "endS": 265.975,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "وَقِفُوهُمْ",
+   "said": "وَقِفُۥۥهُم",
+   "donor": "37:24:1",
+   "splice": "x12"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 4,
+     "start": 481163,
+     "end": 481172
+    },
+    "reference": "ءِسحَااقَ",
+    "heard": "ءِسحَااقَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 5,
+     "start": 481172,
+     "end": 481179
+    },
+    "reference": "وَمِںںں",
+    "heard": "وَقِ",
+    "cost": 10,
+    "hard": 1,
+    "covered": 4
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 116,
+     "word": 3,
+     "start": 481350,
+     "end": 481354
+    },
+    "reference": "هُمُ",
+    "heard": "هُم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 3
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 5,
+     "start": 481172,
+     "end": 481179
+    },
+    "reference": "وَمِںںں",
+    "heard": "وَمِںںں",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 6,
+     "start": 481179,
+     "end": 481195
+    },
+    "reference": "ذُررِييَتِهِمَاا",
+    "heard": "ذُررِييَتِهِمَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 16
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:99:1#8",
+    "timeMs": 147420,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 99,
+     "word": 1
+    },
+    "expected": "وَقَاالَ",
+    "observed": "ِفُۥۥه",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:99:1#8",
+    "timeMs": 149480,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 99,
+     "word": 1
+    },
+    "expected": "وَقَاالَ",
+    "observed": "ِفُۥۥهُمو",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:6#15",
+    "timeMs": 265640,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 6
+    },
+    "expected": "ذُررِييَتِهِمَاا",
+    "observed": "فُۥۥه",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:6#15",
+    "timeMs": 265760,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 6
+    },
+    "expected": "ذُررِييَتِهِمَاا",
+    "observed": "فُۥۥه",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:5#16",
+    "timeMs": 265880,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 5
+    },
+    "expected": "وَمِںںں",
+    "observed": "قِفُۥۥهُ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:5#16",
+    "timeMs": 267420,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 5
+    },
+    "expected": "وَمِںںں",
+    "observed": "قِفُۥۥهُ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:5#17",
+    "timeMs": 267540,
+    "state": "suspected",
+    "errorClass": "skipped_passage",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 5
+    },
+    "expected": "وَمِںںںذُررِييَتِهِمَاامُحسِنُوووَظَاالِمُللِنَفسِهِۦۦمُبِۦۦنوَلَقَدڇمَنَننننَااعَلَاامُۥۥسَااوَهَاارُۥۥنوَنَججَينَااهُمَاا",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:115:2#18",
+    "timeMs": 267540,
+    "state": "suspected",
+    "errorClass": "wrong_word",
+    "location": {
+     "surah": 37,
+     "ayah": 115,
+     "word": 2
+    },
+    "expected": "وَقَومَهُمَاا",
+    "observed": "وَقِفُۥۥهُموَ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:112:1#14",
+    "timeMs": 267640,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 37,
+     "ayah": 112,
+     "word": 1
+    },
+    "expected": "وَبَششَرنَااهُ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:113:5#17",
+    "timeMs": 267640,
+    "state": "resolved",
+    "errorClass": "skipped_passage",
+    "location": {
+     "surah": 37,
+     "ayah": 113,
+     "word": 5
+    },
+    "expected": "وَمِںںںذُررِييَتِهِمَاامُحسِنُوووَظَاالِمُللِنَفسِهِۦۦمُبِۦۦنوَلَقَدڇمَنَننننَااعَلَاامُۥۥسَااوَهَاارُۥۥنوَنَججَينَااهُمَاا",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:115:2#18",
+    "timeMs": 267640,
+    "state": "resolved",
+    "errorClass": "wrong_word",
+    "location": {
+     "surah": 37,
+     "ayah": 115,
+     "word": 2
+    },
+    "expected": "وَقَومَهُمَاا",
+    "observed": "وَقِفُۥۥهُموَ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p17/phone/mistake:added_word/2:11:1/112.72",
+   "kind": "mistake",
+   "session": "lab-v1.5-p17",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "2:11:1",
+   "startS": 112.72,
+   "endS": 113.48,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 1,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p17.phone.wav",
+    "startS": 109.72,
+    "endS": 116.48
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 2,
+    "ayah": 11,
+    "word": 1
+   },
+   "startS": 112.72,
+   "endS": 113.48,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "قَلِيلًۭا",
+   "said": "قَلِۦۦلَاا",
+   "donor": "2:41:16",
+   "splice": "x5"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 10,
+     "word": 11,
+     "start": 1042,
+     "end": 1050
+    },
+    "reference": "كَاانُۥۥ",
+    "heard": "كَاانُۥۥ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 10,
+     "word": 12,
+     "start": 1050,
+     "end": 1060
+    },
+    "reference": "يَكذِبُۥۥن",
+    "heard": "يَكذِبُۥۥن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 10
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 11,
+     "word": 1,
+     "start": 1060,
+     "end": 1068
+    },
+    "reference": "وَءِذَاا",
+    "heard": "قَلِۦۦلَاا",
+    "cost": 35,
+    "hard": 3,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 11,
+     "word": 1,
+     "start": 1060,
+     "end": 1068
+    },
+    "reference": "وَءِذَاا",
+    "heard": "وَءِذَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 11,
+     "word": 2,
+     "start": 1068,
+     "end": 1074
+    },
+    "reference": "قِۦۦلَ",
+    "heard": "قِۦۦلَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 11,
+     "word": 3,
+     "start": 1074,
+     "end": 1079
+    },
+    "reference": "لَهُم",
+    "heard": "لَهُم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 5
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 11,
+     "word": 4,
+     "start": 1079,
+     "end": 1083
+    },
+    "reference": "لَاا",
+    "heard": "لَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 4
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 11,
+     "word": 5,
+     "start": 1083,
+     "end": 1092
+    },
+    "reference": "تُفسِدُۥۥ",
+    "heard": "تُفسِدُۥۥ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "2:11:1#5",
+    "timeMs": 113180,
+    "state": "suspected",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 2,
+     "ayah": 11,
+     "word": 1
+    },
+    "expected": "وَءِذَاا",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "2:11:1#5",
+    "timeMs": 113340,
+    "state": "resolved",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 2,
+     "ayah": 11,
+     "word": 1
+    },
+    "expected": "وَءِذَاا",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p69/phone/mistake:added_word/35:22:1/166.79",
+   "kind": "mistake",
+   "session": "lab-v1.5-p69",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "35:22:1",
+   "startS": 166.795,
+   "endS": 167.875,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.871,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p69.phone.wav",
+    "startS": 163.79,
+    "endS": 170.88
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 35,
+    "ayah": 22,
+    "word": 1
+   },
+   "startS": 166.795,
+   "endS": 167.875,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "تَزُولَا",
+   "said": "تَزُۥۥلَاا",
+   "donor": "35:41:7",
+   "splice": "x4"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 21,
+     "word": 4,
+     "start": 466884,
+     "end": 466892
+    },
+    "reference": "لحَرُۥۥر",
+    "heard": "لحَرُۥۥر",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 18,
+     "word": 28,
+     "start": 466747,
+     "end": 466756
+    },
+    "reference": "تَزَككَاا",
+    "heard": "تَزُۥۥلَاا",
+    "cost": 18,
+    "hard": 1,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 22,
+     "word": 1,
+     "start": 466892,
+     "end": 466898
+    },
+    "reference": "وَمَاا",
+    "heard": "وَمَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 22,
+     "word": 2,
+     "start": 466898,
+     "end": 466905
+    },
+    "reference": "يَستَوِ",
+    "heard": "يَستَوِ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 35,
+     "ayah": 22,
+     "word": 3,
+     "start": 466905,
+     "end": 466917
+    },
+    "reference": "لءَحيَااااءُ",
+    "heard": "لءَحيَااااءُ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 12
+   }
+  ],
+  "events": []
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p64/phone/mistake:added_word/37:139:1/200.09",
+   "kind": "mistake",
+   "session": "lab-v1.5-p64",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "37:139:1",
+   "startS": 200.085,
+   "endS": 201.325,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.879,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p64.phone.wav",
+    "startS": 197.09,
+    "endS": 204.33
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 37,
+    "ayah": 139,
+    "word": 1
+   },
+   "startS": 200.085,
+   "endS": 201.325,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "وَقِفُوهُمْ",
+   "said": "وَقِفُۥۥهُم",
+   "donor": "37:24:1",
+   "splice": "x9"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 138,
+     "word": 3,
+     "start": 482153,
+     "end": 482163
+    },
+    "reference": "تَعقِلُۥۥن",
+    "heard": "تَعقِلُۥۥن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 10
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 139,
+     "word": 1,
+     "start": 482163,
+     "end": 482172
+    },
+    "reference": "وَءِننننَ",
+    "heard": "وَقِ",
+    "cost": 21,
+    "hard": 1,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 139,
+     "word": 2,
+     "start": 482172,
+     "end": 482180
+    },
+    "reference": "يُۥۥنُسَ",
+    "heard": "فُۥۥهُ",
+    "cost": 20,
+    "hard": 2,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 139,
+     "word": 1,
+     "start": 482163,
+     "end": 482172
+    },
+    "reference": "وَءِننننَ",
+    "heard": "وَءِننننَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 139,
+     "word": 2,
+     "start": 482172,
+     "end": 482180
+    },
+    "reference": "يُۥۥنُسَ",
+    "heard": "يُۥۥنُسَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 139,
+     "word": 3,
+     "start": 482180,
+     "end": 482186
+    },
+    "reference": "لَمِنَ",
+    "heard": "لَمِنَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:136:1#3",
+    "timeMs": 194120,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 37,
+     "ayah": 136,
+     "word": 1
+    },
+    "expected": "ثُممممَ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p14/phone/mistake:added_word/44:10:1/78.53",
+   "kind": "mistake",
+   "session": "lab-v1.5-p14",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "44:10:1",
+   "startS": 78.53,
+   "endS": 79.29,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "hit",
+   "teacher": "miss",
+   "trackerOnPlace": 1,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p14.phone.wav",
+    "startS": 75.53,
+    "endS": 82.29
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 44,
+    "ayah": 10,
+    "word": 1
+   },
+   "startS": 78.53,
+   "endS": 79.29,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "قَبْلِهِمْ",
+   "said": "قَبڇلِهِم",
+   "donor": "44:37:8",
+   "splice": "x4"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 9,
+     "word": 5,
+     "start": 530230,
+     "end": 530240
+    },
+    "reference": "يَلعَبُۥۥن",
+    "heard": "يَلعَبُۥۥن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 10
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 10,
+     "word": 1,
+     "start": 530240,
+     "end": 530249
+    },
+    "reference": "فَرتَقِبڇ",
+    "heard": "قَ",
+    "cost": 10,
+    "hard": 1,
+    "covered": 2
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 9,
+     "word": 1,
+     "start": 530213,
+     "end": 530216
+    },
+    "reference": "بَل",
+    "heard": "بڇل",
+    "cost": 3,
+    "hard": 0,
+    "covered": 3
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 9,
+     "word": 2,
+     "start": 530216,
+     "end": 530219
+    },
+    "reference": "هُم",
+    "heard": "هِم",
+    "cost": 3,
+    "hard": 0,
+    "covered": 3
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 10,
+     "word": 1,
+     "start": 530240,
+     "end": 530249
+    },
+    "reference": "فَرتَقِبڇ",
+    "heard": "فَرتَقِبڇ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 10,
+     "word": 2,
+     "start": 530249,
+     "end": 530254
+    },
+    "reference": "يَومَ",
+    "heard": "يَومَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 5
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 10,
+     "word": 3,
+     "start": 530254,
+     "end": 530259
+    },
+    "reference": "تَءتِ",
+    "heard": "تَءتِ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 5
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 10,
+     "word": 4,
+     "start": 530259,
+     "end": 530270
+    },
+    "reference": "سسَمَااااءُ",
+    "heard": "سسَمَااااءُ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "44:7:6#3",
+    "timeMs": 73940,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 44,
+     "ayah": 7,
+     "word": 6
+    },
+    "expected": "ءِںںں",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p14/phone/mistake:added_word/44:12:1/95.25",
+   "kind": "mistake",
+   "session": "lab-v1.5-p14",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "44:12:1",
+   "startS": 95.25,
+   "endS": 96.01,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.893,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p14.phone.wav",
+    "startS": 92.25,
+    "endS": 99.01
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 44,
+    "ayah": 12,
+    "word": 1
+   },
+   "startS": 95.25,
+   "endS": 96.01,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "قَبْلِهِمْ",
+   "said": "قَبڇلِهِم",
+   "donor": "44:37:8",
+   "splice": "x5"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 11,
+     "word": 4,
+     "start": 530312,
+     "end": 530321
+    },
+    "reference": "عَذَاابُن",
+    "heard": "عَذَاابُن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 11,
+     "word": 5,
+     "start": 530321,
+     "end": 530328
+    },
+    "reference": "ءَلِۦۦم",
+    "heard": "ءَلِۦۦم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 12,
+     "word": 1,
+     "start": 530328,
+     "end": 530335
+    },
+    "reference": "رَببَنَ",
+    "heard": "قَب",
+    "cost": 10,
+    "hard": 1,
+    "covered": 3
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 11,
+     "word": 5,
+     "start": 530321,
+     "end": 530328
+    },
+    "reference": "ءَلِۦۦم",
+    "heard": "ڇلِهِم",
+    "cost": 14,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 12,
+     "word": 1,
+     "start": 530328,
+     "end": 530335
+    },
+    "reference": "رَببَنَ",
+    "heard": "رَببَنَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 12,
+     "word": 2,
+     "start": 530335,
+     "end": 530339
+    },
+    "reference": "كشِف",
+    "heard": "كشِف",
+    "cost": 0,
+    "hard": 0,
+    "covered": 4
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 12,
+     "word": 3,
+     "start": 530339,
+     "end": 530346
+    },
+    "reference": "عَننننَ",
+    "heard": "عَننننَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 44,
+     "ayah": 12,
+     "word": 4,
+     "start": 530346,
+     "end": 530355
+    },
+    "reference": "لعَذَاابَ",
+    "heard": "لعَذَاابَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "44:7:6#3",
+    "timeMs": 73940,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 44,
+     "ayah": 7,
+     "word": 6
+    },
+    "expected": "ءِںںں",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p49/phone/mistake:added_word/26:123:1/152.25",
+   "kind": "mistake",
+   "session": "lab-v1.5-p49",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "26:123:1",
+   "startS": 152.245,
+   "endS": 153.085,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.357,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p49.phone.wav",
+    "startS": 149.25,
+    "endS": 156.09
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 123,
+    "word": 1
+   },
+   "startS": 152.245,
+   "endS": 153.085,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "كَرِيمٍۢ",
+   "said": "كَرِۦۦم",
+   "donor": "26:58:3",
+   "splice": "x10"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 26,
+     "ayah": 122,
+     "word": 5,
+     "start": 397361,
+     "end": 397369
+    },
+    "reference": "ررَحِۦۦم",
+    "heard": "ررَحِۦۦم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 26,
+     "ayah": 123,
+     "word": 1,
+     "start": 397369,
+     "end": 397377
+    },
+    "reference": "كَذذَبَت",
+    "heard": "كَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 2
+   },
+   {
+    "word": {
+     "surah": 26,
+     "ayah": 122,
+     "word": 5,
+     "start": 397361,
+     "end": 397369
+    },
+    "reference": "ررَحِۦۦم",
+    "heard": "رِۦۦم",
+    "cost": 15,
+    "hard": 1,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 26,
+     "ayah": 123,
+     "word": 1,
+     "start": 397369,
+     "end": 397377
+    },
+    "reference": "كَذذَبَت",
+    "heard": "كَذذَبَت",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 26,
+     "ayah": 123,
+     "word": 2,
+     "start": 397377,
+     "end": 397383
+    },
+    "reference": "عَاادُ",
+    "heard": "عَاادُ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "26:121:1#8",
+    "timeMs": 154860,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 26,
+     "ayah": 121,
+     "word": 1
+    },
+    "expected": "ءِننننَ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p63/phone/mistake:added_word/37:69:1/243.87",
+   "kind": "mistake",
+   "session": "lab-v1.5-p63",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "37:69:1",
+   "startS": 243.865,
+   "endS": 245.105,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.818,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p63.phone.wav",
+    "startS": 240.87,
+    "endS": 248.11
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 37,
+    "ayah": 69,
+    "word": 1
+   },
+   "startS": 243.865,
+   "endS": 245.105,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "وَقِفُوهُمْ",
+   "said": "وَقِفُۥۥهُم",
+   "donor": "37:24:1",
+   "splice": "x13"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 68,
+     "word": 4,
+     "start": 479289,
+     "end": 479295
+    },
+    "reference": "لَءِلَ",
+    "heard": "لَءِلَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 68,
+     "word": 5,
+     "start": 479295,
+     "end": 479303
+    },
+    "reference": "لجَحِۦۦم",
+    "heard": "لجَحِۦۦم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 1,
+     "start": 479303,
+     "end": 479313
+    },
+    "reference": "ءِننننَهُم",
+    "heard": "قِفُۥۥهُم",
+    "cost": 34,
+    "hard": 2,
+    "covered": 10
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 1,
+     "start": 479303,
+     "end": 479313
+    },
+    "reference": "ءِننننَهُم",
+    "heard": "ءِننننَهُم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 10
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 2,
+     "start": 479313,
+     "end": 479319
+    },
+    "reference": "ءَلفَو",
+    "heard": "ءَلفَو",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 3,
+     "start": 479319,
+     "end": 479334
+    },
+    "reference": "ءَاابَااااءَهُم",
+    "heard": "ءَاابَااااء",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:69:1#16",
+    "timeMs": 245020,
+    "state": "suspected",
+    "errorClass": "wrong_word",
+    "location": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 1
+    },
+    "expected": "ءِننننَهُم",
+    "observed": "قِفُۥۥهُم",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:69:2#17",
+    "timeMs": 246140,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 2
+    },
+    "expected": "ءَلفَو",
+    "observed": "ِننن",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:69:2#17",
+    "timeMs": 246300,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 2
+    },
+    "expected": "ءَلفَو",
+    "observed": "ِننن",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:69:1#16",
+    "timeMs": 246760,
+    "state": "resolved",
+    "errorClass": "wrong_word",
+    "location": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 1
+    },
+    "expected": "ءِننننَهُم",
+    "observed": "قِفُۥۥهُم",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:71:1#18",
+    "timeMs": 266000,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 71,
+     "word": 1
+    },
+    "expected": "وَلَقَدڇ",
+    "observed": "قِفُ",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:71:1#18",
+    "timeMs": 266340,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 71,
+     "word": 1
+    },
+    "expected": "وَلَقَدڇ",
+    "observed": "قِفُۥۥ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p63/phone/mistake:added_word/37:71:1/265.43",
+   "kind": "mistake",
+   "session": "lab-v1.5-p63",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "37:71:1",
+   "startS": 265.425,
+   "endS": 266.665,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.813,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p63.phone.wav",
+    "startS": 262.43,
+    "endS": 269.67
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 37,
+    "ayah": 71,
+    "word": 1
+   },
+   "startS": 265.425,
+   "endS": 266.665,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "وَقِفُوهُمْ",
+   "said": "وَقِفُۥۥهُم",
+   "donor": "37:24:1",
+   "splice": "x14"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 70,
+     "word": 4,
+     "start": 479374,
+     "end": 479384
+    },
+    "reference": "يُهرَعُۥۥن",
+    "heard": "يُهرَعُۥۥن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 10
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 71,
+     "word": 1,
+     "start": 479384,
+     "end": 479392
+    },
+    "reference": "وَلَقَدڇ",
+    "heard": "وَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 2
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 70,
+     "word": 1,
+     "start": 479348,
+     "end": 479353
+    },
+    "reference": "فَهُم",
+    "heard": "فُۥۥهُم",
+    "cost": 8,
+    "hard": 0,
+    "covered": 5
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 71,
+     "word": 1,
+     "start": 479384,
+     "end": 479392
+    },
+    "reference": "وَلَقَدڇ",
+    "heard": "وَلَقَدڇ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 71,
+     "word": 2,
+     "start": 479392,
+     "end": 479397
+    },
+    "reference": "ضَللَ",
+    "heard": "ضَللَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 5
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 71,
+     "word": 3,
+     "start": 479397,
+     "end": 479406
+    },
+    "reference": "قَبڇلَهُم",
+    "heard": "قَبڇلَهُم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 37,
+     "ayah": 71,
+     "word": 4,
+     "start": 479406,
+     "end": 479413
+    },
+    "reference": "ءَكثَرُ",
+    "heard": "ءَكثَرُ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:69:1#16",
+    "timeMs": 245020,
+    "state": "suspected",
+    "errorClass": "wrong_word",
+    "location": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 1
+    },
+    "expected": "ءِننننَهُم",
+    "observed": "قِفُۥۥهُم",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:69:2#17",
+    "timeMs": 246140,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 2
+    },
+    "expected": "ءَلفَو",
+    "observed": "ِننن",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:69:2#17",
+    "timeMs": 246300,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 2
+    },
+    "expected": "ءَلفَو",
+    "observed": "ِننن",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:69:1#16",
+    "timeMs": 246760,
+    "state": "resolved",
+    "errorClass": "wrong_word",
+    "location": {
+     "surah": 37,
+     "ayah": 69,
+     "word": 1
+    },
+    "expected": "ءِننننَهُم",
+    "observed": "قِفُۥۥهُم",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:71:1#18",
+    "timeMs": 266000,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 71,
+     "word": 1
+    },
+    "expected": "وَلَقَدڇ",
+    "observed": "قِفُ",
+    "confidence": 0.99
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "37:71:1#18",
+    "timeMs": 266340,
+    "state": "resolved",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 37,
+     "ayah": 71,
+     "word": 1
+    },
+    "expected": "وَلَقَدڇ",
+    "observed": "قِفُۥۥ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p35/phone/mistake:added_word/54:39:1/155.84",
+   "kind": "mistake",
+   "session": "lab-v1.5-p35",
+   "variant": "phone",
+   "split": "practice",
+   "strict": true,
+   "errorClass": "added_word",
+   "word": "54:39:1",
+   "startS": 155.84,
+   "endS": 157.385,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.857,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p35.phone.wav",
+    "startS": 152.84,
+    "endS": 160.39
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 54,
+    "ayah": 39,
+    "word": 1
+   },
+   "startS": 155.84,
+   "endS": 157.385,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "فَٱنتَصِرْ",
+   "said": "فَںںںتَصِر",
+   "donor": "54:10:5",
+   "splice": "x9"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 54,
+     "ayah": 38,
+     "word": 4,
+     "start": 567717,
+     "end": 567728
+    },
+    "reference": "عَذَاابُممم",
+    "heard": "عَذَاابُممم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   },
+   {
+    "word": {
+     "surah": 54,
+     "ayah": 38,
+     "word": 5,
+     "start": 567728,
+     "end": 567737
+    },
+    "reference": "مُستَقِرر",
+    "heard": "مُستَقِرر",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 54,
+     "ayah": 39,
+     "word": 1,
+     "start": 567737,
+     "end": 567747
+    },
+    "reference": "فَذُۥۥقُۥۥ",
+    "heard": "فَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 2
+   },
+   {
+    "word": {
+     "surah": 54,
+     "ayah": 38,
+     "word": 5,
+     "start": 567728,
+     "end": 567737
+    },
+    "reference": "مُستَقِرر",
+    "heard": "ںںںتَصِر",
+    "cost": 24,
+    "hard": 1,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 54,
+     "ayah": 39,
+     "word": 1,
+     "start": 567737,
+     "end": 567747
+    },
+    "reference": "فَذُۥۥقُۥۥ",
+    "heard": "فَذُۥۥقُۥۥ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 10
+   },
+   {
+    "word": {
+     "surah": 54,
+     "ayah": 39,
+     "word": 2,
+     "start": 567747,
+     "end": 567757
+    },
+    "reference": "عَذَاابِۦۦ",
+    "heard": "عَذَاابِۦۦ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 10
+   },
+   {
+    "word": {
+     "surah": 54,
+     "ayah": 39,
+     "word": 3,
+     "start": 567757,
+     "end": 567764
+    },
+    "reference": "وَنُذُر",
+    "heard": "وَنُذُر",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "54:36:4#7",
+    "timeMs": 148420,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 54,
+     "ayah": 36,
+     "word": 4
+    },
+    "expected": "فَتَمَاارَو",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p30/phone/mistake:added_word/2:283:1/184.74",
+   "kind": "mistake",
+   "session": "lab-v1.5-p30",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "2:283:1",
+   "startS": 184.735,
+   "endS": 186.495,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.514,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p30.phone.wav",
+    "startS": 181.74,
+    "endS": 189.5
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 2,
+    "ayah": 283,
+    "word": 1
+   },
+   "startS": 184.735,
+   "endS": 186.495,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "قَدِيرٌۭ",
+   "said": "قَدِۦۦر",
+   "donor": "2:259:67",
+   "splice": "x4"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 282,
+     "word": 127,
+     "start": 49891,
+     "end": 49897
+    },
+    "reference": "شَيءِن",
+    "heard": "شَيءِن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 282,
+     "word": 128,
+     "start": 49897,
+     "end": 49904
+    },
+    "reference": "عَلِۦۦم",
+    "heard": "عَلِۦۦم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 284,
+     "word": 28,
+     "start": 50379,
+     "end": 50386
+    },
+    "reference": "قَدِۦۦر",
+    "heard": "قَدِۦۦر",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 283,
+     "word": 1,
+     "start": 49904,
+     "end": 49911
+    },
+    "reference": "وَءِںںں",
+    "heard": "وَءِںںں",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 283,
+     "word": 2,
+     "start": 49911,
+     "end": 49919
+    },
+    "reference": "كُںںںتُم",
+    "heard": "كُںںںتُم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 283,
+     "word": 3,
+     "start": 49919,
+     "end": 49925
+    },
+    "reference": "عَلَاا",
+    "heard": "عَلَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 2,
+     "ayah": 283,
+     "word": 4,
+     "start": 49925,
+     "end": 49931
+    },
+    "reference": "سَفَرِ",
+    "heard": "سَفَرِ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "2:283:1#3",
+    "timeMs": 185740,
+    "state": "suspected",
+    "errorClass": "skipped_passage",
+    "location": {
+     "surah": 2,
+     "ayah": 283,
+     "word": 1
+    },
+    "expected": "وَءِںںںكُںںںتُمعَلَااسَفَرِوووَلَمتَجِدُۥۥكَااتِبَںںںفَرِهَاانُممممَقڇبُۥۥضَتُںںںفَءِنءَمِنَبَعضُكُ۾۾۾بَعضَںںںفَليُءَددِللَذِءتُمِنَءَمَاانَتَهُۥۥوَليَتتَقِللَااهَرَببَهُۥۥوَلَااتَكتُمُششَهَاادَتَوَمَيييَكتُمهَاافَءِننننَهُۥۥۥۥءَااثِمُںںںقَلبُهُۥۥوَللَااهُبِمَااتَعمَلُۥۥنَعَلِۦۦملِللَااهِمَاافِسسَمَااوَااتِوَمَاافِلءَرضِوَءِںںںتُبڇدُۥۥمَاافِۦۦۦۦءَںںںفُسِكُمءَوتُخفُۥۥهُيُحَااسِبڇكُ۾۾۾بِهِللَااهُفَيَغفِرُلِمَيييَشَااااءُوَيُعَذذِبُمَيييَشَااااءُوَللَااهُعَلَااكُللِشَيءِںںں",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "2:283:1#3",
+    "timeMs": 186940,
+    "state": "resolved",
+    "errorClass": "skipped_passage",
+    "location": {
+     "surah": 2,
+     "ayah": 283,
+     "word": 1
+    },
+    "expected": "وَءِںںںكُںںںتُمعَلَااسَفَرِوووَلَمتَجِدُۥۥكَااتِبَںںںفَرِهَاانُممممَقڇبُۥۥضَتُںںںفَءِنءَمِنَبَعضُكُ۾۾۾بَعضَںںںفَليُءَددِللَذِءتُمِنَءَمَاانَتَهُۥۥوَليَتتَقِللَااهَرَببَهُۥۥوَلَااتَكتُمُششَهَاادَتَوَمَيييَكتُمهَاافَءِننننَهُۥۥۥۥءَااثِمُںںںقَلبُهُۥۥوَللَااهُبِمَااتَعمَلُۥۥنَعَلِۦۦملِللَااهِمَاافِسسَمَااوَااتِوَمَاافِلءَرضِوَءِںںںتُبڇدُۥۥمَاافِۦۦۦۦءَںںںفُسِكُمءَوتُخفُۥۥهُيُحَااسِبڇكُ۾۾۾بِهِللَااهُفَيَغفِرُلِمَيييَشَااااءُوَيُعَذذِبُمَيييَشَااااءُوَللَااهُعَلَااكُللِشَيءِںںں",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p57/phone/mistake:added_word/51:18:1/95.26",
+   "kind": "mistake",
+   "session": "lab-v1.5-p57",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "51:18:1",
+   "startS": 95.26,
+   "endS": 95.78,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 0.96,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p57.phone.wav",
+    "startS": 92.26,
+    "endS": 98.78
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 51,
+    "ayah": 18,
+    "word": 1
+   },
+   "startS": 95.26,
+   "endS": 95.78,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "قَبْلُ",
+   "said": "قَبڇل",
+   "donor": "51:46:4",
+   "splice": "x5"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 17,
+     "word": 6,
+     "start": 557856,
+     "end": 557866
+    },
+    "reference": "يَهجَعُۥۥن",
+    "heard": "يَهجَعُۥۥن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 10
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 16,
+     "word": 7,
+     "start": 557799,
+     "end": 557805
+    },
+    "reference": "قَبڇلَ",
+    "heard": "قَبڇل",
+    "cost": 0,
+    "hard": 0,
+    "covered": 5
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 18,
+     "word": 1,
+     "start": 557866,
+     "end": 557880
+    },
+    "reference": "وَبِلءَسحَاارِ",
+    "heard": "وَبِلءَسحَاارِ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 14
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 18,
+     "word": 2,
+     "start": 557880,
+     "end": 557883
+    },
+    "reference": "هُم",
+    "heard": "هُم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 3
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "51:16:5#4",
+    "timeMs": 97520,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 51,
+     "ayah": 16,
+     "word": 5
+    },
+    "expected": "ءِننننَهُم",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p57/phone/mistake:added_word/51:20:1/112.26",
+   "kind": "mistake",
+   "session": "lab-v1.5-p57",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "51:20:1",
+   "startS": 112.26,
+   "endS": 112.78,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "hit",
+   "trackerOnPlace": 1,
+   "allFail": false,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p57.phone.wav",
+    "startS": 109.26,
+    "endS": 115.78
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 51,
+    "ayah": 20,
+    "word": 1
+   },
+   "startS": 112.26,
+   "endS": 112.78,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "قَبْلُ",
+   "said": "قَبڇل",
+   "donor": "51:46:4",
+   "splice": "x6"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 19,
+     "word": 5,
+     "start": 557935,
+     "end": 557946
+    },
+    "reference": "وَلمَحرُۥۥم",
+    "heard": "وَلمَحرُۥۥم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 16,
+     "word": 7,
+     "start": 557799,
+     "end": 557805
+    },
+    "reference": "قَبڇلَ",
+    "heard": "قَبڇل",
+    "cost": 0,
+    "hard": 0,
+    "covered": 5
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 20,
+     "word": 1,
+     "start": 557946,
+     "end": 557950
+    },
+    "reference": "وَفِ",
+    "heard": "وَفِ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 4
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 20,
+     "word": 2,
+     "start": 557950,
+     "end": 557956
+    },
+    "reference": "لءَرضِ",
+    "heard": "لءَرضِ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 20,
+     "word": 3,
+     "start": 557956,
+     "end": 557967
+    },
+    "reference": "ءَاايَااتُل",
+    "heard": "ءَاايَااتُل",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "51:16:5#4",
+    "timeMs": 97520,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 51,
+     "ayah": 16,
+     "word": 5
+    },
+    "expected": "ءِننننَهُم",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.4-p19/phone/mistake:added_word/51:27:1/56.80",
+   "kind": "mistake",
+   "session": "lab-v1.4-p19",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "51:27:1",
+   "startS": 56.805,
+   "endS": 57.525,
+   "outcome": "hit",
+   "component": null,
+   "confirmedS": 60.48,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "hit",
+   "teacher": "hit",
+   "trackerOnPlace": 1,
+   "allFail": false,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.4-p19.phone.wav",
+    "startS": 53.81,
+    "endS": 60.53
+   }
+  },
+  "label": {
+   "span": "span-1",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 51,
+    "ayah": 27,
+    "word": 1
+   },
+   "startS": 56.805,
+   "endS": 57.525,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "وَمِن",
+   "said": "وَمِن",
+   "donor": "51:49:1",
+   "splice": "x2"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 26,
+     "word": 5,
+     "start": 558302,
+     "end": 558313
+    },
+    "reference": "بِعِجڇلِںںں",
+    "heard": "بِعِجڇلِںںں",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 26,
+     "word": 6,
+     "start": 558313,
+     "end": 558320
+    },
+    "reference": "سَمِۦۦن",
+    "heard": "سَمِۦۦن",
+    "cost": 0,
+    "hard": 0,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 26,
+     "word": 6,
+     "start": 558313,
+     "end": 558320
+    },
+    "reference": "سَمِۦۦن",
+    "heard": "وَمِن",
+    "cost": 14,
+    "hard": 1,
+    "covered": 7
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 27,
+     "word": 1,
+     "start": 558320,
+     "end": 558335
+    },
+    "reference": "فَقَررَبَهُۥۥۥۥ",
+    "heard": "فَقَررَبَهُۥۥۥۥ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 15
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 27,
+     "word": 2,
+     "start": 558335,
+     "end": 558343
+    },
+    "reference": "ءِلَيهِم",
+    "heard": "ءِلَيهِم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 51,
+     "ayah": 27,
+     "word": 3,
+     "start": 558343,
+     "end": 558349
+    },
+    "reference": "قَاالَ",
+    "heard": "قَاالَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 6
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "51:27:1#2",
+    "timeMs": 57400,
+    "state": "suspected",
+    "errorClass": "skipped_passage",
+    "location": {
+     "surah": 51,
+     "ayah": 27,
+     "word": 1
+    },
+    "expected": "فَقَررَبَهُۥۥۥۥءِلَيهِمقَاالَءَلَااتَءكُلُۥۥنفَءَوجَسَ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "51:25:6#1",
+    "timeMs": 57400,
+    "state": "confirmed",
+    "errorClass": "omitted_word",
+    "location": {
+     "surah": 51,
+     "ayah": 25,
+     "word": 6
+    },
+    "expected": "قَاالَ",
+    "confidence": 0.9900000000000001
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "51:27:1#2",
+    "timeMs": 57940,
+    "state": "resolved",
+    "errorClass": "skipped_passage",
+    "location": {
+     "surah": 51,
+     "ayah": 27,
+     "word": 1
+    },
+    "expected": "فَقَررَبَهُۥۥۥۥءِلَيهِمقَاالَءَلَااتَءكُلُۥۥنفَءَوجَسَ",
+    "confidence": 0.9900000000000001
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.4-p15/phone/mistake:added_word/38:4:6/38.61",
+   "kind": "mistake",
+   "session": "lab-v1.4-p15",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "38:4:6",
+   "startS": 38.61,
+   "endS": 39.17,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "hit",
+   "trackerOnPlace": 1,
+   "allFail": false,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.4-p15.phone.wav",
+    "startS": 35.61,
+    "endS": 42.17
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 38,
+    "ayah": 4,
+    "word": 6
+   },
+   "startS": 38.61,
+   "endS": 39.17,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "إِن",
+   "said": "ءِن",
+   "donor": "38:14:1",
+   "splice": "x2"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 38,
+     "ayah": 4,
+     "word": 4,
+     "start": 483978,
+     "end": 483989
+    },
+    "reference": "مممُںںںذِرُ",
+    "heard": "مممُںںںذِرُ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   },
+   {
+    "word": {
+     "surah": 38,
+     "ayah": 4,
+     "word": 5,
+     "start": 483989,
+     "end": 483998
+    },
+    "reference": "ممممِنهُم",
+    "heard": "ممممِنهُم",
+    "cost": 0,
+    "hard": 0,
+    "covered": 9
+   },
+   {
+    "word": {
+     "surah": 38,
+     "ayah": 4,
+     "word": 6,
+     "start": 483998,
+     "end": 484006
+    },
+    "reference": "وَقَاالَ",
+    "heard": "وَقَاالَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   },
+   {
+    "word": {
+     "surah": 38,
+     "ayah": 4,
+     "word": 7,
+     "start": 484006,
+     "end": 484019
+    },
+    "reference": "لكَاافِرُۥۥنَ",
+    "heard": "لكَاافِرُۥۥنَ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 13
+   },
+   {
+    "word": {
+     "surah": 38,
+     "ayah": 4,
+     "word": 8,
+     "start": 484019,
+     "end": 484027
+    },
+    "reference": "هَااذَاا",
+    "heard": "هَااذَاا",
+    "cost": 0,
+    "hard": 0,
+    "covered": 8
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "38:4:6#1",
+    "timeMs": 39880,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 38,
+     "ayah": 4,
+     "word": 6
+    },
+    "expected": "وَقَاالَ",
+    "observed": "ءِن",
+    "confidence": 0.9899999999999999
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "38:4:6#1",
+    "timeMs": 42460,
+    "state": "uncertain",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 38,
+     "ayah": 4,
+     "word": 6
+    },
+    "expected": "وَقَاالَ",
+    "observed": "ءِن",
+    "confidence": 0.9899999999999999
+   }
+  ]
+ },
+ {
+  "case": {
+   "key": "lab-v1.5-p78/phone/mistake:added_word/11:10:11/125.42",
+   "kind": "mistake",
+   "session": "lab-v1.5-p78",
+   "variant": "phone",
+   "split": "practice",
+   "strict": false,
+   "errorClass": "added_word",
+   "word": "11:10:11",
+   "startS": 125.425,
+   "endS": 125.985,
+   "outcome": "miss",
+   "component": "checker",
+   "confirmedS": null,
+   "mutashabihat": false,
+   "oracle": "miss",
+   "truePosition": "miss",
+   "teacher": "miss",
+   "trackerOnPlace": 1,
+   "allFail": true,
+   "review": {
+    "path": "lab-v1.5/sessions/lab-v1.5-p78.phone.wav",
+    "startS": 122.43,
+    "endS": 128.99
+   }
+  },
+  "label": {
+   "span": "span-3",
+   "errorClass": "added_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 11,
+    "ayah": 10,
+    "word": 11
+   },
+   "startS": 125.425,
+   "endS": 125.985,
+   "forms_other_ayah": false,
+   "expected": "",
+   "observed": "مَن",
+   "said": "مَن",
+   "donor": "11:15:1",
+   "splice": "x3"
+  },
+  "visits": [
+   {
+    "word": {
+     "surah": 11,
+     "ayah": 10,
+     "word": 9,
+     "start": 235428,
+     "end": 235440
+    },
+    "reference": "سسَييِءَااتُ",
+    "heard": "سسَييِءَااتُ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 12
+   },
+   {
+    "word": {
+     "surah": 11,
+     "ayah": 10,
+     "word": 10,
+     "start": 235440,
+     "end": 235451
+    },
+    "reference": "عَننننِۦۦۦۦ",
+    "heard": "عَننننِۦۦۦۦ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   },
+   {
+    "word": {
+     "surah": 11,
+     "ayah": 10,
+     "word": 11,
+     "start": 235451,
+     "end": 235462
+    },
+    "reference": "ءِننننَهُۥۥ",
+    "heard": "ءِننننَهُۥۥ",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   },
+   {
+    "word": {
+     "surah": 11,
+     "ayah": 10,
+     "word": 12,
+     "start": 235462,
+     "end": 235473
+    },
+    "reference": "لَفَرِحُںںں",
+    "heard": "لَفَرِحُںںں",
+    "cost": 0,
+    "hard": 0,
+    "covered": 11
+   }
+  ],
+  "events": [
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "11:10:11#2",
+    "timeMs": 126460,
+    "state": "suspected",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 11,
+     "ayah": 10,
+     "word": 11
+    },
+    "expected": "ءِننننَهُۥۥ",
+    "observed": "مَن",
+    "confidence": 0.9899999999999999
+   },
+   {
+    "type": "checker",
+    "v": 1,
+    "id": "11:10:11#2",
+    "timeMs": 128960,
+    "state": "uncertain",
+    "errorClass": "added_word",
+    "location": {
+     "surah": 11,
+     "ayah": 10,
+     "word": 11
+    },
+    "expected": "ءِننننَهُۥۥ",
+    "observed": "مَن",
+    "confidence": 0.9899999999999999
+   }
+  ]
+ }
+]

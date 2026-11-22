@@ -1,0 +1,8032 @@
+{
+  "seed": 1,
+  "cutoffs": {
+    "minConfidence": 0.2,
+    "cleanMaxPer": 0.03,
+    "cleanMinTeacherConf": 0.9,
+    "deviantMaxPer": 0.3,
+    "rejectBelowTeacherConf": 0.5
+  },
+  "strata": {
+    "text_only": {
+      "population": 22718,
+      "sampled": 30
+    },
+    "clean_core": {
+      "population": 51340,
+      "sampled": 40
+    },
+    "clean_edge": {
+      "population": 27868,
+      "sampled": 50
+    },
+    "deviant_edge": {
+      "population": 65649,
+      "sampled": 50
+    },
+    "deviant_core": {
+      "population": 203006,
+      "sampled": 30
+    },
+    "ambiguous": {
+      "population": 115044,
+      "sampled": 30
+    },
+    "reject_high_per": {
+      "population": 1955,
+      "sampled": 30
+    },
+    "reject_low_teacher": {
+      "population": 6989,
+      "sampled": 25
+    },
+    "reject_other": {
+      "population": 215284,
+      "sampled": 15
+    }
+  },
+  "unsampled": {
+    "decode_failed": 6768,
+    "too_long": 3232
+  },
+  "clips": [
+    {
+      "shard": "unclean-00146-of-00332",
+      "row": 490,
+      "path": "-1_-1_4952222575.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 12,
+            "ayah": 16,
+            "word": 1
+          },
+          "end": {
+            "surah": 12,
+            "ayah": 16,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 8.8840625,
+      "cluster": "230",
+      "per": 0.11363636363636363,
+      "meanConf": 0.9070633693439204,
+      "confidence": 0.5388479116702113,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00033-of-00411",
+      "row": 734,
+      "path": "12_1_342492451.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 12,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 12,
+            "ayah": 1,
+            "word": 5
+          }
+        }
+      },
+      "durationS": 7.5946875,
+      "cluster": "55",
+      "per": 0.04,
+      "meanConf": 0.9804905205965042,
+      "confidence": 0.8662480376766091,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00395-of-00411",
+      "row": 262,
+      "path": "94_8_8524881606.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 94,
+            "ayah": 8,
+            "word": 1
+          },
+          "end": {
+            "surah": 94,
+            "ayah": 8,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 3.60525,
+      "cluster": "85",
+      "per": 0,
+      "meanConf": 0.9252012686596977,
+      "confidence": 1,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00098-of-00411",
+      "row": 773,
+      "path": "1_7_6765474963.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 7,
+            "word": 1
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 7,
+            "word": 9
+          }
+        }
+      },
+      "durationS": 8.0464375,
+      "cluster": "100",
+      "per": 0.015625,
+      "meanConf": 0.9529404430650175,
+      "confidence": 0.9127072704081634,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00399-of-00411",
+      "row": 704,
+      "path": "96_8_1085658365.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 96,
+            "ayah": 8,
+            "word": 1
+          },
+          "end": {
+            "surah": 96,
+            "ayah": 8,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 4.044875,
+      "cluster": "230",
+      "per": 0,
+      "meanConf": 0.9828353935274584,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00113-of-00332",
+      "row": 652,
+      "path": "-1_-1_4056382314.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 36,
+            "ayah": 26,
+            "word": 4
+          },
+          "end": {
+            "surah": 36,
+            "ayah": 27,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 15.0465,
+      "cluster": "230",
+      "per": 0.036585365853658534,
+      "meanConf": 0.9700663574488766,
+      "confidence": 0.8184075275717104,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00074-of-00332",
+      "row": 685,
+      "path": "-1_-1_3001686336.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 8.0805625,
+      "cluster": "230",
+      "per": 0.18421052631578946,
+      "meanConf": 0.9318528230701174,
+      "confidence": 0.2954242749731472,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00175-of-00411",
+      "row": 484,
+      "path": "33_14_2418857793.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 33,
+            "ayah": 14,
+            "word": 1
+          },
+          "end": {
+            "surah": 33,
+            "ayah": 14,
+            "word": 14
+          }
+        }
+      },
+      "durationS": 16.2539375,
+      "cluster": "230",
+      "per": 0.05217391304347826,
+      "meanConf": 0.9653548247047833,
+      "confidence": 0.7554189377614399,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00102-of-00332",
+      "row": 645,
+      "path": "-1_-1_3762708860.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 258,
+            "word": 36
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 258,
+            "word": 38
+          }
+        }
+      },
+      "durationS": 6.6106875,
+      "cluster": "58",
+      "per": 0,
+      "meanConf": 0.9662362575531006,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00144-of-00411",
+      "row": 214,
+      "path": "2_14_4139639367.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 13,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 13,
+            "word": 19
+          }
+        }
+      },
+      "durationS": 20.0533125,
+      "cluster": "164",
+      "per": 0.01875,
+      "meanConf": 0.9788133885179248,
+      "confidence": 0.9313125871466599,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00182-of-00411",
+      "row": 717,
+      "path": "36_20_7640023536.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 36,
+            "ayah": 20,
+            "word": 1
+          },
+          "end": {
+            "surah": 36,
+            "ayah": 20,
+            "word": 10
+          }
+        }
+      },
+      "durationS": 11.4241875,
+      "cluster": "85",
+      "per": 0,
+      "meanConf": 0.9558256442348162,
+      "confidence": 0.9603174603174603,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00182-of-00411",
+      "row": 777,
+      "path": "36_21_2851165409.flac",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 4.76625,
+      "cluster": "230",
+      "per": null,
+      "meanConf": 0.903262578524076,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "clean-00182-of-00411",
+      "row": 767,
+      "path": "36_21_1890099265.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 36,
+            "ayah": 21,
+            "word": 2
+          },
+          "end": {
+            "surah": 36,
+            "ayah": 21,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 3.7151875,
+      "cluster": "130",
+      "per": 0.11904761904761904,
+      "meanConf": 0.9350278346966474,
+      "confidence": 0.5728489197876954,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00085-of-00332",
+      "row": 428,
+      "path": "-1_-1_3293362981.wav",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 7.058875,
+      "cluster": "206",
+      "per": null,
+      "meanConf": 0.3298853965742247,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "unclean-00133-of-00332",
+      "row": 850,
+      "path": "-1_-1_4606622331.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 4.736875,
+      "cluster": "100",
+      "per": 0.34782608695652173,
+      "meanConf": 0.9808123992836993,
+      "confidence": 0.0008294433085143335,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00298-of-00332",
+      "row": 402,
+      "path": "-1_-1_9088802437.wav",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 13.7461875,
+      "cluster": "234",
+      "per": 0.23684210526315788,
+      "meanConf": 0.9221704036813893,
+      "confidence": 0.1651339699542398,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00326-of-00411",
+      "row": 568,
+      "path": "78_21_5587119325.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 21,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 21,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 8.8235625,
+      "cluster": "162",
+      "per": 0.08333333333333333,
+      "meanConf": 0.9596056274005345,
+      "confidence": 0.625072886297376,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00201-of-00332",
+      "row": 297,
+      "path": "-1_-1_6450086306.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 7.8948125,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.36904106438159945,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00178-of-00411",
+      "row": 566,
+      "path": "34_30_3472394580.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 34,
+            "ayah": 30,
+            "word": 2
+          },
+          "end": {
+            "surah": 34,
+            "ayah": 30,
+            "word": 10
+          }
+        }
+      },
+      "durationS": 7.848375,
+      "cluster": "55",
+      "per": 0.039473684210526314,
+      "meanConf": 0.9593562274365812,
+      "confidence": 0.8392603129445234,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00226-of-00411",
+      "row": 475,
+      "path": "44_15_9732724366.flac",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 4.82975,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.2962871193885803,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00249-of-00411",
+      "row": 77,
+      "path": "53_41_8928964480.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 53,
+            "ayah": 41,
+            "word": 1
+          },
+          "end": {
+            "surah": 53,
+            "ayah": 41,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 3.301875,
+      "cluster": "109",
+      "per": 0,
+      "meanConf": 0.9218805432319641,
+      "confidence": 0.9078341013824884,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00137-of-00332",
+      "row": 695,
+      "path": "-1_-1_4709443667.wav",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 16.81125,
+      "cluster": "211",
+      "per": null,
+      "meanConf": 0.6591512952689771,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "clean-00092-of-00411",
+      "row": 917,
+      "path": "1_6_6964427756.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 6,
+            "word": 1
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 6,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 3.6223125,
+      "cluster": "99",
+      "per": 0.11538461538461539,
+      "meanConf": 0.8992210792170631,
+      "confidence": 0.4929937787080644,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00235-of-00411",
+      "row": 673,
+      "path": "4_166_5787272589.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 4,
+            "ayah": 166,
+            "word": 1
+          },
+          "end": {
+            "surah": 4,
+            "ayah": 166,
+            "word": 13
+          }
+        }
+      },
+      "durationS": 29.071375,
+      "cluster": "206",
+      "per": 0.056,
+      "meanConf": 0.9694404762524825,
+      "confidence": 0.7495384615384615,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00067-of-00411",
+      "row": 1,
+      "path": "1_2_3481282252.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 2,
+            "word": 1
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 2,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 3.7895,
+      "cluster": "62",
+      "per": 0,
+      "meanConf": 0.9834364526199572,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00189-of-00332",
+      "row": 39,
+      "path": "-1_-1_6113036361.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 90,
+            "ayah": 20,
+            "word": 1
+          },
+          "end": {
+            "surah": 90,
+            "ayah": 20,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 6.1300625,
+      "cluster": "230",
+      "per": 0,
+      "meanConf": 0.9718592691421509,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00043-of-00411",
+      "row": 844,
+      "path": "16_17_3136301923.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 16,
+            "ayah": 16,
+            "word": 1
+          },
+          "end": {
+            "surah": 16,
+            "ayah": 16,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 4.1813125,
+      "cluster": "58",
+      "per": 0.023809523809523808,
+      "meanConf": 0.9494255545527436,
+      "confidence": 0.9195877686622822,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00326-of-00411",
+      "row": 460,
+      "path": "78_21_1232550099.flac",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 2.3715,
+      "cluster": "206",
+      "per": 0.25,
+      "meanConf": 0.7595444238848157,
+      "confidence": 0.15873015873015872,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00118-of-00332",
+      "row": 172,
+      "path": "-1_-1_4178911265.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "للَذِۦۦنَءَاامَنُۥۥقَاالُۥۥۥۥءَاامَننننَاا",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 14,
+              "word": 3
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 14,
+              "word": 6
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 76,
+              "word": 3
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 76,
+              "word": 6
+            }
+          }
+        ]
+      },
+      "durationS": 5.2263125,
+      "cluster": "230",
+      "per": 0.3,
+      "meanConf": 0.929520985659431,
+      "confidence": 0.04081632653061223,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00043-of-00411",
+      "row": 856,
+      "path": "16_17_9202124916.flac",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 5.7585625,
+      "cluster": "100",
+      "per": 0.07894736842105263,
+      "meanConf": 0.9441498286194272,
+      "confidence": 0.3441938178780284,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00037-of-00332",
+      "row": 461,
+      "path": "-1_-1_1985094583.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 50,
+            "ayah": 40,
+            "word": 1
+          },
+          "end": {
+            "surah": 50,
+            "ayah": 40,
+            "word": 5
+          }
+        }
+      },
+      "durationS": 7.801875,
+      "cluster": "230",
+      "per": 0.046511627906976744,
+      "meanConf": 0.9620679359544407,
+      "confidence": 0.7544979937006515,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00349-of-00411",
+      "row": 516,
+      "path": "80_23_3996193320.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 80,
+            "ayah": 22,
+            "word": 1
+          },
+          "end": {
+            "surah": 80,
+            "ayah": 23,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 5.0959375,
+      "cluster": "230",
+      "per": 0.15151515151515152,
+      "meanConf": 0.9118457913398743,
+      "confidence": 0.3510616367759225,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00104-of-00332",
+      "row": 389,
+      "path": "-1_-1_3810264402.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 7.430375,
+      "cluster": "230",
+      "per": 0.3125,
+      "meanConf": 0.9650707443555196,
+      "confidence": 0.015538033395176242,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00094-of-00332",
+      "row": 149,
+      "path": "-1_-1_3530972882.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 5.9443125,
+      "cluster": "52",
+      "per": 0.32142857142857145,
+      "meanConf": 0.7669185355305672,
+      "confidence": 0.030281827016520844,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00400-of-00411",
+      "row": 833,
+      "path": "97_4_5982632886.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 97,
+            "ayah": 4,
+            "word": 1
+          },
+          "end": {
+            "surah": 97,
+            "ayah": 4,
+            "word": 9
+          }
+        }
+      },
+      "durationS": 8.6749375,
+      "cluster": "129",
+      "per": 0.18055555555555555,
+      "meanConf": 0.9546538423746824,
+      "confidence": 0.33283730158730157,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00067-of-00332",
+      "row": 213,
+      "path": "-1_-1_2797392444.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 112,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 112,
+            "ayah": 1,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 7.244625,
+      "cluster": "20",
+      "per": 0,
+      "meanConf": 0.9856452345848083,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00344-of-00411",
+      "row": 8,
+      "path": "7_22_1794168491.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 7,
+            "ayah": 22,
+            "word": 1
+          },
+          "end": {
+            "surah": 7,
+            "ayah": 22,
+            "word": 28
+          }
+        }
+      },
+      "durationS": 27.9800625,
+      "cluster": "230",
+      "per": 0.03937007874015748,
+      "meanConf": 0.9777011172359727,
+      "confidence": 0.8264115436517079,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00114-of-00332",
+      "row": 791,
+      "path": "-1_-1_4087263494.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 10.8669375,
+      "cluster": "230",
+      "per": 0.3076923076923077,
+      "meanConf": 0.9229475524690416,
+      "confidence": 0.045089830804116486,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00079-of-00411",
+      "row": 720,
+      "path": "1_4_4018205275.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 4,
+            "word": 1
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 4,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 4.2725,
+      "cluster": "58",
+      "per": 0.2222222222222222,
+      "meanConf": 0.9088393341411244,
+      "confidence": 0.3129251700680272,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00047-of-00411",
+      "row": 188,
+      "path": "17_44_1138430259.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 37,
+            "ayah": 181,
+            "word": 1
+          },
+          "end": {
+            "surah": 37,
+            "ayah": 182,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 10.44275,
+      "cluster": "230",
+      "per": 0.038461538461538464,
+      "meanConf": 0.8892431935438743,
+      "confidence": 0.7433884796522158,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00025-of-00332",
+      "row": 708,
+      "path": "-1_-1_1660986357.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 8.9164375,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.5747844502329826,
+      "confidence": 0.14285714285714285,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00266-of-00332",
+      "row": 495,
+      "path": "-1_-1_8224542773.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 7,
+            "ayah": 156,
+            "word": 18
+          },
+          "end": {
+            "surah": 7,
+            "ayah": 156,
+            "word": 21
+          }
+        }
+      },
+      "durationS": 8.8235625,
+      "cluster": "164",
+      "per": 0.12,
+      "meanConf": 0.9750462987206199,
+      "confidence": 0.40111317254174395,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00330-of-00332",
+      "row": 836,
+      "path": "-1_-1_9973586684.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 2.786375,
+      "cluster": "175",
+      "per": 0.16666666666666666,
+      "meanConf": 0.7959880828857422,
+      "confidence": 0.05879494655004859,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00021-of-00332",
+      "row": 190,
+      "path": "-1_-1_1537262699.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "وَءِيييَمسَسكَللَااهُبِضُررِںںںفَلَااكَااشِفَلَهُۥۥۥۥءِللَااهُوَ",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 6,
+              "ayah": 17,
+              "word": 1
+            },
+            "end": {
+              "surah": 6,
+              "ayah": 17,
+              "word": 9
+            }
+          },
+          {
+            "start": {
+              "surah": 10,
+              "ayah": 107,
+              "word": 1
+            },
+            "end": {
+              "surah": 10,
+              "ayah": 107,
+              "word": 9
+            }
+          }
+        ]
+      },
+      "durationS": 14.86075,
+      "cluster": "100",
+      "per": 0.08064516129032258,
+      "meanConf": 0.9774475478735126,
+      "confidence": 0.32351417563323587,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00166-of-00332",
+      "row": 59,
+      "path": "-1_-1_5486953264.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 5,
+            "ayah": 91,
+            "word": 1
+          },
+          "end": {
+            "surah": 5,
+            "ayah": 91,
+            "word": 10
+          }
+        }
+      },
+      "durationS": 8.1734375,
+      "cluster": "55",
+      "per": 0.024096385542168676,
+      "meanConf": 0.956621065551852,
+      "confidence": 0.8917392927719949,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00382-of-00411",
+      "row": 61,
+      "path": "89_7_4540554577.flac",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 11.517125,
+      "cluster": "206",
+      "per": 0.3333333333333333,
+      "meanConf": 0.7056480709995542,
+      "confidence": 0.004373177842565592,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00084-of-00332",
+      "row": 650,
+      "path": "-1_-1_3272629646.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 26,
+            "ayah": 111,
+            "word": 2
+          },
+          "end": {
+            "surah": 26,
+            "ayah": 111,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 5.4799375,
+      "cluster": "99",
+      "per": 0.041666666666666664,
+      "meanConf": 0.9501806569099426,
+      "confidence": 0.7802721088435374,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00335-of-00411",
+      "row": 806,
+      "path": "79_14_1534738709.flac",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 3.6693125,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.43713177740573883,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00181-of-00411",
+      "row": 868,
+      "path": "36_15_5687572318.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 36,
+            "ayah": 14,
+            "word": 11
+          },
+          "end": {
+            "surah": 36,
+            "ayah": 15,
+            "word": 15
+          }
+        }
+      },
+      "durationS": 18.6501875,
+      "cluster": "52",
+      "per": 0,
+      "meanConf": 0.9727003432688166,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00076-of-00332",
+      "row": 274,
+      "path": "-1_-1_3045058767.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "ضرِببِعَصَااكَلحَجَرَ",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 60,
+              "word": 6
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 60,
+              "word": 8
+            }
+          },
+          {
+            "start": {
+              "surah": 7,
+              "ayah": 160,
+              "word": 13
+            },
+            "end": {
+              "surah": 7,
+              "ayah": 160,
+              "word": 15
+            }
+          }
+        ]
+      },
+      "durationS": 5.20125,
+      "cluster": "55",
+      "per": 0.25,
+      "meanConf": 0.8941222959094577,
+      "confidence": 0.06349206349206349,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00163-of-00411",
+      "row": 7,
+      "path": "2_46_6323167857.flac",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 3.3436875,
+      "cluster": "109",
+      "per": null,
+      "meanConf": 0.8257032715176281,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "clean-00382-of-00411",
+      "row": 63,
+      "path": "89_7_4778607464.flac",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 7.7445625,
+      "cluster": "34",
+      "per": 0.2,
+      "meanConf": 0.3926907926797867,
+      "confidence": 0.11224489795918363,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00363-of-00411",
+      "row": 385,
+      "path": "84_15_959773002.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 84,
+            "ayah": 15,
+            "word": 1
+          },
+          "end": {
+            "surah": 84,
+            "ayah": 15,
+            "word": 6
+          }
+        }
+      },
+      "durationS": 10.8373125,
+      "cluster": "62",
+      "per": 0.021739130434782608,
+      "meanConf": 0.9791508355039231,
+      "confidence": 0.8808737185901188,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00096-of-00332",
+      "row": 455,
+      "path": "-1_-1_3595589783.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 50,
+            "ayah": 26,
+            "word": 1
+          },
+          "end": {
+            "surah": 50,
+            "ayah": 28,
+            "word": 8
+          }
+        }
+      },
+      "durationS": 22.5698125,
+      "cluster": "100",
+      "per": 0.035555555555555556,
+      "meanConf": 0.9697859794706911,
+      "confidence": 0.8359747502604646,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00089-of-00411",
+      "row": 636,
+      "path": "1_6_1607299141.flac",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 3.6223125,
+      "cluster": "230",
+      "per": 0.3333333333333333,
+      "meanConf": 0.9003663008863275,
+      "confidence": 0.011440940012368568,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00002-of-00332",
+      "row": 610,
+      "path": "-1_-1_1030335671.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 11.3313125,
+      "cluster": "61",
+      "per": 0.35,
+      "meanConf": 0.8806083903268531,
+      "confidence": 0,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00140-of-00411",
+      "row": 969,
+      "path": "2_11_2888144653.flac",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 3.02775,
+      "cluster": "58",
+      "per": 0,
+      "meanConf": 0.30209535360336304,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00165-of-00411",
+      "row": 637,
+      "path": "2_63_1739865932.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 63,
+            "word": 2
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 63,
+            "word": 15
+          }
+        }
+      },
+      "durationS": 15.2565625,
+      "cluster": "58",
+      "per": 0.016129032258064516,
+      "meanConf": 0.9589699780354735,
+      "confidence": 0.9226410818161214,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00121-of-00411",
+      "row": 789,
+      "path": "25_14_2034472463.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 42,
+            "ayah": 51,
+            "word": 15
+          },
+          "end": {
+            "surah": 42,
+            "ayah": 51,
+            "word": 22
+          }
+        }
+      },
+      "durationS": 10.7200625,
+      "cluster": "62",
+      "per": 0.016129032258064516,
+      "meanConf": 0.9391289123746215,
+      "confidence": 0.8868971173874097,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00143-of-00411",
+      "row": 913,
+      "path": "2_147_8747163128.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 147,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 147,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 7.487625,
+      "cluster": "100",
+      "per": 0,
+      "meanConf": 0.9649652827019785,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00037-of-00411",
+      "row": 552,
+      "path": "13_34_undefined.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 13,
+            "ayah": 34,
+            "word": 1
+          },
+          "end": {
+            "surah": 13,
+            "ayah": 34,
+            "word": 14
+          }
+        }
+      },
+      "durationS": 9.3866875,
+      "cluster": "55",
+      "per": 0.050505050505050504,
+      "meanConf": 0.95760044047707,
+      "confidence": 0.7810673870824246,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00031-of-00411",
+      "row": 722,
+      "path": "11_5_2439802523.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 11,
+            "ayah": 4,
+            "word": 1
+          },
+          "end": {
+            "surah": 11,
+            "ayah": 4,
+            "word": 8
+          }
+        }
+      },
+      "durationS": 6.3146875,
+      "cluster": "55",
+      "per": 0.03773584905660377,
+      "meanConf": 0.9830174164338545,
+      "confidence": 0.8736444148843071,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00052-of-00411",
+      "row": 664,
+      "path": "18_27_1371274383.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 18,
+            "ayah": 27,
+            "word": 3
+          },
+          "end": {
+            "surah": 18,
+            "ayah": 27,
+            "word": 15
+          }
+        }
+      },
+      "durationS": 14.3035,
+      "cluster": "55",
+      "per": 0.019417475728155338,
+      "meanConf": 0.9475493845986385,
+      "confidence": 0.9180643131038824,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00282-of-00332",
+      "row": 866,
+      "path": "-1_-1_8665780094.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 5.294125,
+      "cluster": "89",
+      "per": 0.34782608695652173,
+      "meanConf": 0.9466343874281103,
+      "confidence": 0.00028232636928289133,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00082-of-00332",
+      "row": 701,
+      "path": "-1_-1_3220185239.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 5.5728125,
+      "cluster": "89",
+      "per": 0.3125,
+      "meanConf": 0.9132119370134253,
+      "confidence": 0.01732008592910848,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00330-of-00411",
+      "row": 653,
+      "path": "78_38_2603893206.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 38,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 38,
+            "word": 14
+          }
+        }
+      },
+      "durationS": 9.079,
+      "cluster": "62",
+      "per": 0.01818181818181818,
+      "meanConf": 0.9735928456717675,
+      "confidence": 0.918231179043761,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00151-of-00411",
+      "row": 612,
+      "path": "2_218_1612157151.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 218,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 218,
+            "word": 16
+          }
+        }
+      },
+      "durationS": 11.517125,
+      "cluster": "109",
+      "per": 0.043478260869565216,
+      "meanConf": 0.9825871626536051,
+      "confidence": 0.8331460120279996,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00244-of-00411",
+      "row": 535,
+      "path": "51_9_1814741808_y848gPx.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 51,
+            "ayah": 9,
+            "word": 1
+          },
+          "end": {
+            "surah": 51,
+            "ayah": 9,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 4.9923125,
+      "cluster": "55",
+      "per": 0,
+      "meanConf": 0.9820744812488555,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00244-of-00411",
+      "row": 545,
+      "path": "51_9_3761864295.flac",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 1.5325,
+      "cluster": "20",
+      "per": 0.3333333333333333,
+      "meanConf": 0.919107973575592,
+      "confidence": 0.008503401360544206,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00244-of-00411",
+      "row": 551,
+      "path": "51_9_4325049935.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 51,
+            "ayah": 9,
+            "word": 1
+          },
+          "end": {
+            "surah": 51,
+            "ayah": 11,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 8.7306875,
+      "cluster": "230",
+      "per": 0.1320754716981132,
+      "meanConf": 0.9190873619742118,
+      "confidence": 0.4721127928675098,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00305-of-00411",
+      "row": 628,
+      "path": "73_2_9159922392.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 73,
+            "ayah": 1,
+            "word": 2
+          },
+          "end": {
+            "surah": 73,
+            "ayah": 2,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 5.0711875,
+      "cluster": "182",
+      "per": 0.03571428571428571,
+      "meanConf": 0.9282132716014467,
+      "confidence": 0.721021413491505,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00264-of-00332",
+      "row": 50,
+      "path": "-1_-1_8157409389.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "ءِننننَللَااهَ",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 132,
+              "word": 7
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 132,
+              "word": 8
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 199,
+              "word": 9
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 199,
+              "word": 10
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 247,
+              "word": 27
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 247,
+              "word": 28
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 249,
+              "word": 6
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 249,
+              "word": 7
+            }
+          },
+          {
+            "start": {
+              "surah": 4,
+              "ayah": 1,
+              "word": 24
+            },
+            "end": {
+              "surah": 4,
+              "ayah": 1,
+              "word": 25
+            }
+          }
+        ]
+      },
+      "durationS": 8.2663125,
+      "cluster": "83",
+      "per": 0.2857142857142857,
+      "meanConf": 0.9299303270303286,
+      "confidence": 0.06747188671386921,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00282-of-00332",
+      "row": 861,
+      "path": "-1_-1_8665700302.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 85,
+            "ayah": 1,
+            "word": 3
+          },
+          "end": {
+            "surah": 85,
+            "ayah": 2,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 8.0275,
+      "cluster": "34",
+      "per": 0.1,
+      "meanConf": 0.9693147214976224,
+      "confidence": 0.5844155844155843,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00055-of-00332",
+      "row": 886,
+      "path": "-1_-1_2488750878.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 59,
+            "ayah": 15,
+            "word": 1
+          },
+          "end": {
+            "surah": 59,
+            "ayah": 15,
+            "word": 11
+          }
+        }
+      },
+      "durationS": 14.843625,
+      "cluster": "230",
+      "per": 0.0449438202247191,
+      "meanConf": 0.9699763150027628,
+      "confidence": 0.8492047747011946,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00357-of-00411",
+      "row": 88,
+      "path": "82_16_4211741496.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 90,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 90,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 10.7740625,
+      "cluster": "62",
+      "per": 0.038461538461538464,
+      "meanConf": 0.9599664234198056,
+      "confidence": 0.7922956164714405,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00227-of-00332",
+      "row": 528,
+      "path": "-1_-1_7162490962.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 6.2876875,
+      "cluster": "62",
+      "per": 0.3448275862068966,
+      "meanConf": 0.9324959759359006,
+      "confidence": 0.0008210180623973651,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00358-of-00411",
+      "row": 406,
+      "path": "83_10_2788531793.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "text",
+        "text": "وَيلُيييَومَءِذِللِلمُكَذذِبِۦۦن",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 83,
+              "ayah": 10,
+              "word": 1
+            },
+            "end": {
+              "surah": 83,
+              "ayah": 10,
+              "word": 3
+            }
+          },
+          {
+            "start": {
+              "surah": 77,
+              "ayah": 15,
+              "word": 1
+            },
+            "end": {
+              "surah": 77,
+              "ayah": 15,
+              "word": 3
+            }
+          },
+          {
+            "start": {
+              "surah": 77,
+              "ayah": 19,
+              "word": 1
+            },
+            "end": {
+              "surah": 77,
+              "ayah": 19,
+              "word": 3
+            }
+          },
+          {
+            "start": {
+              "surah": 77,
+              "ayah": 24,
+              "word": 1
+            },
+            "end": {
+              "surah": 77,
+              "ayah": 24,
+              "word": 3
+            }
+          },
+          {
+            "start": {
+              "surah": 77,
+              "ayah": 28,
+              "word": 1
+            },
+            "end": {
+              "surah": 77,
+              "ayah": 28,
+              "word": 3
+            }
+          }
+        ]
+      },
+      "durationS": 7.15175,
+      "cluster": "230",
+      "per": 0,
+      "meanConf": 0.9640625369164252,
+      "confidence": 0.75,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00117-of-00332",
+      "row": 787,
+      "path": "-1_-1_4169571409.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 4.885,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.24191997945308685,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00031-of-00411",
+      "row": 738,
+      "path": "11_5_6408514312.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 11,
+            "ayah": 4,
+            "word": 1
+          },
+          "end": {
+            "surah": 11,
+            "ayah": 4,
+            "word": 8
+          }
+        }
+      },
+      "durationS": 9.728,
+      "cluster": "55",
+      "per": 0.03773584905660377,
+      "meanConf": 0.9720524961298163,
+      "confidence": 0.8736444148843071,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00293-of-00332",
+      "row": 150,
+      "path": "-1_-1_8948250945.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 3.455625,
+      "cluster": "230",
+      "per": 0.3333333333333333,
+      "meanConf": 0.8498768295560565,
+      "confidence": 0.004373177842565592,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00194-of-00411",
+      "row": 261,
+      "path": "37_117_7132464623.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 37,
+            "ayah": 116,
+            "word": 1
+          },
+          "end": {
+            "surah": 37,
+            "ayah": 116,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 4.6933125,
+      "cluster": "55",
+      "per": 0.025,
+      "meanConf": 0.9440839260816574,
+      "confidence": 0.8622448979591837,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00356-of-00411",
+      "row": 740,
+      "path": "82_12_1613882229.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 82,
+            "ayah": 12,
+            "word": 1
+          },
+          "end": {
+            "surah": 82,
+            "ayah": 12,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 4.342125,
+      "cluster": "99",
+      "per": 0,
+      "meanConf": 0.9698871421813965,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00171-of-00332",
+      "row": 193,
+      "path": "-1_-1_5626491220.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 3,
+            "ayah": 125,
+            "word": 1
+          },
+          "end": {
+            "surah": 3,
+            "ayah": 125,
+            "word": 8
+          }
+        }
+      },
+      "durationS": 16.346875,
+      "cluster": "13",
+      "per": 0.04411764705882353,
+      "meanConf": 0.9636313942345706,
+      "confidence": 0.8209829386299975,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00012-of-00411",
+      "row": 728,
+      "path": "10_59_7529222261.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 10,
+            "ayah": 58,
+            "word": 4
+          },
+          "end": {
+            "surah": 10,
+            "ayah": 59,
+            "word": 9
+          }
+        }
+      },
+      "durationS": 24.8918125,
+      "cluster": "234",
+      "per": 0.016,
+      "meanConf": 0.9565703127327867,
+      "confidence": 0.9242294713160856,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00070-of-00332",
+      "row": 1,
+      "path": "-1_-1_2871588235.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "وَتتَقُۥۥيَومَللَااتَجڇزِۦۦنَفسُنعَننننَفسِںںںشَيءَوووَلَاايُقڇبَلُ",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 48,
+              "word": 1
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 48,
+              "word": 10
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 123,
+              "word": 1
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 123,
+              "word": 10
+            }
+          }
+        ]
+      },
+      "durationS": 15.9996875,
+      "cluster": "34",
+      "per": 0.25757575757575757,
+      "meanConf": 0.8180361871702083,
+      "confidence": 0.05002554381436367,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00143-of-00332",
+      "row": 384,
+      "path": "-1_-1_4867380518.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 27,
+            "ayah": 61,
+            "word": 1
+          },
+          "end": {
+            "surah": 27,
+            "ayah": 61,
+            "word": 6
+          }
+        }
+      },
+      "durationS": 6.2503125,
+      "cluster": "100",
+      "per": 0.038461538461538464,
+      "meanConf": 0.9464257729053497,
+      "confidence": 0.8697645211930926,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00149-of-00411",
+      "row": 869,
+      "path": "2_1_3298650468.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 7,
+            "ayah": 80,
+            "word": 1
+          },
+          "end": {
+            "surah": 7,
+            "ayah": 80,
+            "word": 13
+          }
+        }
+      },
+      "durationS": 11.8613125,
+      "cluster": "102",
+      "per": 0.029411764705882353,
+      "meanConf": 0.9808610147237777,
+      "confidence": 0.8793277310924369,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00055-of-00411",
+      "row": 705,
+      "path": "18_50_2941837761.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 18,
+            "ayah": 50,
+            "word": 1
+          },
+          "end": {
+            "surah": 18,
+            "ayah": 50,
+            "word": 26
+          }
+        }
+      },
+      "durationS": 24.613125,
+      "cluster": "230",
+      "per": 0.09787234042553192,
+      "meanConf": 0.9537210604092022,
+      "confidence": 0.6202368238842402,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00288-of-00411",
+      "row": 827,
+      "path": "68_22_5053683922.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 68,
+            "ayah": 22,
+            "word": 3
+          },
+          "end": {
+            "surah": 68,
+            "ayah": 23,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 4.60525,
+      "cluster": "58",
+      "per": 0.04,
+      "meanConf": 0.9074147975444794,
+      "confidence": 0.865469387755102,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00288-of-00411",
+      "row": 857,
+      "path": "68_22_7777237733.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 43,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 43,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 4.736875,
+      "cluster": "230",
+      "per": 0.02,
+      "meanConf": 0.9353385797391335,
+      "confidence": 0.915368596418159,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00288-of-00411",
+      "row": 847,
+      "path": "68_22_6725131405.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 68,
+            "ayah": 22,
+            "word": 3
+          },
+          "end": {
+            "surah": 68,
+            "ayah": 22,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 4.2554375,
+      "cluster": "101",
+      "per": 0,
+      "meanConf": 0.9683437548779152,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00137-of-00411",
+      "row": 615,
+      "path": "29_37_6261832900.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 29,
+            "ayah": 36,
+            "word": 1
+          },
+          "end": {
+            "surah": 29,
+            "ayah": 36,
+            "word": 16
+          }
+        }
+      },
+      "durationS": 9.984,
+      "cluster": "55",
+      "per": 0.017543859649122806,
+      "meanConf": 0.9728747894024027,
+      "confidence": 0.9405163154190896,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00277-of-00411",
+      "row": 783,
+      "path": "63_9_1673598458.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 63,
+            "ayah": 8,
+            "word": 12
+          },
+          "end": {
+            "surah": 63,
+            "ayah": 9,
+            "word": 5
+          }
+        }
+      },
+      "durationS": 14.396375,
+      "cluster": "263",
+      "per": 0.042735042735042736,
+      "meanConf": 0.9524034604430198,
+      "confidence": 0.7796587010872724,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00303-of-00332",
+      "row": 166,
+      "path": "-1_-1_9214276862.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "text",
+        "text": "وَحَااقَبِهِممممَاا",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 11,
+              "ayah": 8,
+              "word": 17
+            },
+            "end": {
+              "surah": 11,
+              "ayah": 8,
+              "word": 19
+            }
+          },
+          {
+            "start": {
+              "surah": 16,
+              "ayah": 34,
+              "word": 5
+            },
+            "end": {
+              "surah": 16,
+              "ayah": 34,
+              "word": 7
+            }
+          },
+          {
+            "start": {
+              "surah": 39,
+              "ayah": 48,
+              "word": 6
+            },
+            "end": {
+              "surah": 39,
+              "ayah": 48,
+              "word": 8
+            }
+          },
+          {
+            "start": {
+              "surah": 40,
+              "ayah": 83,
+              "word": 10
+            },
+            "end": {
+              "surah": 40,
+              "ayah": 83,
+              "word": 12
+            }
+          },
+          {
+            "start": {
+              "surah": 45,
+              "ayah": 33,
+              "word": 6
+            },
+            "end": {
+              "surah": 45,
+              "ayah": 33,
+              "word": 8
+            }
+          }
+        ]
+      },
+      "durationS": 7.430375,
+      "cluster": "235",
+      "per": 0,
+      "meanConf": 0.9680508795906516,
+      "confidence": 0.4159663865546218,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00098-of-00332",
+      "row": 436,
+      "path": "-1_-1_3648211032.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 4.0866875,
+      "cluster": "89",
+      "per": 0.2857142857142857,
+      "meanConf": 0.7797701827117375,
+      "confidence": 0.016867971678467302,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00050-of-00411",
+      "row": 328,
+      "path": "18_13_3246199459.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 18,
+            "ayah": 12,
+            "word": 9
+          },
+          "end": {
+            "surah": 18,
+            "ayah": 13,
+            "word": 11
+          }
+        }
+      },
+      "durationS": 11.303375,
+      "cluster": "182",
+      "per": 0.00980392156862745,
+      "meanConf": 0.9618424326181412,
+      "confidence": 0.9447622186129353,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00250-of-00411",
+      "row": 308,
+      "path": "53_60_2605908814.flac",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 3.2554375,
+      "cluster": "230",
+      "per": null,
+      "meanConf": 0.7928421890735626,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "unclean-00063-of-00332",
+      "row": 946,
+      "path": "-1_-1_2709766084.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "وَيَومَيُنَاادِۦۦهِم",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 28,
+              "ayah": 62,
+              "word": 1
+            },
+            "end": {
+              "surah": 28,
+              "ayah": 62,
+              "word": 2
+            }
+          },
+          {
+            "start": {
+              "surah": 28,
+              "ayah": 65,
+              "word": 1
+            },
+            "end": {
+              "surah": 28,
+              "ayah": 65,
+              "word": 2
+            }
+          },
+          {
+            "start": {
+              "surah": 28,
+              "ayah": 74,
+              "word": 1
+            },
+            "end": {
+              "surah": 28,
+              "ayah": 74,
+              "word": 2
+            }
+          },
+          {
+            "start": {
+              "surah": 41,
+              "ayah": 47,
+              "word": 19
+            },
+            "end": {
+              "surah": 41,
+              "ayah": 47,
+              "word": 20
+            }
+          }
+        ]
+      },
+      "durationS": 7.423375,
+      "cluster": "58",
+      "per": 0.15,
+      "meanConf": 0.9440178220922296,
+      "confidence": 0.17439703153988867,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00220-of-00332",
+      "row": 515,
+      "path": "-1_-1_6970038825.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 2.600625,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.24684666097164154,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00358-of-00411",
+      "row": 410,
+      "path": "83_10_3012064821.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "يييَومَءِذِللِلمُكَذذِبِۦۦن",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 83,
+              "ayah": 10,
+              "word": 2
+            },
+            "end": {
+              "surah": 83,
+              "ayah": 10,
+              "word": 3
+            }
+          },
+          {
+            "start": {
+              "surah": 52,
+              "ayah": 11,
+              "word": 2
+            },
+            "end": {
+              "surah": 52,
+              "ayah": 11,
+              "word": 3
+            }
+          },
+          {
+            "start": {
+              "surah": 77,
+              "ayah": 15,
+              "word": 2
+            },
+            "end": {
+              "surah": 77,
+              "ayah": 15,
+              "word": 3
+            }
+          },
+          {
+            "start": {
+              "surah": 77,
+              "ayah": 19,
+              "word": 2
+            },
+            "end": {
+              "surah": 77,
+              "ayah": 19,
+              "word": 3
+            }
+          },
+          {
+            "start": {
+              "surah": 77,
+              "ayah": 24,
+              "word": 2
+            },
+            "end": {
+              "surah": 77,
+              "ayah": 24,
+              "word": 3
+            }
+          }
+        ]
+      },
+      "durationS": 3.0696875,
+      "cluster": "4",
+      "per": 0.041666666666666664,
+      "meanConf": 0.9351465749740601,
+      "confidence": 0.5740873015873016,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00253-of-00411",
+      "row": 779,
+      "path": "55_13_8854674158.flac",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 3.0650625,
+      "cluster": "58",
+      "per": 0.3023255813953488,
+      "meanConf": 0.8651073719515945,
+      "confidence": 0.04289813176856366,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00094-of-00411",
+      "row": 781,
+      "path": "1_6_9904784921.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 5,
+            "word": 1
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 6,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 6.3281875,
+      "cluster": "46",
+      "per": 0.019230769230769232,
+      "meanConf": 0.9743729292177686,
+      "confidence": 0.9185828177424815,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00227-of-00411",
+      "row": 269,
+      "path": "44_39_2280374973.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 44,
+            "ayah": 39,
+            "word": 1
+          },
+          "end": {
+            "surah": 44,
+            "ayah": 40,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 8.5449375,
+      "cluster": "99",
+      "per": 0.025974025974025976,
+      "meanConf": 0.9511691194615866,
+      "confidence": 0.8735823789529483,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00142-of-00332",
+      "row": 778,
+      "path": "-1_-1_4851600985.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 4.4411875,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.14955028891563416,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00064-of-00411",
+      "row": 884,
+      "path": "1_2_1081077508.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 2,
+            "word": 1
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 3,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 5.0155,
+      "cluster": "204",
+      "per": 0.05555555555555555,
+      "meanConf": 0.9137677550315857,
+      "confidence": 0.7113439970582828,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00245-of-00332",
+      "row": 48,
+      "path": "-1_-1_7637877549.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 5.9443125,
+      "cluster": "59",
+      "per": 0.3076923076923077,
+      "meanConf": 0.804650076230367,
+      "confidence": 0.020146520146520127,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00129-of-00332",
+      "row": 521,
+      "path": "-1_-1_4488200046.wav",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 6.5063125,
+      "cluster": "59",
+      "per": null,
+      "meanConf": 0.7516988507575459,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "clean-00124-of-00411",
+      "row": 477,
+      "path": "25_9_3831368220.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "text",
+        "text": "ءُںںںظُركَيفَضَرَبُۥۥلَكَلءَمثَاالَفَضَللُۥۥفَلَاايَستَطِۦۦعُۥۥنَسَبِۦۦلَاا",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 25,
+              "ayah": 9,
+              "word": 1
+            },
+            "end": {
+              "surah": 25,
+              "ayah": 9,
+              "word": 9
+            }
+          },
+          {
+            "start": {
+              "surah": 17,
+              "ayah": 48,
+              "word": 1
+            },
+            "end": {
+              "surah": 17,
+              "ayah": 48,
+              "word": 9
+            }
+          }
+        ]
+      },
+      "durationS": 6.5015625,
+      "cluster": "55",
+      "per": 0.013333333333333334,
+      "meanConf": 0.9749661015497672,
+      "confidence": 0.7158576944291231,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00177-of-00332",
+      "row": 16,
+      "path": "-1_-1_5784123404.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 3.1579375,
+      "cluster": "230",
+      "per": 0.2727272727272727,
+      "meanConf": 0.5874105935746973,
+      "confidence": 0.03870804520155169,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00315-of-00332",
+      "row": 427,
+      "path": "-1_-1_9554290510.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 48,
+            "ayah": 11,
+            "word": 1
+          },
+          "end": {
+            "surah": 48,
+            "ayah": 11,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 3.3436875,
+      "cluster": "95",
+      "per": 0.037037037037037035,
+      "meanConf": 0.9320616679532188,
+      "confidence": 0.802937047835007,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00091-of-00332",
+      "row": 537,
+      "path": "-1_-1_3457200627.wav",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 7.701,
+      "cluster": "89",
+      "per": 0.2641509433962264,
+      "meanConf": 0.9231313901642958,
+      "confidence": 0.12118149146451028,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00209-of-00411",
+      "row": 854,
+      "path": "3_16_9984239614.flac",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 4.1279375,
+      "cluster": "234",
+      "per": 0.32142857142857145,
+      "meanConf": 0.8536390554904938,
+      "confidence": 0.015500485908649149,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00098-of-00332",
+      "row": 496,
+      "path": "-1_-1_3649437835.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 49,
+            "ayah": 13,
+            "word": 12
+          },
+          "end": {
+            "surah": 49,
+            "ayah": 13,
+            "word": 16
+          }
+        }
+      },
+      "durationS": 16.904125,
+      "cluster": "55",
+      "per": 0.17073170731707318,
+      "meanConf": 0.9665208001469456,
+      "confidence": 0.39988655700510495,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00195-of-00332",
+      "row": 833,
+      "path": "-1_-1_6298964166.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 7.3375,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.13235703110694885,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00030-of-00411",
+      "row": 592,
+      "path": "11_25_1604049060.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 11,
+            "ayah": 24,
+            "word": 9
+          },
+          "end": {
+            "surah": 11,
+            "ayah": 25,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 5.464375,
+      "cluster": "58",
+      "per": 0,
+      "meanConf": 0.9548656683342129,
+      "confidence": 0.9439775910364145,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00141-of-00411",
+      "row": 321,
+      "path": "2_120_3851932206.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 120,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 120,
+            "word": 15
+          }
+        }
+      },
+      "durationS": 19.319,
+      "cluster": "89",
+      "per": 0.08571428571428572,
+      "meanConf": 0.9512837892121607,
+      "confidence": 0.676067315186329,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00003-of-00411",
+      "row": 794,
+      "path": "103_3_3741358110.flac",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 6.687375,
+      "cluster": "232",
+      "per": 0.2597402597402597,
+      "meanConf": 0.8642525365993158,
+      "confidence": 0.09402629049293687,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00061-of-00411",
+      "row": 666,
+      "path": "19_33_6668508616.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 85,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 85,
+            "ayah": 2,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 7.5943125,
+      "cluster": "230",
+      "per": 0.044444444444444446,
+      "meanConf": 0.966967994516546,
+      "confidence": 0.7596371882086167,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00026-of-00332",
+      "row": 535,
+      "path": "-1_-1_1684214508.wav",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 5.9369375,
+      "cluster": "100",
+      "per": 0.2549019607843137,
+      "meanConf": 0.9560438283654147,
+      "confidence": 0.12727881850414585,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00026-of-00332",
+      "row": 521,
+      "path": "-1_-1_1683735572.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 3.0503125,
+      "cluster": "58",
+      "per": 0,
+      "meanConf": 0.8966490413461413,
+      "confidence": 0.5,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00090-of-00411",
+      "row": 718,
+      "path": "1_6_3457794906.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 5,
+            "word": 4
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 6,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 4.1841875,
+      "cluster": "58",
+      "per": 0.034482758620689655,
+      "meanConf": 0.9109884962953371,
+      "confidence": 0.7682545075104953,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00327-of-00411",
+      "row": 543,
+      "path": "78_26_2513691469.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 25,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 25,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 3.9253125,
+      "cluster": "89",
+      "per": 0,
+      "meanConf": 0.9234707574049632,
+      "confidence": 1,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00010-of-00332",
+      "row": 686,
+      "path": "-1_-1_1249977081.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 1,
+              "ayah": 1,
+              "word": 1
+            },
+            "end": {
+              "surah": 1,
+              "ayah": 1,
+              "word": 4
+            }
+          },
+          {
+            "start": {
+              "surah": 27,
+              "ayah": 30,
+              "word": 5
+            },
+            "end": {
+              "surah": 27,
+              "ayah": 30,
+              "word": 8
+            }
+          }
+        ]
+      },
+      "durationS": 12.0696875,
+      "cluster": "258",
+      "per": 0.10344827586206896,
+      "meanConf": 0.9200243316590786,
+      "confidence": 0.32391361717100625,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00010-of-00332",
+      "row": 626,
+      "path": "-1_-1_1248491442.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 58,
+            "ayah": 22,
+            "word": 23
+          },
+          "end": {
+            "surah": 58,
+            "ayah": 22,
+            "word": 51
+          }
+        }
+      },
+      "durationS": 42.9105,
+      "cluster": "234",
+      "per": 0.029411764705882353,
+      "meanConf": 0.9754721871479785,
+      "confidence": 0.8907814171693782,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00220-of-00411",
+      "row": 678,
+      "path": "41_38_7545191173.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 41,
+            "ayah": 37,
+            "word": 4
+          },
+          "end": {
+            "surah": 41,
+            "ayah": 37,
+            "word": 11
+          }
+        }
+      },
+      "durationS": 6.3483125,
+      "cluster": "58",
+      "per": 0.01694915254237288,
+      "meanConf": 0.9580814375959593,
+      "confidence": 0.8812605112179295,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00294-of-00332",
+      "row": 464,
+      "path": "-1_-1_8983653208.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 83,
+            "ayah": 26,
+            "word": 5
+          },
+          "end": {
+            "surah": 83,
+            "ayah": 26,
+            "word": 6
+          }
+        }
+      },
+      "durationS": 3.7151875,
+      "cluster": "56",
+      "per": 0.03225806451612903,
+      "meanConf": 0.9401282341249527,
+      "confidence": 0.8659984285077194,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00101-of-00411",
+      "row": 59,
+      "path": "20_104_1768358570.flac",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 22.1393125,
+      "cluster": "99",
+      "per": null,
+      "meanConf": 0.9277262722744661,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "clean-00116-of-00411",
+      "row": 128,
+      "path": "23_100_6020679945.flac",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 4.4604375,
+      "cluster": "168",
+      "per": 0.2,
+      "meanConf": 0.4722371722261111,
+      "confidence": 0.010204081632653047,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "unclean-00141-of-00332",
+      "row": 495,
+      "path": "-1_-1_4814780014.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 2.50775,
+      "cluster": "206",
+      "per": 0.1,
+      "meanConf": 0.34671598341729903,
+      "confidence": 0.2741496598639455,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "unclean-00125-of-00332",
+      "row": 285,
+      "path": "-1_-1_4370905529.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 2.3463125,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.24281805753707886,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00126-of-00411",
+      "row": 203,
+      "path": "26_153_3289793426.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "قَاالُۥۥۥۥءِننننَمَااااءَںںںتَمِنَلمُسَححَرِۦۦن",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 26,
+              "ayah": 153,
+              "word": 1
+            },
+            "end": {
+              "surah": 26,
+              "ayah": 153,
+              "word": 5
+            }
+          },
+          {
+            "start": {
+              "surah": 26,
+              "ayah": 185,
+              "word": 1
+            },
+            "end": {
+              "surah": 26,
+              "ayah": 185,
+              "word": 5
+            }
+          }
+        ]
+      },
+      "durationS": 7.430375,
+      "cluster": "55",
+      "per": 0.0851063829787234,
+      "meanConf": 0.9885096321714685,
+      "confidence": 0.5400241128592677,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00003-of-00411",
+      "row": 621,
+      "path": "103_2_4425238957.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "وَلءَرضِ",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 33,
+              "word": 16
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 33,
+              "word": 16
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 107,
+              "word": 8
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 107,
+              "word": 8
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 116,
+              "word": 11
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 116,
+              "word": 11
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 117,
+              "word": 3
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 117,
+              "word": 3
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 164,
+              "word": 5
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 164,
+              "word": 5
+            }
+          }
+        ]
+      },
+      "durationS": 3.464375,
+      "cluster": "58",
+      "per": 0.16666666666666666,
+      "meanConf": 0.9370147585868835,
+      "confidence": 0.15500485908649173,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00301-of-00411",
+      "row": 930,
+      "path": "71_25_2519068266.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 71,
+            "ayah": 23,
+            "word": 1
+          },
+          "end": {
+            "surah": 71,
+            "ayah": 23,
+            "word": 13
+          }
+        }
+      },
+      "durationS": 11.702875,
+      "cluster": "55",
+      "per": 0.018018018018018018,
+      "meanConf": 0.9783534201708707,
+      "confidence": 0.9189556903842617,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00328-of-00332",
+      "row": 124,
+      "path": "-1_-1_9898733009.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 5.6656875,
+      "cluster": "55",
+      "per": 0.3103448275862069,
+      "meanConf": 0.9428765624761581,
+      "confidence": 0.026301900070372947,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00030-of-00411",
+      "row": 588,
+      "path": "11_24_undefined.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 11,
+            "ayah": 24,
+            "word": 1
+          },
+          "end": {
+            "surah": 11,
+            "ayah": 24,
+            "word": 11
+          }
+        }
+      },
+      "durationS": 11.1786875,
+      "cluster": "55",
+      "per": 0.0380952380952381,
+      "meanConf": 0.9789839193776801,
+      "confidence": 0.8345750998812224,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00203-of-00411",
+      "row": 360,
+      "path": "38_77_3772386444.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "text",
+        "text": "قَاالَفَخرُجڇمِنهَاافَءِننننَكَرَجِۦۦم",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 38,
+              "ayah": 77,
+              "word": 1
+            },
+            "end": {
+              "surah": 38,
+              "ayah": 77,
+              "word": 5
+            }
+          },
+          {
+            "start": {
+              "surah": 15,
+              "ayah": 34,
+              "word": 1
+            },
+            "end": {
+              "surah": 15,
+              "ayah": 34,
+              "word": 5
+            }
+          }
+        ]
+      },
+      "durationS": 6.083625,
+      "cluster": "55",
+      "per": 0,
+      "meanConf": 0.9709878846218711,
+      "confidence": 0.75,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00016-of-00332",
+      "row": 411,
+      "path": "-1_-1_1405324699.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "فَلَااتَغُررَننننَكُمُلحَيَااتُددُنيَاا",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 31,
+              "ayah": 33,
+              "word": 23
+            },
+            "end": {
+              "surah": 31,
+              "ayah": 33,
+              "word": 26
+            }
+          },
+          {
+            "start": {
+              "surah": 35,
+              "ayah": 5,
+              "word": 7
+            },
+            "end": {
+              "surah": 35,
+              "ayah": 5,
+              "word": 10
+            }
+          }
+        ]
+      },
+      "durationS": 6.485,
+      "cluster": "89",
+      "per": 0.15384615384615385,
+      "meanConf": 0.9738610506057739,
+      "confidence": 0.21388203633101593,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00040-of-00411",
+      "row": 238,
+      "path": "15_24_4165408953.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 15,
+            "ayah": 24,
+            "word": 1
+          },
+          "end": {
+            "surah": 15,
+            "ayah": 24,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 6.8034375,
+      "cluster": "55",
+      "per": 0.029411764705882353,
+      "meanConf": 0.9818305918148585,
+      "confidence": 0.9010118333047504,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00259-of-00332",
+      "row": 479,
+      "path": "-1_-1_8030848113.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 197,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 197,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 5.3543125,
+      "cluster": "58",
+      "per": 0.03333333333333333,
+      "meanConf": 0.9783430633873775,
+      "confidence": 0.886934083978419,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00011-of-00411",
+      "row": 321,
+      "path": "10_20_1994645221.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 10,
+            "ayah": 20,
+            "word": 1
+          },
+          "end": {
+            "surah": 10,
+            "ayah": 21,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 17.02325,
+      "cluster": "89",
+      "per": 0.08275862068965517,
+      "meanConf": 0.9508614168683095,
+      "confidence": 0.6886573466236726,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00256-of-00332",
+      "row": 854,
+      "path": "-1_-1_7963395872.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 4.0725625,
+      "cluster": "234",
+      "per": 0.3333333333333333,
+      "meanConf": 0.9295286551117897,
+      "confidence": 0.006462585034013596,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00090-of-00411",
+      "row": 702,
+      "path": "1_6_3428863263.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 5,
+            "word": 4
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 6,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 5.0464375,
+      "cluster": "55",
+      "per": 0.037037037037037035,
+      "meanConf": 0.9073857113167092,
+      "confidence": 0.7049354721312393,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00250-of-00332",
+      "row": 444,
+      "path": "-1_-1_7783971708.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "text",
+        "text": "وَلَااخَوفُنعَلَيهِموَلَااهُميَحزَنُۥۥن",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 62,
+              "word": 19
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 62,
+              "word": 24
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 112,
+              "word": 12
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 112,
+              "word": 17
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 262,
+              "word": 19
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 262,
+              "word": 24
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 274,
+              "word": 12
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 274,
+              "word": 17
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 277,
+              "word": 14
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 277,
+              "word": 19
+            }
+          }
+        ]
+      },
+      "durationS": 5.631625,
+      "cluster": "62",
+      "per": 0,
+      "meanConf": 0.9770902563364078,
+      "confidence": 0.5,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00043-of-00332",
+      "row": 704,
+      "path": "-1_-1_2152342365.wav",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 8.6378125,
+      "cluster": "230",
+      "per": null,
+      "meanConf": 0.56410031914711,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "unclean-00004-of-00332",
+      "row": 603,
+      "path": "-1_-1_1085111052.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 18.9475,
+      "cluster": "58",
+      "per": 0.34615384615384615,
+      "meanConf": 0.7709083197845353,
+      "confidence": 0.0010465724751438999,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00281-of-00332",
+      "row": 718,
+      "path": "-1_-1_8634978468.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 67,
+            "ayah": 27,
+            "word": 1
+          },
+          "end": {
+            "surah": 67,
+            "ayah": 27,
+            "word": 8
+          }
+        }
+      },
+      "durationS": 11.3313125,
+      "cluster": "84",
+      "per": 0.028985507246376812,
+      "meanConf": 0.970830973605035,
+      "confidence": 0.9024207355936864,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00134-of-00411",
+      "row": 305,
+      "path": "27_79_3381652887.flac",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 16.718375,
+      "cluster": "55",
+      "per": 0.27586206896551724,
+      "meanConf": 0.915917268439905,
+      "confidence": 0.08536137048746413,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00200-of-00332",
+      "row": 609,
+      "path": "-1_-1_6429348762.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "ءَللَااهُلَااااءِلَااهَءِللَااهُوَ",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 255,
+              "word": 1
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 255,
+              "word": 5
+            }
+          },
+          {
+            "start": {
+              "surah": 3,
+              "ayah": 2,
+              "word": 1
+            },
+            "end": {
+              "surah": 3,
+              "ayah": 2,
+              "word": 5
+            }
+          },
+          {
+            "start": {
+              "surah": 4,
+              "ayah": 87,
+              "word": 1
+            },
+            "end": {
+              "surah": 4,
+              "ayah": 87,
+              "word": 5
+            }
+          },
+          {
+            "start": {
+              "surah": 20,
+              "ayah": 8,
+              "word": 1
+            },
+            "end": {
+              "surah": 20,
+              "ayah": 8,
+              "word": 5
+            }
+          },
+          {
+            "start": {
+              "surah": 27,
+              "ayah": 26,
+              "word": 1
+            },
+            "end": {
+              "surah": 27,
+              "ayah": 26,
+              "word": 5
+            }
+          }
+        ]
+      },
+      "durationS": 7.3175625,
+      "cluster": "34",
+      "per": 0.08823529411764706,
+      "meanConf": 0.9186902849963217,
+      "confidence": 0.32862235803412276,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00200-of-00332",
+      "row": 689,
+      "path": "-1_-1_6431546255.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "text",
+        "text": "كَذَاالِكَ",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 73,
+              "word": 4
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 73,
+              "word": 4
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 113,
+              "word": 16
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 113,
+              "word": 16
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 118,
+              "word": 11
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 118,
+              "word": 11
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 167,
+              "word": 13
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 167,
+              "word": 13
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 187,
+              "word": 59
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 187,
+              "word": 59
+            }
+          }
+        ]
+      },
+      "durationS": 3.34275,
+      "cluster": "100",
+      "per": 0,
+      "meanConf": 0.9726495809025235,
+      "confidence": 0.5,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00151-of-00411",
+      "row": 184,
+      "path": "2_212_2089261940.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 212,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 212,
+            "word": 20
+          }
+        }
+      },
+      "durationS": 25.7706875,
+      "cluster": "230",
+      "per": 0.024539877300613498,
+      "meanConf": 0.9703595845437631,
+      "confidence": 0.8991058641023371,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00395-of-00411",
+      "row": 218,
+      "path": "94_8_5582159109.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 94,
+            "ayah": 7,
+            "word": 1
+          },
+          "end": {
+            "surah": 94,
+            "ayah": 7,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 7.303375,
+      "cluster": "234",
+      "per": 0.11764705882352941,
+      "meanConf": 0.9061439534028372,
+      "confidence": 0.4531145791649993,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00278-of-00411",
+      "row": 646,
+      "path": "65_6_8379277742.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 65,
+            "ayah": 6,
+            "word": 1
+          },
+          "end": {
+            "surah": 65,
+            "ayah": 6,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 6.3158125,
+      "cluster": "230",
+      "per": 0.058823529411764705,
+      "meanConf": 0.9303496444926542,
+      "confidence": 0.7270672975072381,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00194-of-00332",
+      "row": 235,
+      "path": "-1_-1_6254643482.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 3,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 3,
+            "ayah": 2,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 12.445875,
+      "cluster": "89",
+      "per": 0.05405405405405406,
+      "meanConf": 0.9682347927544568,
+      "confidence": 0.8194421669325144,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00404-of-00411",
+      "row": 245,
+      "path": "9_100_4042632502.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 9,
+            "ayah": 100,
+            "word": 1
+          },
+          "end": {
+            "surah": 9,
+            "ayah": 102,
+            "word": 17
+          }
+        }
+      },
+      "durationS": 55.3813125,
+      "cluster": "89",
+      "per": 0.044326241134751775,
+      "meanConf": 0.979152591334497,
+      "confidence": 0.8140280477947831,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00182-of-00411",
+      "row": 37,
+      "path": "36_16_556639401.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 36,
+            "ayah": 16,
+            "word": 1
+          },
+          "end": {
+            "surah": 36,
+            "ayah": 16,
+            "word": 6
+          }
+        }
+      },
+      "durationS": 4.9493125,
+      "cluster": "100",
+      "per": 0.019230769230769232,
+      "meanConf": 0.9632751369008831,
+      "confidence": 0.9344660941299597,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00174-of-00411",
+      "row": 143,
+      "path": "32_12_2717116458.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 32,
+            "ayah": 12,
+            "word": 1
+          },
+          "end": {
+            "surah": 32,
+            "ayah": 12,
+            "word": 16
+          }
+        }
+      },
+      "durationS": 12.9335,
+      "cluster": "59",
+      "per": 0.16083916083916083,
+      "meanConf": 0.9731019544295776,
+      "confidence": 0.39792076055812325,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00102-of-00332",
+      "row": 685,
+      "path": "-1_-1_3763639345.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 97,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 97,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 10.0263125,
+      "cluster": "230",
+      "per": 0.017241379310344827,
+      "meanConf": 0.9695046653873042,
+      "confidence": 0.9412076990505821,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00279-of-00332",
+      "row": 5,
+      "path": "-1_-1_8560471877.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 66,
+            "ayah": 6,
+            "word": 1
+          },
+          "end": {
+            "surah": 66,
+            "ayah": 6,
+            "word": 5
+          }
+        }
+      },
+      "durationS": 7.244625,
+      "cluster": "58",
+      "per": 0.08,
+      "meanConf": 0.9689498012480529,
+      "confidence": 0.7330967169476486,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00152-of-00332",
+      "row": 871,
+      "path": "-1_-1_5126200208.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 2.600625,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.325783575574557,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00056-of-00411",
+      "row": 467,
+      "path": "18_5_1955366484.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 18,
+            "ayah": 4,
+            "word": 5
+          },
+          "end": {
+            "surah": 18,
+            "ayah": 5,
+            "word": 16
+          }
+        }
+      },
+      "durationS": 16.81125,
+      "cluster": "182",
+      "per": 0.007407407407407408,
+      "meanConf": 0.9586884030589351,
+      "confidence": 0.9477618207776938,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00031-of-00332",
+      "row": 404,
+      "path": "-1_-1_1819194784.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 3.4365625,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.1258210837841034,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00386-of-00411",
+      "row": 666,
+      "path": "90_7_6245324895.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 90,
+            "ayah": 6,
+            "word": 4
+          },
+          "end": {
+            "surah": 90,
+            "ayah": 7,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 4.140875,
+      "cluster": "100",
+      "per": 0.045454545454545456,
+      "meanConf": 0.8956049291983895,
+      "confidence": 0.7620392030329918,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00217-of-00332",
+      "row": 669,
+      "path": "-1_-1_6892917949.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 4.45825,
+      "cluster": "58",
+      "per": 0,
+      "meanConf": 0.9560398808841047,
+      "confidence": 0.5,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00057-of-00332",
+      "row": 825,
+      "path": "-1_-1_2541666323.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 6.1344375,
+      "cluster": "230",
+      "per": 0,
+      "meanConf": 0.977646739318453,
+      "confidence": 0.5,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00272-of-00332",
+      "row": 671,
+      "path": "-1_-1_8389695375.wav",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 8.7306875,
+      "cluster": "130",
+      "per": 0.21428571428571427,
+      "meanConf": 0.8888203604467984,
+      "confidence": 0.15854026339599878,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00068-of-00411",
+      "row": 786,
+      "path": "1_2_5547070241.flac",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 3.2801875,
+      "cluster": "20",
+      "per": 0.06451612903225806,
+      "meanConf": 0.893692034867502,
+      "confidence": 0.5328155195480898,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00216-of-00411",
+      "row": 250,
+      "path": "3_85_7311322437.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 3,
+            "ayah": 85,
+            "word": 1
+          },
+          "end": {
+            "surah": 3,
+            "ayah": 85,
+            "word": 13
+          }
+        }
+      },
+      "durationS": 11.3313125,
+      "cluster": "109",
+      "per": 0.03260869565217391,
+      "meanConf": 0.954830704837717,
+      "confidence": 0.8817585940407018,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00367-of-00411",
+      "row": 650,
+      "path": "86_16_5585446969.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 86,
+            "ayah": 16,
+            "word": 1
+          },
+          "end": {
+            "surah": 86,
+            "ayah": 16,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 2.50775,
+      "cluster": "14",
+      "per": 0,
+      "meanConf": 0.9336222234894248,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00260-of-00411",
+      "row": 100,
+      "path": "55_8_2537858690.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 55,
+            "ayah": 6,
+            "word": 3
+          },
+          "end": {
+            "surah": 55,
+            "ayah": 7,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 6,
+      "cluster": "230",
+      "per": 0,
+      "meanConf": 0.9364810412929904,
+      "confidence": 0.9078341013824884,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00169-of-00332",
+      "row": 838,
+      "path": "-1_-1_5590426973.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 5.5728125,
+      "cluster": "100",
+      "per": 0.3181818181818182,
+      "meanConf": 0.9369744956493378,
+      "confidence": 0.017982017982017963,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00135-of-00332",
+      "row": 211,
+      "path": "-1_-1_4644359528.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "ءِسرَااااءِۦۦلَ",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 40,
+              "word": 2
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 40,
+              "word": 2
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 47,
+              "word": 2
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 47,
+              "word": 2
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 83,
+              "word": 5
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 83,
+              "word": 5
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 122,
+              "word": 2
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 122,
+              "word": 2
+            }
+          },
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 211,
+              "word": 3
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 211,
+              "word": 3
+            }
+          }
+        ]
+      },
+      "durationS": 2.8583125,
+      "cluster": "58",
+      "per": 0.21428571428571427,
+      "meanConf": 0.9859119328585538,
+      "confidence": 0.1636628677445004,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00237-of-00332",
+      "row": 336,
+      "path": "-1_-1_7429168421.wav",
+      "bucket": "reject",
+      "reason": "insufficient_evidence",
+      "label": null,
+      "durationS": 5.5728125,
+      "cluster": "175",
+      "per": 0.3076923076923077,
+      "meanConf": 0.9535349584093281,
+      "confidence": 0.04774217379259391,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "clean-00064-of-00411",
+      "row": 28,
+      "path": "19_85_5534548536.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 19,
+            "ayah": 85,
+            "word": 1
+          },
+          "end": {
+            "surah": 19,
+            "ayah": 85,
+            "word": 6
+          }
+        }
+      },
+      "durationS": 4.698125,
+      "cluster": "100",
+      "per": 0,
+      "meanConf": 0.9749611399390481,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00244-of-00332",
+      "row": 770,
+      "path": "-1_-1_7630928883.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 7.058875,
+      "cluster": "230",
+      "per": 0.3333333333333333,
+      "meanConf": 0.9510885661556607,
+      "confidence": 0.008746355685131182,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00182-of-00411",
+      "row": 757,
+      "path": "36_21_1264841910.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 36,
+            "ayah": 21,
+            "word": 1
+          },
+          "end": {
+            "surah": 36,
+            "ayah": 21,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 6.292625,
+      "cluster": "55",
+      "per": 0.04,
+      "meanConf": 0.952587985744079,
+      "confidence": 0.8119047619047618,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00359-of-00411",
+      "row": 966,
+      "path": "83_22_2737291043.flac",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 3.0464375,
+      "cluster": "183",
+      "per": 0.3333333333333333,
+      "meanConf": 0.8607896983623504,
+      "confidence": 0.009977324263038536,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00078-of-00332",
+      "row": 126,
+      "path": "-1_-1_3097631571.wav",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 10.4743125,
+      "cluster": "55",
+      "per": null,
+      "meanConf": 0.9783435691805447,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "unclean-00192-of-00332",
+      "row": 537,
+      "path": "-1_-1_6205925138.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 9,
+            "ayah": 76,
+            "word": 1
+          },
+          "end": {
+            "surah": 9,
+            "ayah": 76,
+            "word": 6
+          }
+        }
+      },
+      "durationS": 8.1734375,
+      "cluster": "232",
+      "per": 0.018518518518518517,
+      "meanConf": 0.9627793784494754,
+      "confidence": 0.9220346574843928,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00160-of-00332",
+      "row": 466,
+      "path": "-1_-1_5335865110.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 2.6935,
+      "cluster": "230",
+      "per": 0.25,
+      "meanConf": 0.8983504048415593,
+      "confidence": 0.06705539358600582,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00348-of-00411",
+      "row": 160,
+      "path": "80_14_1662940858.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 80,
+            "ayah": 14,
+            "word": 2
+          },
+          "end": {
+            "surah": 80,
+            "ayah": 15,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 3.1393125,
+      "cluster": "230",
+      "per": 0.11538461538461539,
+      "meanConf": 0.8722504839814943,
+      "confidence": 0.6307042710983597,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00332-of-00411",
+      "row": 454,
+      "path": "78_5_1128982218.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 5,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 6,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 3.6223125,
+      "cluster": "83",
+      "per": 0.029411764705882353,
+      "meanConf": 0.935421656478535,
+      "confidence": 0.8763141620284477,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00209-of-00411",
+      "row": 640,
+      "path": "3_167_2048391164.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 3,
+            "ayah": 167,
+            "word": 1
+          },
+          "end": {
+            "surah": 3,
+            "ayah": 167,
+            "word": 33
+          }
+        }
+      },
+      "durationS": 31.48625,
+      "cluster": "52",
+      "per": 0.0599250936329588,
+      "meanConf": 0.9687986237214024,
+      "confidence": 0.7326427740987415,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00034-of-00332",
+      "row": 781,
+      "path": "-1_-1_1910940106.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 7,
+            "ayah": 172,
+            "word": 1
+          },
+          "end": {
+            "surah": 7,
+            "ayah": 172,
+            "word": 9
+          }
+        }
+      },
+      "durationS": 7.796,
+      "cluster": "43",
+      "per": 0.08823529411764706,
+      "meanConf": 0.9778482865902686,
+      "confidence": 0.6789683615381636,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00163-of-00411",
+      "row": 310,
+      "path": "2_49_7448374694.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 42,
+            "word": 7
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 44,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 11.1455625,
+      "cluster": "100",
+      "per": 0.009615384615384616,
+      "meanConf": 0.9280614083721525,
+      "confidence": 0.9460641399416909,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00204-of-00332",
+      "row": 628,
+      "path": "-1_-1_6538586369.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 19,
+            "ayah": 44,
+            "word": 1
+          },
+          "end": {
+            "surah": 19,
+            "ayah": 44,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 3.7151875,
+      "cluster": "96",
+      "per": 0.09375,
+      "meanConf": 0.9674212603733457,
+      "confidence": 0.6672237860661506,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00410-of-00411",
+      "row": 185,
+      "path": "18_1_2600373964_Hksxn38.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 18,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 18,
+            "ayah": 2,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 10.913375,
+      "cluster": "55",
+      "per": 0.01098901098901099,
+      "meanConf": 0.9671701772705369,
+      "confidence": 0.938521992647991,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00237-of-00332",
+      "row": 364,
+      "path": "-1_-1_7430025967.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 28,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 28,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 6.3783125,
+      "cluster": "1",
+      "per": 0,
+      "meanConf": 0.9872978957075822,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00346-of-00411",
+      "row": 315,
+      "path": "7_54_9640385345.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 67,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 67,
+            "ayah": 1,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 5.3543125,
+      "cluster": "4",
+      "per": 0,
+      "meanConf": 0.9596889403558546,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00308-of-00411",
+      "row": 857,
+      "path": "74_42_4906343910.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 74,
+            "ayah": 42,
+            "word": 1
+          },
+          "end": {
+            "surah": 74,
+            "ayah": 42,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 3.4133125,
+      "cluster": "55",
+      "per": 0,
+      "meanConf": 0.9987056065689434,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00043-of-00411",
+      "row": 804,
+      "path": "16_15_3876731966.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 16,
+            "ayah": 15,
+            "word": 1
+          },
+          "end": {
+            "surah": 16,
+            "ayah": 15,
+            "word": 11
+          }
+        }
+      },
+      "durationS": 10.752,
+      "cluster": "89",
+      "per": 0.022988505747126436,
+      "meanConf": 0.968126612432887,
+      "confidence": 0.9223208849599506,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00197-of-00411",
+      "row": 785,
+      "path": "37_181_undefined_REkXH9C.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 37,
+            "ayah": 181,
+            "word": 1
+          },
+          "end": {
+            "surah": 37,
+            "ayah": 181,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 3.584,
+      "cluster": "97",
+      "per": 0.038461538461538464,
+      "meanConf": 0.9504581756061978,
+      "confidence": 0.8712715855572998,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00293-of-00411",
+      "row": 490,
+      "path": "69_47_6711894378.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 69,
+            "ayah": 46,
+            "word": 1
+          },
+          "end": {
+            "surah": 69,
+            "ayah": 46,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 3.6516875,
+      "cluster": "230",
+      "per": 0.03333333333333333,
+      "meanConf": 0.9439261655012766,
+      "confidence": 0.8616780045351473,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00402-of-00411",
+      "row": 663,
+      "path": "99_1_3984301395.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 99,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 99,
+            "ayah": 1,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 3.464375,
+      "cluster": "230",
+      "per": 0,
+      "meanConf": 0.9783735362922444,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00118-of-00332",
+      "row": 138,
+      "path": "-1_-1_4178040660.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 4.922625,
+      "cluster": "54",
+      "per": 0.3448275862068966,
+      "meanConf": 0.9132328601110549,
+      "confidence": 0.002060922891323999,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00295-of-00411",
+      "row": 568,
+      "path": "6_154_4546688122.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 6,
+            "ayah": 154,
+            "word": 1
+          },
+          "end": {
+            "surah": 6,
+            "ayah": 154,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 7.8948125,
+      "cluster": "230",
+      "per": 0,
+      "meanConf": 0.9705121056088861,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00160-of-00332",
+      "row": 438,
+      "path": "-1_-1_5335084284.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 3.4365625,
+      "cluster": "34",
+      "per": 0.2,
+      "meanConf": 0.8469777673482894,
+      "confidence": 0.17857142857142852,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00244-of-00411",
+      "row": 569,
+      "path": "51_9_null.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 51,
+            "ayah": 9,
+            "word": 1
+          },
+          "end": {
+            "surah": 51,
+            "ayah": 9,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 4.2666875,
+      "cluster": "46",
+      "per": 0,
+      "meanConf": 0.9927009671926499,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00124-of-00332",
+      "row": 568,
+      "path": "-1_-1_4352601675.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 6.78025,
+      "cluster": "230",
+      "per": 0.35,
+      "meanConf": 0.8836322824160258,
+      "confidence": 0,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00069-of-00411",
+      "row": 170,
+      "path": "1_2_5956516148.flac",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 7.244625,
+      "cluster": "58",
+      "per": 0.2413793103448276,
+      "meanConf": 0.7997127114622681,
+      "confidence": 0.1494252873563218,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00109-of-00411",
+      "row": 640,
+      "path": "9_89_6801970695.flac",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 10.623625,
+      "cluster": "230",
+      "per": null,
+      "meanConf": 0.8319108776965187,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "clean-00124-of-00411",
+      "row": 561,
+      "path": "26_102_2956478840.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 26,
+            "ayah": 102,
+            "word": 2
+          },
+          "end": {
+            "surah": 26,
+            "ayah": 102,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 5.3638125,
+      "cluster": "55",
+      "per": 0.020833333333333332,
+      "meanConf": 0.940140687404795,
+      "confidence": 0.9118902880301057,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00124-of-00411",
+      "row": 505,
+      "path": "26_100_707005785.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 26,
+            "ayah": 100,
+            "word": 1
+          },
+          "end": {
+            "surah": 26,
+            "ayah": 100,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 4.3885625,
+      "cluster": "58",
+      "per": 0,
+      "meanConf": 0.9472907270703997,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00324-of-00411",
+      "row": 208,
+      "path": "78_17_1510861546.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 16,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 17,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 6.1300625,
+      "cluster": "230",
+      "per": 0.09090909090909091,
+      "meanConf": 0.8983459230079207,
+      "confidence": 0.5582689735513655,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00330-of-00411",
+      "row": 633,
+      "path": "78_38_2044197245.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 38,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 38,
+            "word": 14
+          }
+        }
+      },
+      "durationS": 9.9288125,
+      "cluster": "62",
+      "per": 0.01818181818181818,
+      "meanConf": 0.9868945145825727,
+      "confidence": 0.9107759867917141,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00090-of-00411",
+      "row": 880,
+      "path": "1_6_3720425026.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 6,
+            "word": 1
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 6,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 5.3715,
+      "cluster": "230",
+      "per": 0.07692307692307693,
+      "meanConf": 0.9233544852052417,
+      "confidence": 0.6767212379457277,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00032-of-00411",
+      "row": 849,
+      "path": "11_96_4247349796.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "وَلَقَدڇءَرسَلنَاامُۥۥسَاابِءَاايَااتِنَااوَسُلطَاانِممممُبِۦۦن",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 11,
+              "ayah": 96,
+              "word": 1
+            },
+            "end": {
+              "surah": 11,
+              "ayah": 96,
+              "word": 6
+            }
+          },
+          {
+            "start": {
+              "surah": 40,
+              "ayah": 23,
+              "word": 1
+            },
+            "end": {
+              "surah": 40,
+              "ayah": 23,
+              "word": 6
+            }
+          }
+        ]
+      },
+      "durationS": 11.4346875,
+      "cluster": "230",
+      "per": 0.12698412698412698,
+      "meanConf": 0.9034472809118383,
+      "confidence": 0.3754859086491739,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00330-of-00332",
+      "row": 820,
+      "path": "-1_-1_9973176233.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 282,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 282,
+            "word": 10
+          }
+        }
+      },
+      "durationS": 11.9815,
+      "cluster": "99",
+      "per": 0.08823529411764706,
+      "meanConf": 0.9854580202001206,
+      "confidence": 0.6887946668028914,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00107-of-00411",
+      "row": 737,
+      "path": "2_5_2670074630.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "ءُلَااااءِكَعَلَااهُدَممممِررَببِهِموَءُلَااااءِكَهُمُلمُفلِحُۥۥن",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 5,
+              "word": 1
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 5,
+              "word": 8
+            }
+          },
+          {
+            "start": {
+              "surah": 31,
+              "ayah": 5,
+              "word": 1
+            },
+            "end": {
+              "surah": 31,
+              "ayah": 5,
+              "word": 8
+            }
+          }
+        ]
+      },
+      "durationS": 6.97525,
+      "cluster": "83",
+      "per": 0.15384615384615385,
+      "meanConf": 0.9692327335025325,
+      "confidence": 0.3002354788069074,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00035-of-00332",
+      "row": 167,
+      "path": "-1_-1_1921570793.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 1,
+              "ayah": 1,
+              "word": 1
+            },
+            "end": {
+              "surah": 1,
+              "ayah": 1,
+              "word": 4
+            }
+          },
+          {
+            "start": {
+              "surah": 27,
+              "ayah": 30,
+              "word": 5
+            },
+            "end": {
+              "surah": 27,
+              "ayah": 30,
+              "word": 8
+            }
+          }
+        ]
+      },
+      "durationS": 6.4086875,
+      "cluster": "58",
+      "per": 0.27586206896551724,
+      "meanConf": 0.8621910077494543,
+      "confidence": 0.081375886794606,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00131-of-00332",
+      "row": 688,
+      "path": "-1_-1_4546170881.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 5.294125,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.2502557337284088,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "unclean-00299-of-00332",
+      "row": 469,
+      "path": "-1_-1_9117340137.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 6.873125,
+      "cluster": "130",
+      "per": 0.3333333333333333,
+      "meanConf": 0.9459034387881939,
+      "confidence": 0.012820512820512801,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00203-of-00332",
+      "row": 914,
+      "path": "-1_-1_6519758375.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 79,
+            "ayah": 40,
+            "word": 1
+          },
+          "end": {
+            "surah": 79,
+            "ayah": 41,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 17.461375,
+      "cluster": "234",
+      "per": 0,
+      "meanConf": 0.9869969487190247,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00318-of-00411",
+      "row": 168,
+      "path": "77_21_8488114957.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 2,
+            "word": 4
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 2,
+            "word": 7
+          }
+        }
+      },
+      "durationS": 3.2508125,
+      "cluster": "230",
+      "per": 0.14285714285714285,
+      "meanConf": 0.9241660070419312,
+      "confidence": 0.3889212827988338,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00210-of-00332",
+      "row": 846,
+      "path": "-1_-1_6706666763.wav",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 5.762,
+      "cluster": "206",
+      "per": null,
+      "meanConf": 0.43336030769915806,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "unclean-00316-of-00332",
+      "row": 770,
+      "path": "-1_-1_9591149768.wav",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 8.9164375,
+      "cluster": "100",
+      "per": null,
+      "meanConf": 0.8625288691078679,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "clean-00191-of-00411",
+      "row": 411,
+      "path": "36_76_6402637307.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 36,
+            "ayah": 76,
+            "word": 2
+          },
+          "end": {
+            "surah": 36,
+            "ayah": 77,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 4.60375,
+      "cluster": "100",
+      "per": 0.24285714285714285,
+      "meanConf": 0.8757944017086389,
+      "confidence": 0.20545684581110074,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00032-of-00411",
+      "row": 197,
+      "path": "11_77_6476257938.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 11,
+            "ayah": 76,
+            "word": 1
+          },
+          "end": {
+            "surah": 11,
+            "ayah": 76,
+            "word": 14
+          }
+        }
+      },
+      "durationS": 13.2266875,
+      "cluster": "55",
+      "per": 0.016666666666666666,
+      "meanConf": 0.9647557056341015,
+      "confidence": 0.9434593509534961,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00032-of-00411",
+      "row": 137,
+      "path": "11_75_2329339132_NoxE40s.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 11,
+            "ayah": 75,
+            "word": 1
+          },
+          "end": {
+            "surah": 11,
+            "ayah": 75,
+            "word": 5
+          }
+        }
+      },
+      "durationS": 5.5728125,
+      "cluster": "55",
+      "per": 0.07692307692307693,
+      "meanConf": 0.9655510714420905,
+      "confidence": 0.7330636396570462,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00032-of-00411",
+      "row": 127,
+      "path": "11_74_undefined.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 11,
+            "ayah": 74,
+            "word": 1
+          },
+          "end": {
+            "surah": 11,
+            "ayah": 74,
+            "word": 11
+          }
+        }
+      },
+      "durationS": 8.3626875,
+      "cluster": "55",
+      "per": 0.044444444444444446,
+      "meanConf": 0.9623767740196651,
+      "confidence": 0.8508440413202318,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00087-of-00411",
+      "row": 597,
+      "path": "1_5_7561734582.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 5,
+            "word": 1
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 5,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 3.8080625,
+      "cluster": "61",
+      "per": 0,
+      "meanConf": 0.9709912074936761,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00087-of-00411",
+      "row": 587,
+      "path": "1_5_7534574402.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 5,
+            "word": 1
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 5,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 5.108375,
+      "cluster": "83",
+      "per": 0.02857142857142857,
+      "meanConf": 0.9283321731620364,
+      "confidence": 0.8965014577259475,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00335-of-00411",
+      "row": 894,
+      "path": "79_14_6270095061.flac",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 3.452375,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.40352052450180054,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00345-of-00411",
+      "row": 852,
+      "path": "7_54_6769724241.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 67,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 67,
+            "ayah": 1,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 6.8263125,
+      "cluster": "100",
+      "per": 0,
+      "meanConf": 0.9829873243967692,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00325-of-00332",
+      "row": 615,
+      "path": "-1_-1_9832809128.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 1,
+              "ayah": 1,
+              "word": 1
+            },
+            "end": {
+              "surah": 1,
+              "ayah": 1,
+              "word": 4
+            }
+          },
+          {
+            "start": {
+              "surah": 27,
+              "ayah": 30,
+              "word": 5
+            },
+            "end": {
+              "surah": 27,
+              "ayah": 30,
+              "word": 8
+            }
+          }
+        ]
+      },
+      "durationS": 7.278625,
+      "cluster": "171",
+      "per": 0.06896551724137931,
+      "meanConf": 0.9520411126075252,
+      "confidence": 0.3348732151370003,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00111-of-00411",
+      "row": 460,
+      "path": "20_7_3164128168.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 20,
+            "ayah": 6,
+            "word": 8
+          },
+          "end": {
+            "surah": 20,
+            "ayah": 6,
+            "word": 12
+          }
+        }
+      },
+      "durationS": 4.9535625,
+      "cluster": "58",
+      "per": 0,
+      "meanConf": 0.9519572530473982,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00025-of-00332",
+      "row": 890,
+      "path": "-1_-1_1665703771.wav",
+      "bucket": "deviant",
+      "reason": "teacher_unsure",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 20,
+            "ayah": 18,
+            "word": 1
+          },
+          "end": {
+            "surah": 20,
+            "ayah": 18,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 5.6656875,
+      "cluster": "275",
+      "per": 0,
+      "meanConf": 0.8916538427857792,
+      "confidence": 1,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00308-of-00411",
+      "row": 50,
+      "path": "74_25_4108859176_2cZ1LEV.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 74,
+            "ayah": 25,
+            "word": 1
+          },
+          "end": {
+            "surah": 74,
+            "ayah": 25,
+            "word": 5
+          }
+        }
+      },
+      "durationS": 6.144,
+      "cluster": "62",
+      "per": 0,
+      "meanConf": 0.9892794278360182,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00308-of-00411",
+      "row": 34,
+      "path": "74_25_1258370143.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 72,
+            "ayah": 7,
+            "word": 1
+          },
+          "end": {
+            "surah": 72,
+            "ayah": 7,
+            "word": 9
+          }
+        }
+      },
+      "durationS": 6.78025,
+      "cluster": "55",
+      "per": 0.029850746268656716,
+      "meanConf": 0.9885057055033171,
+      "confidence": 0.8986293024672555,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00065-of-00332",
+      "row": 463,
+      "path": "-1_-1_2751376221.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "وَكَاانَللَااهُعَلِۦۦمَن",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 4,
+              "ayah": 17,
+              "word": 17
+            },
+            "end": {
+              "surah": 4,
+              "ayah": 17,
+              "word": 19
+            }
+          },
+          {
+            "start": {
+              "surah": 4,
+              "ayah": 92,
+              "word": 57
+            },
+            "end": {
+              "surah": 4,
+              "ayah": 92,
+              "word": 59
+            }
+          },
+          {
+            "start": {
+              "surah": 4,
+              "ayah": 104,
+              "word": 19
+            },
+            "end": {
+              "surah": 4,
+              "ayah": 104,
+              "word": 21
+            }
+          },
+          {
+            "start": {
+              "surah": 4,
+              "ayah": 111,
+              "word": 8
+            },
+            "end": {
+              "surah": 4,
+              "ayah": 111,
+              "word": 10
+            }
+          },
+          {
+            "start": {
+              "surah": 4,
+              "ayah": 170,
+              "word": 20
+            },
+            "end": {
+              "surah": 4,
+              "ayah": 170,
+              "word": 22
+            }
+          }
+        ]
+      },
+      "durationS": 8.8235625,
+      "cluster": "34",
+      "per": 0.2727272727272727,
+      "meanConf": 0.883738127492723,
+      "confidence": 0.04430603410195246,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00011-of-00332",
+      "row": 301,
+      "path": "-1_-1_1266360419.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 93,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 93,
+            "ayah": 3,
+            "word": 5
+          }
+        }
+      },
+      "durationS": 9.0093125,
+      "cluster": "83",
+      "per": 0.01639344262295082,
+      "meanConf": 0.976569676399231,
+      "confidence": 0.9304672688747629,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00167-of-00411",
+      "row": 217,
+      "path": "2_71_3545266201.flac",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 19.712,
+      "cluster": "55",
+      "per": 0.2594594594594595,
+      "meanConf": 0.972583844862153,
+      "confidence": 0.15141871146928032,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00124-of-00411",
+      "row": 467,
+      "path": "25_9_1982381754.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "text",
+        "text": "ءُںںںظُركَيفَضَرَبُۥۥلَكَلءَمثَاالَفَضَللُۥۥفَلَاايَستَطِۦۦعُۥۥنَسَبِۦۦلَاا",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 25,
+              "ayah": 9,
+              "word": 1
+            },
+            "end": {
+              "surah": 25,
+              "ayah": 9,
+              "word": 9
+            }
+          },
+          {
+            "start": {
+              "surah": 17,
+              "ayah": 48,
+              "word": 1
+            },
+            "end": {
+              "surah": 17,
+              "ayah": 48,
+              "word": 9
+            }
+          }
+        ]
+      },
+      "durationS": 8.196625,
+      "cluster": "55",
+      "per": 0,
+      "meanConf": 0.9712427981694539,
+      "confidence": 0.75,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00248-of-00332",
+      "row": 435,
+      "path": "-1_-1_7729443428.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 3.3436875,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.39107730984687805,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00334-of-00411",
+      "row": 637,
+      "path": "78_9_3432058807.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 9,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 9,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 5.5728125,
+      "cluster": "99",
+      "per": 0,
+      "meanConf": 0.9537872096587872,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00071-of-00332",
+      "row": 397,
+      "path": "-1_-1_2909021241.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 4.0866875,
+      "cluster": "58",
+      "per": 0.35,
+      "meanConf": 0.9204078426486567,
+      "confidence": 0,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00307-of-00411",
+      "row": 686,
+      "path": "74_1_8305231589.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 74,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 74,
+            "ayah": 2,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 5.108375,
+      "cluster": "55",
+      "per": 0,
+      "meanConf": 0.9386715864141782,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00249-of-00411",
+      "row": 877,
+      "path": "53_55_9945555064.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "فَبِءَييِءَاالَااااءِرَببِكُمَااتُكَذذِبَاان",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 55,
+              "ayah": 13,
+              "word": 1
+            },
+            "end": {
+              "surah": 55,
+              "ayah": 13,
+              "word": 4
+            }
+          },
+          {
+            "start": {
+              "surah": 55,
+              "ayah": 16,
+              "word": 1
+            },
+            "end": {
+              "surah": 55,
+              "ayah": 16,
+              "word": 4
+            }
+          },
+          {
+            "start": {
+              "surah": 55,
+              "ayah": 18,
+              "word": 1
+            },
+            "end": {
+              "surah": 55,
+              "ayah": 18,
+              "word": 4
+            }
+          },
+          {
+            "start": {
+              "surah": 55,
+              "ayah": 21,
+              "word": 1
+            },
+            "end": {
+              "surah": 55,
+              "ayah": 21,
+              "word": 4
+            }
+          },
+          {
+            "start": {
+              "surah": 55,
+              "ayah": 23,
+              "word": 1
+            },
+            "end": {
+              "surah": 55,
+              "ayah": 23,
+              "word": 4
+            }
+          }
+        ]
+      },
+      "durationS": 21.183625,
+      "cluster": "61",
+      "per": 0.13636363636363635,
+      "meanConf": 0.9533586000141344,
+      "confidence": 0.25241675617615467,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00301-of-00411",
+      "row": 819,
+      "path": "71_22_2178838921.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 71,
+            "ayah": 22,
+            "word": 1
+          },
+          "end": {
+            "surah": 71,
+            "ayah": 22,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 3.0650625,
+      "cluster": "230",
+      "per": 0,
+      "meanConf": 0.9516851544380188,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00053-of-00411",
+      "row": 637,
+      "path": "18_32_8096148907.flac",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 10.8374375,
+      "cluster": "89",
+      "per": 0.25190839694656486,
+      "meanConf": 0.9086803573937643,
+      "confidence": 0.14362618911614083,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00112-of-00332",
+      "row": 526,
+      "path": "-1_-1_4027628682.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 1,
+            "ayah": 2,
+            "word": 1
+          },
+          "end": {
+            "surah": 1,
+            "ayah": 4,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 14.613,
+      "cluster": "58",
+      "per": 0.0273972602739726,
+      "meanConf": 0.968691209157308,
+      "confidence": 0.8514956667598547,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00027-of-00332",
+      "row": 692,
+      "path": "-1_-1_1717015283.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 3.060375,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.21049216389656067,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00084-of-00411",
+      "row": 804,
+      "path": "1_5_3300241068.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 10,
+            "ayah": 62,
+            "word": 3
+          },
+          "end": {
+            "surah": 10,
+            "ayah": 62,
+            "word": 6
+          }
+        }
+      },
+      "durationS": 2.786375,
+      "cluster": "183",
+      "per": 0,
+      "meanConf": 0.9220933353199678,
+      "confidence": 0.8319327731092436,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00023-of-00332",
+      "row": 327,
+      "path": "-1_-1_1595675892.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 3.9938125,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.37870027124881744,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00141-of-00411",
+      "row": 494,
+      "path": "2_122_8047559071.flac",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 4.82975,
+      "cluster": "109",
+      "per": 0.32673267326732675,
+      "meanConf": 0.8699691736362349,
+      "confidence": 0.014947535282415818,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00215-of-00411",
+      "row": 269,
+      "path": "3_6_8586341121.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 3,
+            "ayah": 6,
+            "word": 1
+          },
+          "end": {
+            "surah": 3,
+            "ayah": 6,
+            "word": 13
+          }
+        }
+      },
+      "durationS": 8.6548125,
+      "cluster": "230",
+      "per": 0.03260869565217391,
+      "meanConf": 0.9588866292134576,
+      "confidence": 0.8730373056595039,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00155-of-00332",
+      "row": 579,
+      "path": "-1_-1_5198043349.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 9.4503125,
+      "cluster": "230",
+      "per": 0.3382352941176471,
+      "meanConf": 0.9689455678065618,
+      "confidence": 0.00592236894757901,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "clean-00223-of-00411",
+      "row": 516,
+      "path": "43_20_9758783127.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 43,
+            "ayah": 20,
+            "word": 1
+          },
+          "end": {
+            "surah": 43,
+            "ayah": 20,
+            "word": 15
+          }
+        }
+      },
+      "durationS": 13.2818125,
+      "cluster": "99",
+      "per": 0.020618556701030927,
+      "meanConf": 0.9507596655895836,
+      "confidence": 0.9014650027129679,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00235-of-00332",
+      "row": 610,
+      "path": "-1_-1_7381558588.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 3.7543125,
+      "cluster": "58",
+      "per": 0.3333333333333333,
+      "meanConf": 0.8702763489314488,
+      "confidence": 0.004373177842565592,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00129-of-00332",
+      "row": 585,
+      "path": "-1_-1_4489897235.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 2.600625,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.20420806109905243,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00219-of-00411",
+      "row": 103,
+      "path": "40_70_undefined.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 40,
+            "ayah": 70,
+            "word": 1
+          },
+          "end": {
+            "surah": 40,
+            "ayah": 70,
+            "word": 9
+          }
+        }
+      },
+      "durationS": 7.2533125,
+      "cluster": "58",
+      "per": 0.023809523809523808,
+      "meanConf": 0.980492106298121,
+      "confidence": 0.9189836213230937,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00210-of-00332",
+      "row": 138,
+      "path": "-1_-1_6686454775.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "عَلَلءَرَااااءِكِ",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 18,
+              "ayah": 31,
+              "word": 23
+            },
+            "end": {
+              "surah": 18,
+              "ayah": 31,
+              "word": 24
+            }
+          },
+          {
+            "start": {
+              "surah": 36,
+              "ayah": 56,
+              "word": 5
+            },
+            "end": {
+              "surah": 36,
+              "ayah": 56,
+              "word": 6
+            }
+          },
+          {
+            "start": {
+              "surah": 76,
+              "ayah": 13,
+              "word": 3
+            },
+            "end": {
+              "surah": 76,
+              "ayah": 13,
+              "word": 4
+            }
+          },
+          {
+            "start": {
+              "surah": 83,
+              "ayah": 23,
+              "word": 1
+            },
+            "end": {
+              "surah": 83,
+              "ayah": 23,
+              "word": 2
+            }
+          },
+          {
+            "start": {
+              "surah": 83,
+              "ayah": 35,
+              "word": 1
+            },
+            "end": {
+              "surah": 83,
+              "ayah": 35,
+              "word": 2
+            }
+          }
+        ]
+      },
+      "durationS": 3.477,
+      "cluster": "83",
+      "per": 0.125,
+      "meanConf": 0.9967050680092403,
+      "confidence": 0.2951895043731778,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00223-of-00411",
+      "row": 500,
+      "path": "43_20_3841417822.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 43,
+            "ayah": 20,
+            "word": 1
+          },
+          "end": {
+            "surah": 43,
+            "ayah": 20,
+            "word": 15
+          }
+        }
+      },
+      "durationS": 17.2373125,
+      "cluster": "100",
+      "per": 0.04854368932038835,
+      "meanConf": 0.9720314879610081,
+      "confidence": 0.801646342561738,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00225-of-00411",
+      "row": 83,
+      "path": "43_60_6116542733.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 43,
+            "ayah": 59,
+            "word": 1
+          },
+          "end": {
+            "surah": 43,
+            "ayah": 59,
+            "word": 10
+          }
+        }
+      },
+      "durationS": 7.424,
+      "cluster": "55",
+      "per": 0.012195121951219513,
+      "meanConf": 0.9782272974650065,
+      "confidence": 0.9583479281504833,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00196-of-00411",
+      "row": 599,
+      "path": "37_161_4231156174.flac",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 2.87925,
+      "cluster": "89",
+      "per": 0.03225806451612903,
+      "meanConf": 0.9580318909138441,
+      "confidence": 0.433652896642528,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00330-of-00411",
+      "row": 119,
+      "path": "78_35_4862843252.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 30,
+            "word": 5
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 31,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 18.2044375,
+      "cluster": "234",
+      "per": 0.043478260869565216,
+      "meanConf": 0.8944737936059634,
+      "confidence": 0.6672582076308784,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00330-of-00411",
+      "row": 199,
+      "path": "78_35_9061230727.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 33,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 34,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 3.0650625,
+      "cluster": "13",
+      "per": 0.2,
+      "meanConf": 0.9121348100403944,
+      "confidence": 0.3112244897959183,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00201-of-00332",
+      "row": 59,
+      "path": "-1_-1_6442324316.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 33,
+            "ayah": 35,
+            "word": 1
+          },
+          "end": {
+            "surah": 33,
+            "ayah": 35,
+            "word": 9
+          }
+        }
+      },
+      "durationS": 10.7740625,
+      "cluster": "100",
+      "per": 0.016666666666666666,
+      "meanConf": 0.96688720988015,
+      "confidence": 0.9431569237864637,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00153-of-00332",
+      "row": 761,
+      "path": "-1_-1_5149792247.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 3,
+            "ayah": 105,
+            "word": 1
+          },
+          "end": {
+            "surah": 3,
+            "ayah": 105,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 4.736875,
+      "cluster": "89",
+      "per": 0.027777777777777776,
+      "meanConf": 0.969625701223101,
+      "confidence": 0.8830579850988014,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00201-of-00332",
+      "row": 11,
+      "path": "-1_-1_6440449311.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 3.3388125,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.12140756845474243,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "unclean-00074-of-00332",
+      "row": 32,
+      "path": "-1_-1_2982661663.wav",
+      "bucket": "reject",
+      "reason": "lost",
+      "label": null,
+      "durationS": 14.11775,
+      "cluster": "230",
+      "per": null,
+      "meanConf": 0.719602551884376,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "unclean-00327-of-00332",
+      "row": 353,
+      "path": "-1_-1_9878419528.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 26.935125,
+      "cluster": "58",
+      "per": 0.34375,
+      "meanConf": 0.8571125065286954,
+      "confidence": 0.001785714285714278,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00103-of-00332",
+      "row": 95,
+      "path": "-1_-1_3774190286.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 4,
+            "ayah": 23,
+            "word": 1
+          },
+          "end": {
+            "surah": 4,
+            "ayah": 23,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 5.5728125,
+      "cluster": "44",
+      "per": 0.0625,
+      "meanConf": 0.9648499588171641,
+      "confidence": 0.7901360544217687,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00355-of-00411",
+      "row": 754,
+      "path": "81_3_5880388383.flac",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 2.322,
+      "cluster": "59",
+      "per": 0.14285714285714285,
+      "meanConf": 0.4579977865020434,
+      "confidence": 0.23448007774538385,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00373-of-00411",
+      "row": 64,
+      "path": "87_5_8084253630.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 87,
+            "ayah": 4,
+            "word": 1
+          },
+          "end": {
+            "surah": 87,
+            "ayah": 4,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 6.1300625,
+      "cluster": "124",
+      "per": 0,
+      "meanConf": 0.9901960262885461,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00038-of-00411",
+      "row": 466,
+      "path": "14_24_6662693359.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 14,
+            "ayah": 23,
+            "word": 11
+          },
+          "end": {
+            "surah": 14,
+            "ayah": 24,
+            "word": 10
+          }
+        }
+      },
+      "durationS": 15.907125,
+      "cluster": "131",
+      "per": 0.05343511450381679,
+      "meanConf": 0.9486027321287693,
+      "confidence": 0.7493819041514397,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00067-of-00332",
+      "row": 819,
+      "path": "-1_-1_2814274591.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 11.61,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.31126901507377625,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00380-of-00411",
+      "row": 831,
+      "path": "89_30_4061536670.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 89,
+            "ayah": 30,
+            "word": 1
+          },
+          "end": {
+            "surah": 89,
+            "ayah": 30,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 9.2321875,
+      "cluster": "7",
+      "per": 0,
+      "meanConf": 0.9141402244567871,
+      "confidence": 0.8319327731092436,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00169-of-00332",
+      "row": 240,
+      "path": "-1_-1_5573553716.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "وَللَااهُذُلفَضلِلعَظِۦۦم",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 2,
+              "ayah": 105,
+              "word": 22
+            },
+            "end": {
+              "surah": 2,
+              "ayah": 105,
+              "word": 25
+            }
+          },
+          {
+            "start": {
+              "surah": 3,
+              "ayah": 74,
+              "word": 5
+            },
+            "end": {
+              "surah": 3,
+              "ayah": 74,
+              "word": 8
+            }
+          },
+          {
+            "start": {
+              "surah": 8,
+              "ayah": 29,
+              "word": 15
+            },
+            "end": {
+              "surah": 8,
+              "ayah": 29,
+              "word": 18
+            }
+          },
+          {
+            "start": {
+              "surah": 57,
+              "ayah": 21,
+              "word": 22
+            },
+            "end": {
+              "surah": 57,
+              "ayah": 21,
+              "word": 25
+            }
+          },
+          {
+            "start": {
+              "surah": 57,
+              "ayah": 29,
+              "word": 19
+            },
+            "end": {
+              "surah": 57,
+              "ayah": 29,
+              "word": 22
+            }
+          }
+        ]
+      },
+      "durationS": 5.2263125,
+      "cluster": "230",
+      "per": 0.08333333333333333,
+      "meanConf": 0.9656118475473844,
+      "confidence": 0.3642072213500785,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "unclean-00076-of-00332",
+      "row": 502,
+      "path": "-1_-1_3051539988.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 3.9009375,
+      "cluster": "20",
+      "per": 0.125,
+      "meanConf": 0.9695092961192131,
+      "confidence": 0.09183673469387754,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00211-of-00411",
+      "row": 280,
+      "path": "3_19_1615076330.flac",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 11.6749375,
+      "cluster": "85",
+      "per": 0.24242424242424243,
+      "meanConf": 0.9145025062350045,
+      "confidence": 0.19001100037762486,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00330-of-00411",
+      "row": 169,
+      "path": "78_35_7588863037.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 39,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 39,
+            "word": 8
+          }
+        }
+      },
+      "durationS": 5.4659375,
+      "cluster": "13",
+      "per": 0.057692307692307696,
+      "meanConf": 0.900377094745636,
+      "confidence": 0.7112667552227991,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00226-of-00332",
+      "row": 35,
+      "path": "-1_-1_7122834861.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 6.3158125,
+      "cluster": "59",
+      "per": 0.34782608695652173,
+      "meanConf": 0.9540330937930516,
+      "confidence": 0.000147885241052943,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00043-of-00332",
+      "row": 736,
+      "path": "-1_-1_2153204586.wav",
+      "bucket": "reject",
+      "reason": "insufficient_evidence",
+      "label": null,
+      "durationS": 3.4365625,
+      "cluster": "206",
+      "per": null,
+      "meanConf": 0,
+      "confidence": null,
+      "stratum": "reject_other"
+    },
+    {
+      "shard": "clean-00141-of-00411",
+      "row": 319,
+      "path": "2_120_363979159.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 120,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 120,
+            "word": 31
+          }
+        }
+      },
+      "durationS": 19.3706875,
+      "cluster": "100",
+      "per": 0.06572769953051644,
+      "meanConf": 0.9691467488221094,
+      "confidence": 0.7587419944503623,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "unclean-00141-of-00332",
+      "row": 441,
+      "path": "-1_-1_4813734445.wav",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 5.387,
+      "cluster": "13",
+      "per": 0,
+      "meanConf": 0.9737699792302889,
+      "confidence": 0.5,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00177-of-00411",
+      "row": 904,
+      "path": "33_71_9324613087.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 33,
+            "ayah": 71,
+            "word": 1
+          },
+          "end": {
+            "surah": 33,
+            "ayah": 71,
+            "word": 14
+          }
+        }
+      },
+      "durationS": 13.3250625,
+      "cluster": "100",
+      "per": 0.01904761904761905,
+      "meanConf": 0.9683664443893968,
+      "confidence": 0.9354785973134246,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00357-of-00411",
+      "row": 587,
+      "path": "82_2_9029406971.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 82,
+            "ayah": 2,
+            "word": 2
+          },
+          "end": {
+            "surah": 82,
+            "ayah": 2,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 2.6935,
+      "cluster": "100",
+      "per": 0,
+      "meanConf": 0.9024951308965683,
+      "confidence": 0.8571428571428571,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00077-of-00411",
+      "row": 460,
+      "path": "1_3_9280501899.flac",
+      "bucket": "ambiguous",
+      "reason": "ambiguous",
+      "label": null,
+      "durationS": 3.5294375,
+      "cluster": "89",
+      "per": 0,
+      "meanConf": 0.9806100831312292,
+      "confidence": 0.5338235294117646,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "clean-00144-of-00411",
+      "row": 286,
+      "path": "2_14_6328153931.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 14,
+            "word": 1
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 14,
+            "word": 16
+          }
+        }
+      },
+      "durationS": 15.6038125,
+      "cluster": "230",
+      "per": 0.03571428571428571,
+      "meanConf": 0.9509321103850714,
+      "confidence": 0.8296662961176249,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00372-of-00411",
+      "row": 923,
+      "path": "87_5_4855768751.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 87,
+            "ayah": 5,
+            "word": 2
+          },
+          "end": {
+            "surah": 87,
+            "ayah": 6,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 4.2725,
+      "cluster": "100",
+      "per": 0.037037037037037035,
+      "meanConf": 0.8257764258555004,
+      "confidence": 0.7755641939315409,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00010-of-00411",
+      "row": 782,
+      "path": "10_10_1741910495.flac",
+      "bucket": "ambiguous",
+      "reason": "low_confidence",
+      "label": null,
+      "durationS": 22.9413125,
+      "cluster": "52",
+      "per": 0.2692307692307692,
+      "meanConf": 0.9566096222171416,
+      "confidence": 0.10650887573964496,
+      "stratum": "ambiguous"
+    },
+    {
+      "shard": "unclean-00306-of-00332",
+      "row": 208,
+      "path": "-1_-1_9297912824.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 96,
+            "ayah": 12,
+            "word": 1
+          },
+          "end": {
+            "surah": 96,
+            "ayah": 12,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 5.0931875,
+      "cluster": "55",
+      "per": 0,
+      "meanConf": 0.9715474575757981,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00404-of-00411",
+      "row": 235,
+      "path": "99_8_undefined_HkDKYYo.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 99,
+            "ayah": 8,
+            "word": 1
+          },
+          "end": {
+            "surah": 99,
+            "ayah": 8,
+            "word": 6
+          }
+        }
+      },
+      "durationS": 6.2293125,
+      "cluster": "55",
+      "per": 0,
+      "meanConf": 0.9719178066697232,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00404-of-00411",
+      "row": 299,
+      "path": "9_103_571827392.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 9,
+            "ayah": 100,
+            "word": 1
+          },
+          "end": {
+            "surah": 9,
+            "ayah": 100,
+            "word": 25
+          }
+        }
+      },
+      "durationS": 22.528,
+      "cluster": "234",
+      "per": 0.029787234042553193,
+      "meanConf": 0.979818297987399,
+      "confidence": 0.8648870093828466,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00061-of-00411",
+      "row": 650,
+      "path": "19_33_5248771318.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 19,
+            "ayah": 32,
+            "word": 1
+          },
+          "end": {
+            "surah": 19,
+            "ayah": 32,
+            "word": 6
+          }
+        }
+      },
+      "durationS": 6.4,
+      "cluster": "55",
+      "per": 0.04918032786885246,
+      "meanConf": 0.9860565574442754,
+      "confidence": 0.7387140827844171,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00313-of-00332",
+      "row": 534,
+      "path": "-1_-1_9502071135.wav",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 5.4799375,
+      "cluster": "206",
+      "per": 0.3333333333333333,
+      "meanConf": 0.6895951367914677,
+      "confidence": 0.006802721088435365,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00289-of-00332",
+      "row": 114,
+      "path": "-1_-1_8836875835.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 99,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 99,
+            "ayah": 2,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 7.430375,
+      "cluster": "99",
+      "per": 0.046875,
+      "meanConf": 0.9624499486042903,
+      "confidence": 0.7899332810047096,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "unclean-00035-of-00332",
+      "row": 235,
+      "path": "-1_-1_1923564485.wav",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 3.5294375,
+      "cluster": "206",
+      "per": 0,
+      "meanConf": 0.35376960039138794,
+      "confidence": 0.5,
+      "stratum": "reject_low_teacher"
+    },
+    {
+      "shard": "clean-00010-of-00411",
+      "row": 784,
+      "path": "10_10_2505727779.flac",
+      "bucket": "reject",
+      "reason": "high_per",
+      "label": null,
+      "durationS": 0.8533125,
+      "cluster": "233",
+      "per": 0.3333333333333333,
+      "meanConf": 0.7270183116197586,
+      "confidence": 0.015306122448979572,
+      "stratum": "reject_high_per"
+    },
+    {
+      "shard": "unclean-00293-of-00332",
+      "row": 695,
+      "path": "-1_-1_8963227911.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 50,
+            "ayah": 39,
+            "word": 5
+          },
+          "end": {
+            "surah": 50,
+            "ayah": 39,
+            "word": 12
+          }
+        }
+      },
+      "durationS": 15.6038125,
+      "cluster": "99",
+      "per": 0.01694915254237288,
+      "meanConf": 0.9652433072106313,
+      "confidence": 0.9054927917734171,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "clean-00203-of-00411",
+      "row": 28,
+      "path": "38_68_3409521032.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 38,
+            "ayah": 68,
+            "word": 1
+          },
+          "end": {
+            "surah": 38,
+            "ayah": 68,
+            "word": 3
+          }
+        }
+      },
+      "durationS": 3.84,
+      "cluster": "55",
+      "per": 0,
+      "meanConf": 0.9549266359080439,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00060-of-00332",
+      "row": 777,
+      "path": "-1_-1_2622121559.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "text",
+        "text": "ءَفَلَاايَتَدَببَرُۥۥنَلقُرءَاانَ",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 4,
+              "ayah": 82,
+              "word": 1
+            },
+            "end": {
+              "surah": 4,
+              "ayah": 82,
+              "word": 3
+            }
+          },
+          {
+            "start": {
+              "surah": 47,
+              "ayah": 24,
+              "word": 1
+            },
+            "end": {
+              "surah": 47,
+              "ayah": 24,
+              "word": 3
+            }
+          }
+        ]
+      },
+      "durationS": 7.05975,
+      "cluster": "147",
+      "per": 0.0625,
+      "meanConf": 0.9864063946639791,
+      "confidence": 0.39690876350540216,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00398-of-00411",
+      "row": 800,
+      "path": "96_2_9852059825.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 96,
+            "ayah": 2,
+            "word": 1
+          },
+          "end": {
+            "surah": 96,
+            "ayah": 2,
+            "word": 4
+          }
+        }
+      },
+      "durationS": 14.094625,
+      "cluster": "99",
+      "per": 0,
+      "meanConf": 0.954002895840892,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "unclean-00074-of-00332",
+      "row": 619,
+      "path": "-1_-1_2999789234.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 100,
+            "ayah": 1,
+            "word": 1
+          },
+          "end": {
+            "surah": 100,
+            "ayah": 2,
+            "word": 1
+          }
+        }
+      },
+      "durationS": 7.709,
+      "cluster": "234",
+      "per": 0.02631578947368421,
+      "meanConf": 0.9752772905324635,
+      "confidence": 0.8900446605234892,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00199-of-00332",
+      "row": 657,
+      "path": "-1_-1_6402800323.wav",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 6,
+            "ayah": 66,
+            "word": 1
+          },
+          "end": {
+            "surah": 6,
+            "ayah": 66,
+            "word": 5
+          }
+        }
+      },
+      "durationS": 5.9443125,
+      "cluster": "58",
+      "per": 0.030303030303030304,
+      "meanConf": 0.9700599746270613,
+      "confidence": 0.8343359382320422,
+      "stratum": "deviant_edge"
+    },
+    {
+      "shard": "clean-00180-of-00411",
+      "row": 771,
+      "path": "36_10_6858624681.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 2,
+            "ayah": 6,
+            "word": 3
+          },
+          "end": {
+            "surah": 2,
+            "ayah": 6,
+            "word": 11
+          }
+        }
+      },
+      "durationS": 9.10225,
+      "cluster": "154",
+      "per": 0,
+      "meanConf": 0.9283257882360002,
+      "confidence": 1,
+      "stratum": "clean_edge"
+    },
+    {
+      "shard": "unclean-00149-of-00332",
+      "row": 28,
+      "path": "-1_-1_5019557348.wav",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "text",
+        "text": "وَيَقُۥۥلُۥۥنَمَتَااهَااذَلوَعدُءِںںںكُںںںتُمصَاادِقِۦۦن",
+        "occurrences": [
+          {
+            "start": {
+              "surah": 10,
+              "ayah": 48,
+              "word": 1
+            },
+            "end": {
+              "surah": 10,
+              "ayah": 48,
+              "word": 7
+            }
+          },
+          {
+            "start": {
+              "surah": 21,
+              "ayah": 38,
+              "word": 1
+            },
+            "end": {
+              "surah": 21,
+              "ayah": 38,
+              "word": 7
+            }
+          },
+          {
+            "start": {
+              "surah": 27,
+              "ayah": 71,
+              "word": 1
+            },
+            "end": {
+              "surah": 27,
+              "ayah": 71,
+              "word": 7
+            }
+          },
+          {
+            "start": {
+              "surah": 34,
+              "ayah": 29,
+              "word": 1
+            },
+            "end": {
+              "surah": 34,
+              "ayah": 29,
+              "word": 7
+            }
+          },
+          {
+            "start": {
+              "surah": 36,
+              "ayah": 48,
+              "word": 1
+            },
+            "end": {
+              "surah": 36,
+              "ayah": 48,
+              "word": 7
+            }
+          }
+        ]
+      },
+      "durationS": 14.11775,
+      "cluster": "58",
+      "per": 0,
+      "meanConf": 0.9761585210050855,
+      "confidence": 0.5,
+      "stratum": "text_only"
+    },
+    {
+      "shard": "clean-00126-of-00411",
+      "row": 263,
+      "path": "26_155_696378252.flac",
+      "bucket": "clean-match",
+      "reason": "match",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 26,
+            "ayah": 155,
+            "word": 1
+          },
+          "end": {
+            "surah": 26,
+            "ayah": 155,
+            "word": 9
+          }
+        }
+      },
+      "durationS": 9.8986875,
+      "cluster": "100",
+      "per": 0,
+      "meanConf": 0.9760838178071108,
+      "confidence": 1,
+      "stratum": "clean_core"
+    },
+    {
+      "shard": "clean-00326-of-00411",
+      "row": 572,
+      "path": "78_21_5838886366.flac",
+      "bucket": "deviant",
+      "reason": "mismatch",
+      "label": {
+        "kind": "span",
+        "span": {
+          "start": {
+            "surah": 78,
+            "ayah": 22,
+            "word": 1
+          },
+          "end": {
+            "surah": 78,
+            "ayah": 23,
+            "word": 2
+          }
+        }
+      },
+      "durationS": 4.1795625,
+      "cluster": "230",
+      "per": 0.10256410256410256,
+      "meanConf": 0.8591544139079559,
+      "confidence": 0.5464047551959639,
+      "stratum": "deviant_core"
+    },
+    {
+      "shard": "clean-00010-of-00411",
+      "row": 630,
+      "path": "10_104_1392949540.flac",
+      "bucket": "reject",
+      "reason": "low_teacher_confidence",
+      "label": null,
+      "durationS": 5.888,
+      "cluster": "206",
+      "per": 0.25,
+      "meanConf": 0.21787522733211517,
+      "confidence": 0.12653061224489795,
+      "stratum": "reject_low_teacher"
+    }
+  ]
+}

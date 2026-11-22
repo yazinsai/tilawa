@@ -1,0 +1,47 @@
+{
+ "model": "spliced-clean",
+ "format": "onnx-fp16",
+ "runtime": "onnxruntime-node",
+ "pushMs": 20,
+ "evidenceMs": 40,
+ "clips": 388,
+ "audioS": 4171.195500000001,
+ "rtf": 0.0709419952077288,
+ "decodeIdenticalToPyTorch": "380/388",
+ "free": {
+  "tp": 28,
+  "fp": 7,
+  "fn": 36,
+  "precision": 0.8,
+  "recall": 0.4375,
+  "cleanClips": 225,
+  "cleanSeconds": 2793.2364375000006,
+  "cleanWarnings": 3,
+  "repeatFalsePositives": 0
+ },
+ "declared": {
+  "tp": 56,
+  "fp": 11,
+  "fn": 8,
+  "precision": 0.835820895522388,
+  "recall": 0.875,
+  "cleanClips": 225,
+  "cleanSeconds": 2793.2364375000006,
+  "cleanWarnings": 5,
+  "repeatFalsePositives": 0
+ },
+ "latencyMs": {
+  "highlight": {
+   "n": 4706,
+   "p50": 337.86362499999814,
+   "p95": 492.09579100005794,
+   "max": 1751.614041999972
+  },
+  "suspected": {
+   "n": 132,
+   "p50": 305.64091700001154,
+   "p95": 1022.2735420000099,
+   "max": 1495.9677919999958
+  }
+ }
+}

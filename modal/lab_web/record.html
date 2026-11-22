@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Record · Tilawa lab</title>
+    <link rel="preload" href="/static/fonts/onest-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/static/fonts/amiri-quran-arabic.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/static/lab.css" />
+    <script src="/static/theme.js"></script>
+    <style>
+      .rec-text [data-plant] { cursor: help; border-radius: 4px; }
+      .rec-text [data-plant]:focus-visible { outline: 2px solid var(--gold-600); outline-offset: 2px; }
+      .rec-tip { position: fixed; z-index: 50; max-width: 340px; display: flex; gap: var(--s2); align-items: flex-start; padding: var(--s2) var(--s3); border-radius: var(--radius); background: var(--g-900); color: var(--on-fill); font: 400 var(--t-sm) / 1.5 'Onest', system-ui, sans-serif; box-shadow: 0 8px 24px rgb(0 0 0 / 0.18); pointer-events: none; }
+      .rec-tip .li-ar { font-size: 22px; line-height: 1.6; }
+      .rec-tip .rec-step { flex: none; color: light-dark(#f3d48a, hsl(34 78% 25%)); margin-top: 2px; }
+      .rec-ayah.rec-fixing { background: var(--gold-50); box-shadow: 0 0 0 4px var(--gold-50); border-radius: 4px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+      .rec-fix { margin-top: var(--s3); padding: var(--s3) var(--s4); border-radius: var(--radius); background: var(--g-100); color: var(--g-700); line-height: 1.6; }
+      .rec-fix b { color: var(--g-900); font-weight: 600; }
+      .rec-fix > p + p { margin-top: var(--s2); }
+      .rec-fix-list { list-style: none; padding: 0; margin: var(--s2) 0 0; display: grid; gap: var(--s1); }
+      .rec-fix-pick { font: inherit; font-weight: 600; background: none; border: 0; padding: 0; color: var(--green-600); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--g-300); }
+      .rec-fix-pick:hover { text-decoration-color: currentColor; }
+      .rec-fix-row { margin: var(--s3) 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); }
+      .rec-fix-row label { display: flex; align-items: center; gap: var(--s2); }
+      .rec-fix-row select { font: inherit; font-variant-numeric: tabular-nums; height: 32px; border-radius: var(--radius); border: 1px solid var(--g-300); background: var(--surface); color: var(--g-900); padding: 0 var(--s2); }
+      .rec-fixinfo { margin-top: var(--s2); display: grid; gap: var(--s1); color: var(--g-700); }
+      .rec-fixinfo .rec-checks { display: inline-flex; margin: 0 0 0 var(--s1); vertical-align: 1px; }    </style>
+  </head>
+  <body>
+    <header class="top"><div class="top-in"><div class="top-head" id="head"></div><button class="theme-btn" id="theme" type="button"></button></div></header>
+    <main><div class="narrow" id="main"><p class="rv-head muted">Loading…</p></div></main>
+    <div class="rec-dock" id="dock" hidden></div>
+    <script type="module" src="/static/record.js"></script>
+  </body>
+</html>

@@ -1,0 +1,2130 @@
+{
+ "model": {
+  "id": "nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0",
+  "revision": "7f32349d952f42a28dce979ba73270aa2bbdfa89",
+  "implementation": "nemo",
+  "packageVersion": "2.7.3",
+  "torch": "2.15.0+cu132",
+  "device": "Tesla T4",
+  "config": {
+   "engine": "nemo",
+   "nemoToolkit": "2.7.3",
+   "dtype": "float32",
+   "decoding": "greedy (model defaults)",
+   "batchSize": 16,
+   "ctcScore": "torch ctc_loss over the CTC head's log-probs, blank last, summed over alignments"
+  },
+  "prompt": null,
+  "vocabSize": 1024,
+  "loadSeconds": 6.9,
+  "gpuSeconds": 44.5
+ },
+ "skipped": [],
+ "summary": {
+  "studio": {
+   "decision": {
+    "classes": {
+     "added_word": {
+      "n": 105,
+      "pass": 77,
+      "fail": 28
+     },
+     "mutashabihat": {
+      "n": 10,
+      "pass": 10,
+      "fail": 0
+     },
+     "omitted_word": {
+      "n": 42,
+      "pass": 42,
+      "fail": 0
+     },
+     "repeat": {
+      "n": 23,
+      "pass": 18,
+      "fail": 5
+     },
+     "restart": {
+      "n": 17,
+      "pass": 11,
+      "fail": 6
+     },
+     "skipped_passage": {
+      "n": 69,
+      "pass": 69,
+      "fail": 0
+     },
+     "wrong_word": {
+      "n": 94,
+      "pass": 83,
+      "fail": 11
+     }
+    },
+    "mistakes": {
+     "n": 320,
+     "pass": 281,
+     "fail": 39
+    },
+    "nonErrors": {
+     "n": 40,
+     "pass": 29,
+     "fail": 11
+    }
+   },
+   "plain": {
+    "classes": {
+     "added_word": {
+      "n": 105,
+      "pass": 72,
+      "fail": 33
+     },
+     "mutashabihat": {
+      "n": 10,
+      "pass": 10,
+      "fail": 0
+     },
+     "omitted_word": {
+      "n": 42,
+      "pass": 42,
+      "fail": 0
+     },
+     "repeat": {
+      "n": 23,
+      "pass": 14,
+      "fail": 9
+     },
+     "restart": {
+      "n": 17,
+      "pass": 11,
+      "fail": 6
+     },
+     "skipped_passage": {
+      "n": 69,
+      "pass": 69,
+      "fail": 0
+     },
+     "wrong_word": {
+      "n": 94,
+      "pass": 81,
+      "fail": 13
+     }
+    },
+    "mistakes": {
+     "n": 320,
+     "pass": 274,
+     "fail": 46
+    },
+    "nonErrors": {
+     "n": 40,
+     "pass": 25,
+     "fail": 15
+    }
+   },
+   "positive": {
+    "classes": {
+     "added_word": {
+      "n": 105,
+      "pass": 78,
+      "fail": 27
+     },
+     "mutashabihat": {
+      "n": 10,
+      "pass": 10,
+      "fail": 0
+     },
+     "omitted_word": {
+      "n": 42,
+      "pass": 42,
+      "fail": 0
+     },
+     "repeat": {
+      "n": 23,
+      "pass": 18,
+      "fail": 5
+     },
+     "restart": {
+      "n": 17,
+      "pass": 11,
+      "fail": 6
+     },
+     "skipped_passage": {
+      "n": 69,
+      "pass": 69,
+      "fail": 0
+     },
+     "wrong_word": {
+      "n": 94,
+      "pass": 83,
+      "fail": 11
+     }
+    },
+    "mistakes": {
+     "n": 320,
+     "pass": 282,
+     "fail": 38
+    },
+    "nonErrors": {
+     "n": 40,
+     "pass": 29,
+     "fail": 11
+    }
+   },
+   "transcriptCloser": {
+    "classes": {
+     "added_word": {
+      "n": 105,
+      "pass": 80,
+      "fail": 25
+     },
+     "mutashabihat": {
+      "n": 10,
+      "pass": 10,
+      "fail": 0
+     },
+     "omitted_word": {
+      "n": 42,
+      "pass": 42,
+      "fail": 0
+     },
+     "repeat": {
+      "n": 23,
+      "pass": 16,
+      "fail": 7
+     },
+     "restart": {
+      "n": 17,
+      "pass": 9,
+      "fail": 8
+     },
+     "skipped_passage": {
+      "n": 69,
+      "pass": 69,
+      "fail": 0
+     },
+     "wrong_word": {
+      "n": 94,
+      "pass": 82,
+      "fail": 12
+     }
+    },
+    "mistakes": {
+     "n": 320,
+     "pass": 283,
+     "fail": 37
+    },
+    "nonErrors": {
+     "n": 40,
+     "pass": 25,
+     "fail": 15
+    }
+   },
+   "vsTeacher": {
+    "bothPass": 310,
+    "onlyTeacherPasses": 50,
+    "onlyFastConformerPasses": 0,
+    "bothFail": 0,
+    "n": 360
+   }
+  },
+  "phone": {
+   "decision": {
+    "classes": {
+     "added_word": {
+      "n": 105,
+      "pass": 65,
+      "fail": 40
+     },
+     "mutashabihat": {
+      "n": 10,
+      "pass": 10,
+      "fail": 0
+     },
+     "omitted_word": {
+      "n": 42,
+      "pass": 42,
+      "fail": 0
+     },
+     "repeat": {
+      "n": 23,
+      "pass": 19,
+      "fail": 4
+     },
+     "restart": {
+      "n": 17,
+      "pass": 13,
+      "fail": 4
+     },
+     "skipped_passage": {
+      "n": 69,
+      "pass": 69,
+      "fail": 0
+     },
+     "wrong_word": {
+      "n": 94,
+      "pass": 81,
+      "fail": 13
+     }
+    },
+    "mistakes": {
+     "n": 320,
+     "pass": 267,
+     "fail": 53
+    },
+    "nonErrors": {
+     "n": 40,
+     "pass": 32,
+     "fail": 8
+    }
+   },
+   "plain": {
+    "classes": {
+     "added_word": {
+      "n": 105,
+      "pass": 64,
+      "fail": 41
+     },
+     "mutashabihat": {
+      "n": 10,
+      "pass": 10,
+      "fail": 0
+     },
+     "omitted_word": {
+      "n": 42,
+      "pass": 42,
+      "fail": 0
+     },
+     "repeat": {
+      "n": 23,
+      "pass": 14,
+      "fail": 9
+     },
+     "restart": {
+      "n": 17,
+      "pass": 11,
+      "fail": 6
+     },
+     "skipped_passage": {
+      "n": 69,
+      "pass": 69,
+      "fail": 0
+     },
+     "wrong_word": {
+      "n": 94,
+      "pass": 80,
+      "fail": 14
+     }
+    },
+    "mistakes": {
+     "n": 320,
+     "pass": 265,
+     "fail": 55
+    },
+    "nonErrors": {
+     "n": 40,
+     "pass": 25,
+     "fail": 15
+    }
+   },
+   "positive": {
+    "classes": {
+     "added_word": {
+      "n": 105,
+      "pass": 69,
+      "fail": 36
+     },
+     "mutashabihat": {
+      "n": 10,
+      "pass": 10,
+      "fail": 0
+     },
+     "omitted_word": {
+      "n": 42,
+      "pass": 42,
+      "fail": 0
+     },
+     "repeat": {
+      "n": 23,
+      "pass": 19,
+      "fail": 4
+     },
+     "restart": {
+      "n": 17,
+      "pass": 13,
+      "fail": 4
+     },
+     "skipped_passage": {
+      "n": 69,
+      "pass": 69,
+      "fail": 0
+     },
+     "wrong_word": {
+      "n": 94,
+      "pass": 81,
+      "fail": 13
+     }
+    },
+    "mistakes": {
+     "n": 320,
+     "pass": 271,
+     "fail": 49
+    },
+    "nonErrors": {
+     "n": 40,
+     "pass": 32,
+     "fail": 8
+    }
+   },
+   "transcriptCloser": {
+    "classes": {
+     "added_word": {
+      "n": 105,
+      "pass": 76,
+      "fail": 29
+     },
+     "mutashabihat": {
+      "n": 10,
+      "pass": 10,
+      "fail": 0
+     },
+     "omitted_word": {
+      "n": 42,
+      "pass": 42,
+      "fail": 0
+     },
+     "repeat": {
+      "n": 23,
+      "pass": 18,
+      "fail": 5
+     },
+     "restart": {
+      "n": 17,
+      "pass": 12,
+      "fail": 5
+     },
+     "skipped_passage": {
+      "n": 69,
+      "pass": 69,
+      "fail": 0
+     },
+     "wrong_word": {
+      "n": 94,
+      "pass": 78,
+      "fail": 16
+     }
+    },
+    "mistakes": {
+     "n": 320,
+     "pass": 275,
+     "fail": 45
+    },
+    "nonErrors": {
+     "n": 40,
+     "pass": 30,
+     "fail": 10
+    }
+   },
+   "vsTeacher": {
+    "bothPass": 279,
+    "onlyTeacherPasses": 51,
+    "onlyFastConformerPasses": 20,
+    "bothFail": 10,
+    "n": 360
+   }
+  }
+ },
+ "failed": {
+  "studio": [
+   {
+    "id": "lab-v1.1-e03-x3",
+    "class": "wrong_word",
+    "said": "مُّبِينًۭا وَمَا بِٱلْعَدْلِ لِمُؤْمِنٍ أَن يَقْتُلَ مُؤْمِنًا",
+    "original": "مُّبِينًۭا وَمَا كَانَ لِمُؤْمِنٍ أَن يَقْتُلَ مُؤْمِنًا",
+    "llr": -15.62,
+    "reason": "prefers the original",
+    "plainLlr": -9.98,
+    "transcript": "وَمَا فِي الْعَهْدِ لِمُؤْمِنٍ أَنْ يَقْتُلَ مُؤْمِنًا",
+    "teacher": {
+     "pass": true,
+     "llr": 51.85,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e04-x1",
+    "class": "restart",
+    "said": "ضَرَبْنَا لَهُ ٱلْأَمْثَـٰلَ وَكُلًّۭا وَكُلًّۭا ضَرَبْنَا لَهُ ٱلْأَمْثَـٰلَ وَكُلًّۭا تَبَّرْنَا تَتْبِيرًۭا وَلَقَدْ",
+    "original": "ضَرَبْنَا لَهُ ٱلْأَمْثَـٰلَ وَكُلًّۭا تَبَّرْنَا تَتْبِيرًۭا وَلَقَدْ",
+    "llr": -31.07,
+    "reason": "prefers the original",
+    "plainLlr": -70.62,
+    "transcript": "وَكُلًّا ضَرَبْنَا لَهُ الْأَمْثَالَ وَكُلًّا تَبَّرْنَا تَتْبِيرًا",
+    "teacher": {
+     "pass": true,
+     "llr": 283.51,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e05-x3",
+    "class": "added_word",
+    "said": "وَأَهْلِى مِمَّا يَعْمَلُونَ ٱلضَّآلِّينَ فَنَجَّيْنَـٰهُ وَأَهْلَهُۥٓ أَجْمَعِينَ",
+    "original": "وَأَهْلِى مِمَّا يَعْمَلُونَ فَنَجَّيْنَـٰهُ وَأَهْلَهُۥٓ أَجْمَعِينَ",
+    "llr": -23.46,
+    "reason": "prefers the original",
+    "plainLlr": 2.55,
+    "transcript": "وَأَهْلِهِ مِمَّا يَعْمَلُونَ ضالين فَنَجَّيْنَاهُ وَأَهْلَهُ أَجْمَعِينَ",
+    "teacher": {
+     "pass": true,
+     "llr": 54.09,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e07-x5",
+    "class": "added_word",
+    "said": "إِن كُنتُمْ تَعْلَمُونَ تَذَكَّرُونَ ٱلَّذِينَ ءَامَنُوا۟ وَلَمْ يَلْبِسُوٓا۟",
+    "original": "إِن كُنتُمْ تَعْلَمُونَ ٱلَّذِينَ ءَامَنُوا۟ وَلَمْ يَلْبِسُوٓا۟",
+    "llr": -1.63,
+    "reason": "can't separate said from original",
+    "plainLlr": -10.56,
+    "transcript": "إِن كُنتُمْ تَعْلَمُونَ تَذَكَّرُونَ الَّذِينَ آمَنُوا وَلَمْ يَلْبِسُواْ",
+    "teacher": {
+     "pass": true,
+     "llr": 50.78,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e07-x7",
+    "class": "wrong_word",
+    "said": "وَعِيسَىٰ وَإِلْيَاسَ كُلٌّۭ مِّنَ ٱلْخَبِيرُ وَإِسْمَـٰعِيلَ وَٱلْيَسَعَ وَيُونُسَ وَلُوطًۭا",
+    "original": "وَعِيسَىٰ وَإِلْيَاسَ كُلٌّۭ مِّنَ ٱلصَّـٰلِحِينَ وَإِسْمَـٰعِيلَ وَٱلْيَسَعَ وَيُونُسَ وَلُوطًۭا",
+    "llr": -0.45,
+    "reason": "can't separate said from original",
+    "plainLlr": 16.82,
+    "transcript": "وعيسى وإلاس كُلٌّ مِّنَ الصَّبِيرِينَ وَإِسْمَاعِيلَ وَالْيَسَعَ وَيُونُسَ وَلُوطًا",
+    "teacher": {
+     "pass": true,
+     "llr": 27.42,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e07-x8",
+    "class": "added_word",
+    "said": "وَذُرِّيَّـٰتِهِمْ وَإِخْوَٰنِهِمْ وَٱجْتَبَيْنَـٰهُمْ تَعْلَمُونَ وَهَدَيْنَـٰهُمْ إِلَىٰ صِرَٰطٍۢ مُّسْتَقِيمٍۢ",
+    "original": "وَذُرِّيَّـٰتِهِمْ وَإِخْوَٰنِهِمْ وَٱجْتَبَيْنَـٰهُمْ وَهَدَيْنَـٰهُمْ إِلَىٰ صِرَٰطٍۢ مُّسْتَقِيمٍۢ",
+    "llr": -0.63,
+    "reason": "can't separate said from original",
+    "plainLlr": 7.78,
+    "transcript": "وذُرِّيَّاتهم وإخوانهم واجتبناهم تعالى وهديناهم إلى صراط مستقيم",
+    "teacher": {
+     "pass": true,
+     "llr": 63.01,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e09-x2",
+    "class": "wrong_word",
+    "said": "إِلَيْكُم مِّن رَّبِّكُمْ تَكْسِبُونَ تَتَّبِعُوا۟ مِن دُونِهِۦٓ",
+    "original": "إِلَيْكُم مِّن رَّبِّكُمْ وَلَا تَتَّبِعُوا۟ مِن دُونِهِۦٓ",
+    "llr": -16.48,
+    "reason": "prefers the original",
+    "plainLlr": 17.86,
+    "transcript": "من ربكم تكذبون تتبعونه",
+    "teacher": {
+     "pass": true,
+     "llr": 60.26,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e09-x4",
+    "class": "added_word",
+    "said": "وَلَنَسْـَٔلَنَّ ٱلْمُرْسَلِينَ تَعْلَمُونَ فَلَنَقُصَّنَّ عَلَيْهِم بِعِلْمٍۢ",
+    "original": "وَلَنَسْـَٔلَنَّ ٱلْمُرْسَلِينَ فَلَنَقُصَّنَّ عَلَيْهِم بِعِلْمٍۢ",
+    "llr": -49.7,
+    "reason": "prefers the original",
+    "plainLlr": -11.76,
+    "transcript": "ولنسألن المرسلين فلنقصن عليهم بعلم",
+    "teacher": {
+     "pass": true,
+     "llr": 84.86,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e10-x6",
+    "class": "added_word",
+    "said": "ثُمَّ يُقَالُ هَـٰذَا ٱلَّذِى كَانُوا۟ كُنتُم بِهِۦ تُكَذِّبُونَ",
+    "original": "ثُمَّ يُقَالُ هَـٰذَا ٱلَّذِى كُنتُم بِهِۦ تُكَذِّبُونَ",
+    "llr": -33.96,
+    "reason": "prefers the original",
+    "plainLlr": -3.35,
+    "transcript": "ثم يقال هذا الذي كنتم به تكذبون",
+    "teacher": {
+     "pass": true,
+     "llr": 61.62,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e10-x7",
+    "class": "added_word",
+    "said": "عِلِّيِّينَ وَمَآ أَدْرَىٰكَ سِجِّينٍۢ مَا عِلِّيُّونَ كِتَـٰبٌۭ",
+    "original": "عِلِّيِّينَ وَمَآ أَدْرَىٰكَ مَا عِلِّيُّونَ كِتَـٰبٌۭ",
+    "llr": -39.39,
+    "reason": "prefers the original",
+    "plainLlr": -6.8,
+    "transcript": "وما أدراك الدينيون",
+    "teacher": {
+     "pass": true,
+     "llr": 26.97,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e11-x2",
+    "class": "added_word",
+    "said": "ٱللَّهِ إِنِّىٓ بَيْنَهُمَآ ءَاتِيكُم بِسُلْطَـٰنٍۢ مُّبِينٍۢ",
+    "original": "ٱللَّهِ إِنِّىٓ ءَاتِيكُم بِسُلْطَـٰنٍۢ مُّبِينٍۢ",
+    "llr": -42.63,
+    "reason": "prefers the original",
+    "plainLlr": 14.25,
+    "transcript": "الله إني أناهما آتيكم بسلطان مبين",
+    "teacher": {
+     "pass": true,
+     "llr": 87.02,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e11-x8",
+    "class": "added_word",
+    "said": "ٱخْتَرْنَـٰهُمْ عَلَىٰ عِلْمٍ عَلَى ٱلْعَـٰلَمِينَ فَـٰكِهِينَ وَءَاتَيْنَـٰهُم مِّنَ ٱلْـَٔايَـٰتِ",
+    "original": "ٱخْتَرْنَـٰهُمْ عَلَىٰ عِلْمٍ عَلَى ٱلْعَـٰلَمِينَ وَءَاتَيْنَـٰهُم مِّنَ ٱلْـَٔايَـٰتِ",
+    "llr": -45.27,
+    "reason": "prefers the original",
+    "plainLlr": -10.54,
+    "transcript": "واخترناهم على علم على العالمين",
+    "teacher": {
+     "pass": true,
+     "llr": 72.52,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e11-x12",
+    "class": "added_word",
+    "said": "أَجْمَعِينَ يَوْمَ لَا يُغْنِى قَوْمَ مَوْلًى عَن مَّوْلًۭى",
+    "original": "أَجْمَعِينَ يَوْمَ لَا يُغْنِى مَوْلًى عَن مَّوْلًۭى",
+    "llr": -26.09,
+    "reason": "prefers the original",
+    "plainLlr": -2.49,
+    "transcript": "يوم لا يغني مولى عن مولى",
+    "teacher": {
+     "pass": true,
+     "llr": 29.1,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e12-x6",
+    "class": "added_word",
+    "said": "هُوَ وَسِعَ كُلَّ شَىْءٍ عِلْمًۭا تَعْرَىٰ كَذَٰلِكَ نَقُصُّ عَلَيْكَ مِنْ أَنۢبَآءِ",
+    "original": "هُوَ وَسِعَ كُلَّ شَىْءٍ عِلْمًۭا كَذَٰلِكَ نَقُصُّ عَلَيْكَ مِنْ أَنۢبَآءِ",
+    "llr": -0.15,
+    "reason": "can't separate said from original",
+    "plainLlr": 2.77,
+    "transcript": "علما تعرى كذلك نقص عليك منبائنا",
+    "teacher": {
+     "pass": true,
+     "llr": 37.17,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e13-x8",
+    "class": "added_word",
+    "said": "حَبْلِ ٱلْوَرِيدِ إِذْ قَبْلَ يَتَلَقَّى ٱلْمُتَلَقِّيَانِ عَنِ ٱلْيَمِينِ",
+    "original": "حَبْلِ ٱلْوَرِيدِ إِذْ يَتَلَقَّى ٱلْمُتَلَقِّيَانِ عَنِ ٱلْيَمِينِ",
+    "llr": -4.54,
+    "reason": "prefers the original",
+    "plainLlr": -5.33,
+    "transcript": "إِن قَبْلَ يَتَلَقَّى الْمُتَلَقِّيَانِ عَنِ الْيَمِينِ",
+    "teacher": {
+     "pass": true,
+     "llr": 9.94,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e13-x11",
+    "class": "restart",
+    "said": "حَدِيدٌۭ وَقَالَ قَرِينُهُۥ هَـٰذَا وَقَالَ قَرِينُهُۥ هَـٰذَا مَا لَدَىَّ عَتِيدٌ",
+    "original": "حَدِيدٌۭ وَقَالَ قَرِينُهُۥ هَـٰذَا مَا لَدَىَّ عَتِيدٌ",
+    "llr": -36.04,
+    "reason": "prefers the original",
+    "plainLlr": -36.04,
+    "transcript": "حديد وقال قرينه هذا ما لدي عتيد",
+    "teacher": {
+     "pass": true,
+     "llr": 177.75,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e13-x17",
+    "class": "wrong_word",
+    "said": "يَشَآءُونَ فِيهَا وَلَدَيْنَا بَعِيدٍ وَكَمْ أَهْلَكْنَا قَبْلَهُم",
+    "original": "يَشَآءُونَ فِيهَا وَلَدَيْنَا مَزِيدٌۭ وَكَمْ أَهْلَكْنَا قَبْلَهُم",
+    "llr": -2.08,
+    "reason": "can't separate said from original",
+    "plainLlr": 2.82,
+    "transcript": "يَشَاءُونَ فِيهَا وَلَدَيْنَا وَكَمْ أَهْلَكْنَا قَبْلَهُمْ",
+    "teacher": {
+     "pass": true,
+     "llr": 23.42,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e15-x5",
+    "class": "repeat",
+    "said": "إِنسٌۭ قَبْلَهُمْ وَلَا وَلَا جَآنٌّۭ فَبِأَىِّ ءَالَآءِ",
+    "original": "إِنسٌۭ قَبْلَهُمْ وَلَا جَآنٌّۭ فَبِأَىِّ ءَالَآءِ",
+    "llr": -2.12,
+    "reason": "can't separate said from original",
+    "plainLlr": -1.82,
+    "transcript": "إن قبلهم ولا جانب",
+    "teacher": {
+     "pass": true,
+     "llr": 22.43,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e16-x2",
+    "class": "wrong_word",
+    "said": "هُمْ لِأَمَـٰنَـٰتِهِمْ وَعَهْدِهِمْ تُكَلِّمُونِ وَٱلَّذِينَ هُمْ عَلَىٰ صَلَوَٰتِهِمْ",
+    "original": "هُمْ لِأَمَـٰنَـٰتِهِمْ وَعَهْدِهِمْ رَٰعُونَ وَٱلَّذِينَ هُمْ عَلَىٰ صَلَوَٰتِهِمْ",
+    "llr": -5.98,
+    "reason": "prefers the original",
+    "plainLlr": -4.78,
+    "transcript": "لِأَمَانَاتِهِمْ وَعَهْدِهِمْ يُكَلِّمُونَ والذين هم على صلواتهم.",
+    "teacher": {
+     "pass": true,
+     "llr": 40.28,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e16-x3",
+    "class": "added_word",
+    "said": "أُو۟لَـٰٓئِكَ هُمُ ٱلْوَٰرِثُونَ كَذَّبُونِ ٱلَّذِينَ يَرِثُونَ ٱلْفِرْدَوْسَ",
+    "original": "أُو۟لَـٰٓئِكَ هُمُ ٱلْوَٰرِثُونَ ٱلَّذِينَ يَرِثُونَ ٱلْفِرْدَوْسَ",
+    "llr": -15.7,
+    "reason": "prefers the original",
+    "plainLlr": -5.53,
+    "transcript": "أُولَئِكَ هُمُ الْوَارِثُونَ كَذَّابُونَ الَّذِينَ يَرِثُونَ الْفِرْدَوْسَ",
+    "teacher": {
+     "pass": true,
+     "llr": 47.27,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e16-x4",
+    "class": "added_word",
+    "said": "جَعَلْنَـٰهُ نُطْفَةًۭ فِى فَٱسْلُكْ قَرَارٍۢ مَّكِينٍۢ ثُمَّ",
+    "original": "جَعَلْنَـٰهُ نُطْفَةًۭ فِى قَرَارٍۢ مَّكِينٍۢ ثُمَّ",
+    "llr": -52.85,
+    "reason": "prefers the original",
+    "plainLlr": -7.7,
+    "transcript": "ثُمَّ جَعَلْنَاهُ نُطْفَةً فِي قَسْمِ قَرَارٍ مَكِينٍ",
+    "teacher": {
+     "pass": true,
+     "llr": 15.69,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e19-x5",
+    "class": "added_word",
+    "said": "وَقَالُوٓا۟ إِنْ هَـٰذَآ إِلَّا كَيْفَ سِحْرٌۭ مُّبِينٌ أَءِذَا",
+    "original": "وَقَالُوٓا۟ إِنْ هَـٰذَآ إِلَّا سِحْرٌۭ مُّبِينٌ أَءِذَا",
+    "llr": -17.73,
+    "reason": "prefers the original",
+    "plainLlr": -6.79,
+    "transcript": "وَقَالُوا إِنْ هَذَا إِلَّا سِحْرٌ مُبِينٌ",
+    "teacher": {
+     "pass": true,
+     "llr": 33.99,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e19-x12",
+    "class": "added_word",
+    "said": "لَذَآئِقُونَ فَأَغْوَيْنَـٰكُمْ إِنَّا كَيْفَ كُنَّا غَـٰوِينَ فَإِنَّهُمْ",
+    "original": "لَذَآئِقُونَ فَأَغْوَيْنَـٰكُمْ إِنَّا كُنَّا غَـٰوِينَ فَإِنَّهُمْ",
+    "llr": 2.24,
+    "reason": "can't separate said from original",
+    "plainLlr": -0.96,
+    "transcript": "فَأَغْوَيْنَاكُمْ.",
+    "teacher": {
+     "pass": true,
+     "llr": 48.7,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e19-x14",
+    "class": "added_word",
+    "said": "إِلَـٰهَ إِلَّا ٱللَّهُ يَسْتَكْبِرُونَ تَحْكُمُونَ وَيَقُولُونَ أَئِنَّا لَتَارِكُوٓا۟",
+    "original": "إِلَـٰهَ إِلَّا ٱللَّهُ يَسْتَكْبِرُونَ وَيَقُولُونَ أَئِنَّا لَتَارِكُوٓا۟",
+    "llr": -2.55,
+    "reason": "can't separate said from original",
+    "plainLlr": 2.27,
+    "transcript": "لا إله إلا الله يستكبرون ويقولون أئنا",
+    "teacher": {
+     "pass": true,
+     "llr": 61.68,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e20-x12",
+    "class": "restart",
+    "said": "فَبِأَىِّ ءَالَآءِ رَبِّكُمَا فَبِأَىِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ وَمِن دُونِهِمَا",
+    "original": "فَبِأَىِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ وَمِن دُونِهِمَا",
+    "llr": -47.35,
+    "reason": "prefers the original",
+    "plainLlr": -24.0,
+    "transcript": "فَبِأَيِّ آلاء رَبِّكُمَا تُكَذِّبَانِ وَمِن دُونِهِمَا",
+    "teacher": {
+     "pass": true,
+     "llr": 203.08,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p01-x4",
+    "class": "added_word",
+    "said": "ٱلْعَـٰلَمِينَ ٱلَّذِى خَلَقَنِى فِى فَهُوَ يَهْدِينِ وَٱلَّذِى هُوَ",
+    "original": "ٱلْعَـٰلَمِينَ ٱلَّذِى خَلَقَنِى فَهُوَ يَهْدِينِ وَٱلَّذِى هُوَ",
+    "llr": -8.2,
+    "reason": "prefers the original",
+    "plainLlr": -1.57,
+    "transcript": "الذي خلقني فهو يهدين والذي هو يعاني منه",
+    "teacher": {
+     "pass": true,
+     "llr": 26.89,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p01-x9",
+    "class": "restart",
+    "said": "لِلْغَاوِينَ وَقِيلَ لَهُمْ أَيْنَ مَا وَقِيلَ لَهُمْ أَيْنَ مَا كُنتُمْ تَعْبُدُونَ مِن",
+    "original": "لِلْغَاوِينَ وَقِيلَ لَهُمْ أَيْنَ مَا كُنتُمْ تَعْبُدُونَ مِن",
+    "llr": -59.01,
+    "reason": "prefers the original",
+    "plainLlr": -42.4,
+    "transcript": "وَخُلُقٌ لِلْغَاوِينَ وَقِيلَ لَهُمْ أَيْنَ مَا كُنتُم تَعْبُدُونَ",
+    "teacher": {
+     "pass": true,
+     "llr": 147.02,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p01-x10",
+    "class": "added_word",
+    "said": "هَلْ يَنصُرُونَكُمْ أَوْ فِى يَنتَصِرُونَ فَكُبْكِبُوا۟ فِيهَا",
+    "original": "هَلْ يَنصُرُونَكُمْ أَوْ يَنتَصِرُونَ فَكُبْكِبُوا۟ فِيهَا",
+    "llr": -7.01,
+    "reason": "prefers the original",
+    "plainLlr": -2.78,
+    "transcript": "فَكُبْكِبُوا فِيهَا",
+    "teacher": {
+     "pass": true,
+     "llr": 10.56,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p01-x21",
+    "class": "added_word",
+    "said": "إِنَّ فِى ذَٰلِكَ لَـَٔايَةًۭ وَمَا فِى كَانَ أَكْثَرُهُم مُّؤْمِنِينَ",
+    "original": "إِنَّ فِى ذَٰلِكَ لَـَٔايَةًۭ وَمَا كَانَ أَكْثَرُهُم مُّؤْمِنِينَ",
+    "llr": -6.18,
+    "reason": "prefers the original",
+    "plainLlr": -6.18,
+    "transcript": "إن في ذلك لآية وما كان أكثرهم مؤمنين",
+    "teacher": {
+     "pass": true,
+     "llr": 21.2,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p02-x1",
+    "class": "repeat",
+    "said": "رَبَّهُۥٓ أَنَّ هَـٰٓؤُلَآءِ رَبَّهُۥٓ أَنَّ هَـٰٓؤُلَآءِ قَوْمٌۭ مُّجْرِمُونَ فَأَسْرِ",
+    "original": "رَبَّهُۥٓ أَنَّ هَـٰٓؤُلَآءِ قَوْمٌۭ مُّجْرِمُونَ فَأَسْرِ",
+    "llr": -27.01,
+    "reason": "prefers the original",
+    "plainLlr": -1.12,
+    "transcript": "أَنَّ هَؤُلَاءِ قَوْمٌ مجرمون",
+    "teacher": {
+     "pass": true,
+     "llr": 141.25,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p03-x1",
+    "class": "wrong_word",
+    "said": "إِنَّا نَحْنُ نُحْىِ ٱلْمَوْتَىٰ وَنَكْتُبُ فِيهَا قَدَّمُوا۟ وَءَاثَـٰرَهُمْ وَكُلَّ",
+    "original": "إِنَّا نَحْنُ نُحْىِ ٱلْمَوْتَىٰ وَنَكْتُبُ مَا قَدَّمُوا۟ وَءَاثَـٰرَهُمْ وَكُلَّ",
+    "llr": -6.84,
+    "reason": "prefers the original",
+    "plainLlr": -1.46,
+    "transcript": "إنا نحن نحيي الموتى ونكتب في ما قدموا وآثارهم",
+    "teacher": {
+     "pass": true,
+     "llr": 32.83,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p03-x3",
+    "class": "added_word",
+    "said": "إِنْ أَنتُمْ إِلَّا تَكْذِبُونَ قَوْلُهُمْ قَالُوا۟ رَبُّنَا يَعْلَمُ إِنَّآ",
+    "original": "إِنْ أَنتُمْ إِلَّا تَكْذِبُونَ قَالُوا۟ رَبُّنَا يَعْلَمُ إِنَّآ",
+    "llr": -73.43,
+    "reason": "prefers the original",
+    "plainLlr": -6.0,
+    "transcript": "إِنْ أَنتُمْ إِلَّا تَكْذِبُونَ قَالُوا رَبُّنَا يعلمون",
+    "teacher": {
+     "pass": true,
+     "llr": 60.29,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p03-x7",
+    "class": "added_word",
+    "said": "شَفَـٰعَتُهُمْ شَيْـًۭٔا وَلَا يُنقِذُونِ تَكْذِبُونَ إِنِّىٓ إِذًۭا لَّفِى",
+    "original": "شَفَـٰعَتُهُمْ شَيْـًۭٔا وَلَا يُنقِذُونِ إِنِّىٓ إِذًۭا لَّفِى",
+    "llr": -43.92,
+    "reason": "prefers the original",
+    "plainLlr": 11.76,
+    "transcript": "وَلَا شَفَاعَتُهُمْ شَيْئًا وَلَا يُنقِذُونِ أتكذبون إني",
+    "teacher": {
+     "pass": true,
+     "llr": 68.96,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p03-x8",
+    "class": "wrong_word",
+    "said": "ءَامَنتُ بِرَبِّكُمْ فَٱسْمَعُونِ تُنۢبِتُ ٱدْخُلِ ٱلْجَنَّةَ قَالَ",
+    "original": "ءَامَنتُ بِرَبِّكُمْ فَٱسْمَعُونِ قِيلَ ٱدْخُلِ ٱلْجَنَّةَ قَالَ",
+    "llr": -26.64,
+    "reason": "prefers the original",
+    "plainLlr": 9.62,
+    "transcript": "قل آمنت بربكم فاسمعون بتدخل الجنة",
+    "teacher": {
+     "pass": true,
+     "llr": 35.11,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p05-x6",
+    "class": "repeat",
+    "said": "فَثَبِّتُوا۟ ٱلَّذِينَ ءَامَنُوا۟ فَثَبِّتُوا۟ ٱلَّذِينَ ءَامَنُوا۟ سَأُلْقِى فِى قُلُوبِ ٱلَّذِينَ",
+    "original": "فَثَبِّتُوا۟ ٱلَّذِينَ ءَامَنُوا۟ سَأُلْقِى فِى قُلُوبِ ٱلَّذِينَ",
+    "llr": -133.62,
+    "reason": "prefers the original",
+    "plainLlr": -71.55,
+    "transcript": "فَثَبِّتُوا الَّذِينَ آمَنُوا سَأُلْقِي فِي قُلُوبِ الَّذِينَ",
+    "teacher": {
+     "pass": true,
+     "llr": 189.44,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p07-x4",
+    "class": "repeat",
+    "said": "إِذْ أَرْسَلْنَـٰهُ إِلَىٰ فِرْعَوْنَ فِرْعَوْنَ بِسُلْطَـٰنٍۢ مُّبِينٍۢ فَتَوَلَّىٰ",
+    "original": "إِذْ أَرْسَلْنَـٰهُ إِلَىٰ فِرْعَوْنَ بِسُلْطَـٰنٍۢ مُّبِينٍۢ فَتَوَلَّىٰ",
+    "llr": -14.26,
+    "reason": "prefers the original",
+    "plainLlr": -1.49,
+    "transcript": "وَإِذْ أَرْسَلْنَاهُ إِلَى فِرْعَوْنَ فِرْعَوْنَ بِسُلْطَانٍ مُبِينٍ فَتَوَلَّى بِالْعَدْلِ",
+    "teacher": {
+     "pass": true,
+     "llr": 59.2,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p09-x2",
+    "class": "wrong_word",
+    "said": "أَعْدَآءُ ٱللَّهِ إِلَى ٱلنَّارِ طَآئِعِينَ يُوزَعُونَ حَتَّىٰٓ إِذَا",
+    "original": "أَعْدَآءُ ٱللَّهِ إِلَى ٱلنَّارِ فَهُمْ يُوزَعُونَ حَتَّىٰٓ إِذَا",
+    "llr": -9.58,
+    "reason": "prefers the original",
+    "plainLlr": 26.74,
+    "transcript": "يخاف أعداء الله إلى النار لضائعين يوزعون حتى إذا ما",
+    "teacher": {
+     "pass": true,
+     "llr": 95.78,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p09-x3",
+    "class": "restart",
+    "said": "لِجُلُودِهِمْ لِمَ شَهِدتُّمْ عَلَيْنَا وَقَالُوا۟ لِجُلُودِهِمْ لِمَ شَهِدتُّمْ عَلَيْنَا قَالُوٓا۟ أَنطَقَنَا",
+    "original": "لِجُلُودِهِمْ لِمَ شَهِدتُّمْ عَلَيْنَا قَالُوٓا۟ أَنطَقَنَا",
+    "llr": -82.88,
+    "reason": "prefers the original",
+    "plainLlr": -79.65,
+    "transcript": "وَقَالُوا لِجُلُودِهِمْ لِمَ شَهِدْتُمْ عَلَيْنَا؟",
+    "teacher": {
+     "pass": true,
+     "llr": 309.92,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p09-x8",
+    "class": "wrong_word",
+    "said": "وَأَبْشِرُوا۟ بِٱلْجَنَّةِ ٱلَّتِى قُوَّةًۭ تُوعَدُونَ نَحْنُ",
+    "original": "وَأَبْشِرُوا۟ بِٱلْجَنَّةِ ٱلَّتِى كُنتُمْ تُوعَدُونَ نَحْنُ",
+    "llr": -5.24,
+    "reason": "prefers the original",
+    "plainLlr": -8.93,
+    "transcript": "وَأَبْشِرُوا بِالْجَنَّةِ الَّتِي كُنَتْ تُوعَدُونَ",
+    "teacher": {
+     "pass": true,
+     "llr": 34.08,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p10-x12",
+    "class": "added_word",
+    "said": "ذَنۢبِهِۦٓ إِنسٌۭ وَلَا تُكَذِّبَانِ جَآنٌّۭ فَبِأَىِّ ءَالَآءِ",
+    "original": "ذَنۢبِهِۦٓ إِنسٌۭ وَلَا جَآنٌّۭ فَبِأَىِّ ءَالَآءِ",
+    "llr": -45.47,
+    "reason": "prefers the original",
+    "plainLlr": -16.23,
+    "transcript": "",
+    "teacher": {
+     "pass": true,
+     "llr": 79.68,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p12-x1",
+    "class": "added_word",
+    "said": "إِنَّمَا تُوعَدُونَ لَوَٰقِعٌۭ فَإِن فَإِذَا ٱلنُّجُومُ طُمِسَتْ وَإِذَا",
+    "original": "إِنَّمَا تُوعَدُونَ لَوَٰقِعٌۭ فَإِذَا ٱلنُّجُومُ طُمِسَتْ وَإِذَا",
+    "llr": -31.66,
+    "reason": "prefers the original",
+    "plainLlr": -2.14,
+    "transcript": "إنما توعدون لواقع فإذا النجوم طمست",
+    "teacher": {
+     "pass": true,
+     "llr": 16.49,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p13-x7",
+    "class": "repeat",
+    "said": "مُتَّكِـِٔينَ فِيهَا يَدْعُونَ فِيهَا يَدْعُونَ فِيهَا بِفَـٰكِهَةٍۢ كَثِيرَةٍۢ",
+    "original": "مُتَّكِـِٔينَ فِيهَا يَدْعُونَ فِيهَا بِفَـٰكِهَةٍۢ كَثِيرَةٍۢ",
+    "llr": -26.6,
+    "reason": "prefers the original",
+    "plainLlr": -19.1,
+    "transcript": "متكئين فيها يدعون فيها بفاكهة كثيرة",
+    "teacher": {
+     "pass": true,
+     "llr": 126.7,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p13-x11",
+    "class": "wrong_word",
+    "said": "فَوْجٌۭ مُّقْتَحِمٌۭ مَّعَكُمْ فِيهَا مَرْحَبًۢا بِهِمْ إِنَّهُمْ صَالُوا۟",
+    "original": "فَوْجٌۭ مُّقْتَحِمٌۭ مَّعَكُمْ لَا مَرْحَبًۢا بِهِمْ إِنَّهُمْ صَالُوا۟",
+    "llr": -13.42,
+    "reason": "prefers the original",
+    "plainLlr": -1.97,
+    "transcript": "فَوْجٌ مُقْتَحِمٌ مَعَكُمْ قِيلَ لَا مَرْحَبًا بِهِمْ إِنَّهُمْ صَالُونَ",
+    "teacher": {
+     "pass": true,
+     "llr": 40.49,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p14-x1",
+    "class": "added_word",
+    "said": "يَـٰوَيْلَنَا هَـٰذَا يَوْمُ ٱلْكَرْبِ ٱلدِّينِ هَـٰذَا يَوْمُ ٱلْفَصْلِ",
+    "original": "يَـٰوَيْلَنَا هَـٰذَا يَوْمُ ٱلدِّينِ هَـٰذَا يَوْمُ ٱلْفَصْلِ",
+    "llr": -2.08,
+    "reason": "can't separate said from original",
+    "plainLlr": 12.3,
+    "transcript": "يَا وَيْلَنَا يَومُ الكَرْبِ الدِّينِ هَذَا يَومُ الْفَصْلِ",
+    "teacher": {
+     "pass": true,
+     "llr": 37.21,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p14-x5",
+    "class": "wrong_word",
+    "said": "كُنتُمْ تَأْتُونَنَا عَنِ ٱلْأَلِيمِ قَالُوا۟ بَل لَّمْ تَكُونُوا۟ مُؤْمِنِينَ",
+    "original": "كُنتُمْ تَأْتُونَنَا عَنِ ٱلْيَمِينِ قَالُوا۟ بَل لَّمْ تَكُونُوا۟ مُؤْمِنِينَ",
+    "llr": -40.78,
+    "reason": "prefers the original",
+    "plainLlr": -14.43,
+    "transcript": "ان كنتم تأتوننا عن اليمين قالوا بل لم تكونوا مؤمنين",
+    "teacher": {
+     "pass": true,
+     "llr": 38.02,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p14-x7",
+    "class": "added_word",
+    "said": "إِنَّا كُنَّا غَـٰوِينَ مِن فَإِنَّهُمْ يَوْمَئِذٍۢ فِى ٱلْعَذَابِ",
+    "original": "إِنَّا كُنَّا غَـٰوِينَ فَإِنَّهُمْ يَوْمَئِذٍۢ فِى ٱلْعَذَابِ",
+    "llr": -3.55,
+    "reason": "prefers the original",
+    "plainLlr": -5.78,
+    "transcript": "إِنَّا كُنَّا غَاوِينَ فَإِنَّهُمْ يَوْمَئِذٍ فِي الْعَذَابِ",
+    "teacher": {
+     "pass": true,
+     "llr": 17.93,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p15-x2",
+    "class": "added_word",
+    "said": "مُّخْتَلِفٍۢ يُؤْفَكُ عَنْهُ مَنْ أُفِكَ تَذَكَّرُونَ قُتِلَ ٱلْخَرَّٰصُونَ",
+    "original": "مُّخْتَلِفٍۢ يُؤْفَكُ عَنْهُ مَنْ أُفِكَ قُتِلَ ٱلْخَرَّٰصُونَ",
+    "llr": -44.27,
+    "reason": "prefers the original",
+    "plainLlr": 2.64,
+    "transcript": "مختلف يؤفك عنه من أفكار قتل الخراصون",
+    "teacher": {
+     "pass": true,
+     "llr": 82.81,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p15-x8",
+    "class": "added_word",
+    "said": "إِنَّهُۥ لَحَقٌّۭ مِّثْلَ قَوْمٌۭ مَآ أَنَّكُمْ",
+    "original": "إِنَّهُۥ لَحَقٌّۭ مِّثْلَ مَآ أَنَّكُمْ",
+    "llr": -43.79,
+    "reason": "prefers the original",
+    "plainLlr": -9.94,
+    "transcript": "إنه لحق",
+    "teacher": {
+     "pass": true,
+     "llr": 19.36,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p17-x4",
+    "class": "restart",
+    "said": "فَبِأَىِّ ءَالَآءِ رَبِّكُمَا فَبِأَىِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ فِيهِنَّ",
+    "original": "فَبِأَىِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ فِيهِنَّ",
+    "llr": -123.13,
+    "reason": "prefers the original",
+    "plainLlr": -72.22,
+    "transcript": "فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ",
+    "teacher": {
+     "pass": true,
+     "llr": 193.2,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p19-x11",
+    "class": "added_word",
+    "said": "تَسْنِيمٍ عَيْنًۭا يَشْرَبُ مَا بِهَا ٱلْمُقَرَّبُونَ",
+    "original": "تَسْنِيمٍ عَيْنًۭا يَشْرَبُ بِهَا ٱلْمُقَرَّبُونَ",
+    "llr": -7.67,
+    "reason": "prefers the original",
+    "plainLlr": -3.75,
+    "transcript": "تسليم عينا يشرب بها المقربون",
+    "teacher": {
+     "pass": true,
+     "llr": 9.33,
+     "reasons": []
+    }
+   }
+  ],
+  "phone": [
+   {
+    "id": "lab-v1.1-e01-x5",
+    "class": "added_word",
+    "said": "فَأَخَذْنَـٰهُ وَجُنُودَهُۥ فَنَبَذْنَـٰهُمْ تَزْعُمُونَ فِى ٱلْيَمِّ فَٱنظُرْ",
+    "original": "فَأَخَذْنَـٰهُ وَجُنُودَهُۥ فَنَبَذْنَـٰهُمْ فِى ٱلْيَمِّ فَٱنظُرْ",
+    "llr": -29.2,
+    "reason": "prefers the original",
+    "plainLlr": -10.34,
+    "transcript": "فَأَخَذْنَاهُ وَجُنُودَهُ فَنَبَذْنَاهُمْ فِي الْغُرُوقِ",
+    "teacher": {
+     "pass": true,
+     "llr": 31.6,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e03-x3",
+    "class": "wrong_word",
+    "said": "مُّبِينًۭا وَمَا بِٱلْعَدْلِ لِمُؤْمِنٍ أَن يَقْتُلَ مُؤْمِنًا",
+    "original": "مُّبِينًۭا وَمَا كَانَ لِمُؤْمِنٍ أَن يَقْتُلَ مُؤْمِنًا",
+    "llr": -19.18,
+    "reason": "prefers the original",
+    "plainLlr": -11.24,
+    "transcript": "وَمَا فِي الْعَهْدِ لِمُؤْمِنٍ أَنْ يَقْتُلَ مُؤْمِنًا",
+    "teacher": {
+     "pass": true,
+     "llr": 48.36,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e04-x1",
+    "class": "restart",
+    "said": "ضَرَبْنَا لَهُ ٱلْأَمْثَـٰلَ وَكُلًّۭا وَكُلًّۭا ضَرَبْنَا لَهُ ٱلْأَمْثَـٰلَ وَكُلًّۭا تَبَّرْنَا تَتْبِيرًۭا وَلَقَدْ",
+    "original": "ضَرَبْنَا لَهُ ٱلْأَمْثَـٰلَ وَكُلًّۭا تَبَّرْنَا تَتْبِيرًۭا وَلَقَدْ",
+    "llr": -96.37,
+    "reason": "prefers the original",
+    "plainLlr": -65.21,
+    "transcript": "وَكُلًّا ضَرَبْنَا لَهُ الْأَمْثَالَ وَكُلًّا تَبَّرْنَا تَتْبِيرًا",
+    "teacher": {
+     "pass": true,
+     "llr": 262.4,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e05-x3",
+    "class": "added_word",
+    "said": "وَأَهْلِى مِمَّا يَعْمَلُونَ ٱلضَّآلِّينَ فَنَجَّيْنَـٰهُ وَأَهْلَهُۥٓ أَجْمَعِينَ",
+    "original": "وَأَهْلِى مِمَّا يَعْمَلُونَ فَنَجَّيْنَـٰهُ وَأَهْلَهُۥٓ أَجْمَعِينَ",
+    "llr": -41.65,
+    "reason": "prefers the original",
+    "plainLlr": -5.67,
+    "transcript": "فنجيناه وأهله أجمعين",
+    "teacher": {
+     "pass": true,
+     "llr": 36.77,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e07-x5",
+    "class": "added_word",
+    "said": "إِن كُنتُمْ تَعْلَمُونَ تَذَكَّرُونَ ٱلَّذِينَ ءَامَنُوا۟ وَلَمْ يَلْبِسُوٓا۟",
+    "original": "إِن كُنتُمْ تَعْلَمُونَ ٱلَّذِينَ ءَامَنُوا۟ وَلَمْ يَلْبِسُوٓا۟",
+    "llr": -0.18,
+    "reason": "can't separate said from original",
+    "plainLlr": -8.2,
+    "transcript": "إِن كُنتُمْ تَعْلَمُونَ تَذَكَّرُونَ الَّذِينَ آمَنُوا وَلَمْ يَلْبِسُواْ",
+    "teacher": {
+     "pass": true,
+     "llr": 37.88,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e07-x7",
+    "class": "wrong_word",
+    "said": "وَعِيسَىٰ وَإِلْيَاسَ كُلٌّۭ مِّنَ ٱلْخَبِيرُ وَإِسْمَـٰعِيلَ وَٱلْيَسَعَ وَيُونُسَ وَلُوطًۭا",
+    "original": "وَعِيسَىٰ وَإِلْيَاسَ كُلٌّۭ مِّنَ ٱلصَّـٰلِحِينَ وَإِسْمَـٰعِيلَ وَٱلْيَسَعَ وَيُونُسَ وَلُوطًۭا",
+    "llr": -20.13,
+    "reason": "prefers the original",
+    "plainLlr": 3.8,
+    "transcript": "وعيسى وإلاس كُلٌّ مِّنَ الصَّابِرِينَ وإسماعيل واليسع ويونس ولوطًا",
+    "teacher": {
+     "pass": true,
+     "llr": 11.63,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e09-x2",
+    "class": "wrong_word",
+    "said": "إِلَيْكُم مِّن رَّبِّكُمْ تَكْسِبُونَ تَتَّبِعُوا۟ مِن دُونِهِۦٓ",
+    "original": "إِلَيْكُم مِّن رَّبِّكُمْ وَلَا تَتَّبِعُوا۟ مِن دُونِهِۦٓ",
+    "llr": -25.57,
+    "reason": "prefers the original",
+    "plainLlr": 14.12,
+    "transcript": "من ربكم تكرمون تتبعون من دونه",
+    "teacher": {
+     "pass": true,
+     "llr": 71.42,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e09-x4",
+    "class": "added_word",
+    "said": "وَلَنَسْـَٔلَنَّ ٱلْمُرْسَلِينَ تَعْلَمُونَ فَلَنَقُصَّنَّ عَلَيْهِم بِعِلْمٍۢ",
+    "original": "وَلَنَسْـَٔلَنَّ ٱلْمُرْسَلِينَ فَلَنَقُصَّنَّ عَلَيْهِم بِعِلْمٍۢ",
+    "llr": -42.85,
+    "reason": "prefers the original",
+    "plainLlr": -6.71,
+    "transcript": "ولنسألن المرسلين فلنقصن عليهم بعلم",
+    "teacher": {
+     "pass": true,
+     "llr": 73.52,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e10-x1",
+    "class": "added_word",
+    "said": "أُو۟لَـٰٓئِكَ أَنَّهُم مَّبْعُوثُونَ لَضَآلُّونَ لِيَوْمٍ عَظِيمٍۢ",
+    "original": "أُو۟لَـٰٓئِكَ أَنَّهُم مَّبْعُوثُونَ لِيَوْمٍ عَظِيمٍۢ",
+    "llr": -34.35,
+    "reason": "prefers the original",
+    "plainLlr": 7.35,
+    "transcript": "أولئك أنهم مبعوثون تضامون في يوم عظيم",
+    "teacher": {
+     "pass": true,
+     "llr": 36.49,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e10-x6",
+    "class": "added_word",
+    "said": "ثُمَّ يُقَالُ هَـٰذَا ٱلَّذِى كَانُوا۟ كُنتُم بِهِۦ تُكَذِّبُونَ",
+    "original": "ثُمَّ يُقَالُ هَـٰذَا ٱلَّذِى كُنتُم بِهِۦ تُكَذِّبُونَ",
+    "llr": -35.04,
+    "reason": "prefers the original",
+    "plainLlr": -5.22,
+    "transcript": "ثم يقال هذا الذي كنتم به تكذبون",
+    "teacher": {
+     "pass": false,
+     "llr": -0.56,
+     "reasons": [
+      "teacher can't separate planted from original (llr -0.6)"
+     ]
+    }
+   },
+   {
+    "id": "lab-v1.1-e10-x7",
+    "class": "added_word",
+    "said": "عِلِّيِّينَ وَمَآ أَدْرَىٰكَ سِجِّينٍۢ مَا عِلِّيُّونَ كِتَـٰبٌۭ",
+    "original": "عِلِّيِّينَ وَمَآ أَدْرَىٰكَ مَا عِلِّيُّونَ كِتَـٰبٌۭ",
+    "llr": -59.17,
+    "reason": "prefers the original",
+    "plainLlr": -20.58,
+    "transcript": "وما أدراك الدينيون",
+    "teacher": {
+     "pass": false,
+     "llr": 28.33,
+     "reasons": [
+      "teacher doesn't hear the planted version cleanly (local PER 0.29)"
+     ]
+    }
+   },
+   {
+    "id": "lab-v1.1-e10-x10",
+    "class": "added_word",
+    "said": "تَسْنِيمٍ عَيْنًۭا يَشْرَبُ لَضَآلُّونَ بِهَا ٱلْمُقَرَّبُونَ",
+    "original": "تَسْنِيمٍ عَيْنًۭا يَشْرَبُ بِهَا ٱلْمُقَرَّبُونَ",
+    "llr": -25.69,
+    "reason": "prefers the original",
+    "plainLlr": 11.4,
+    "transcript": "تسعين عينا يشرب الضال بها المقربون",
+    "teacher": {
+     "pass": false,
+     "llr": 21.16,
+     "reasons": [
+      "teacher doesn't hear the planted version cleanly (local PER 0.30)"
+     ]
+    }
+   },
+   {
+    "id": "lab-v1.1-e10-x11",
+    "class": "wrong_word",
+    "said": "يَضْحَكُونَ وَإِذَا مَرُّوا۟ لَفِى يَتَغَامَزُونَ وَإِذَا ٱنقَلَبُوٓا۟",
+    "original": "يَضْحَكُونَ وَإِذَا مَرُّوا۟ بِهِمْ يَتَغَامَزُونَ وَإِذَا ٱنقَلَبُوٓا۟",
+    "llr": -1.68,
+    "reason": "can't separate said from original",
+    "plainLlr": -0.59,
+    "transcript": "وإذا مروا به يتغامزون وإذا انقلبوا",
+    "teacher": {
+     "pass": true,
+     "llr": 42.11,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e11-x2",
+    "class": "added_word",
+    "said": "ٱللَّهِ إِنِّىٓ بَيْنَهُمَآ ءَاتِيكُم بِسُلْطَـٰنٍۢ مُّبِينٍۢ",
+    "original": "ٱللَّهِ إِنِّىٓ ءَاتِيكُم بِسُلْطَـٰنٍۢ مُّبِينٍۢ",
+    "llr": -34.2,
+    "reason": "prefers the original",
+    "plainLlr": 16.46,
+    "transcript": "الله إني أينهما آتيكم بسلطان مبين",
+    "teacher": {
+     "pass": true,
+     "llr": 90.04,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e11-x8",
+    "class": "added_word",
+    "said": "ٱخْتَرْنَـٰهُمْ عَلَىٰ عِلْمٍ عَلَى ٱلْعَـٰلَمِينَ فَـٰكِهِينَ وَءَاتَيْنَـٰهُم مِّنَ ٱلْـَٔايَـٰتِ",
+    "original": "ٱخْتَرْنَـٰهُمْ عَلَىٰ عِلْمٍ عَلَى ٱلْعَـٰلَمِينَ وَءَاتَيْنَـٰهُم مِّنَ ٱلْـَٔايَـٰتِ",
+    "llr": -63.11,
+    "reason": "prefers the original",
+    "plainLlr": -32.33,
+    "transcript": "",
+    "teacher": {
+     "pass": true,
+     "llr": 69.77,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e11-x12",
+    "class": "added_word",
+    "said": "أَجْمَعِينَ يَوْمَ لَا يُغْنِى قَوْمَ مَوْلًى عَن مَّوْلًۭى",
+    "original": "أَجْمَعِينَ يَوْمَ لَا يُغْنِى مَوْلًى عَن مَّوْلًۭى",
+    "llr": -20.49,
+    "reason": "prefers the original",
+    "plainLlr": -2.56,
+    "transcript": "مولاى عن",
+    "teacher": {
+     "pass": true,
+     "llr": 27.92,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e12-x6",
+    "class": "added_word",
+    "said": "هُوَ وَسِعَ كُلَّ شَىْءٍ عِلْمًۭا تَعْرَىٰ كَذَٰلِكَ نَقُصُّ عَلَيْكَ مِنْ أَنۢبَآءِ",
+    "original": "هُوَ وَسِعَ كُلَّ شَىْءٍ عِلْمًۭا كَذَٰلِكَ نَقُصُّ عَلَيْكَ مِنْ أَنۢبَآءِ",
+    "llr": 0.76,
+    "reason": "can't separate said from original",
+    "plainLlr": 3.31,
+    "transcript": "وَسِعَ كُلَّ شَيْءٍ عِلْماً تَعْرَى كَذَلِكَ نَقُصُّ عَلَيْكَ مِن أَنبَاءِ الْحَقِّ",
+    "teacher": {
+     "pass": true,
+     "llr": 39.31,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e12-x8",
+    "class": "added_word",
+    "said": "يَوْمَئِذٍۢ زُرْقًۭا يَتَخَـٰفَتُونَ تَرْضَىٰ بَيْنَهُمْ إِن لَّبِثْتُمْ إِلَّا عَشْرًۭا",
+    "original": "يَوْمَئِذٍۢ زُرْقًۭا يَتَخَـٰفَتُونَ بَيْنَهُمْ إِن لَّبِثْتُمْ إِلَّا عَشْرًۭا",
+    "llr": -8.3,
+    "reason": "prefers the original",
+    "plainLlr": 6.21,
+    "transcript": "فيومئذ زرقا يتخافتون فوقا بينهم إن لبثتم إلا عشرا",
+    "teacher": {
+     "pass": true,
+     "llr": 5.0,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e13-x8",
+    "class": "added_word",
+    "said": "حَبْلِ ٱلْوَرِيدِ إِذْ قَبْلَ يَتَلَقَّى ٱلْمُتَلَقِّيَانِ عَنِ ٱلْيَمِينِ",
+    "original": "حَبْلِ ٱلْوَرِيدِ إِذْ يَتَلَقَّى ٱلْمُتَلَقِّيَانِ عَنِ ٱلْيَمِينِ",
+    "llr": -10.64,
+    "reason": "prefers the original",
+    "plainLlr": 0.56,
+    "transcript": "قبل يتلقى المتلقيان عن اليمين",
+    "teacher": {
+     "pass": true,
+     "llr": 21.88,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e13-x12",
+    "class": "added_word",
+    "said": "كُلَّ كَفَّارٍ عَنِيدٍۢ مَزِيدٌۭ مَّنَّاعٍۢ لِّلْخَيْرِ مُعْتَدٍۢ",
+    "original": "كُلَّ كَفَّارٍ عَنِيدٍۢ مَّنَّاعٍۢ لِّلْخَيْرِ مُعْتَدٍۢ",
+    "llr": -34.84,
+    "reason": "prefers the original",
+    "plainLlr": 5.89,
+    "transcript": "كل كفار عنيد رزد مناع للخير معتد",
+    "teacher": {
+     "pass": false,
+     "llr": 28.9,
+     "reasons": [
+      "teacher doesn't hear the planted version cleanly (local PER 0.26)"
+     ]
+    }
+   },
+   {
+    "id": "lab-v1.1-e13-x17",
+    "class": "wrong_word",
+    "said": "يَشَآءُونَ فِيهَا وَلَدَيْنَا بَعِيدٍ وَكَمْ أَهْلَكْنَا قَبْلَهُم",
+    "original": "يَشَآءُونَ فِيهَا وَلَدَيْنَا مَزِيدٌۭ وَكَمْ أَهْلَكْنَا قَبْلَهُم",
+    "llr": -7.36,
+    "reason": "prefers the original",
+    "plainLlr": -0.88,
+    "transcript": "وَلا يَشَاءُونَ فِيهَا وَلَدَيْنَا وَكَمْ أَهْلَكْنَا قَبْلَهُم",
+    "teacher": {
+     "pass": true,
+     "llr": 22.57,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e14-x2",
+    "class": "wrong_word",
+    "said": "وَعْدَهُۥ وَإِنَّ يَوْمًا عِندَ كُلِّ كَأَلْفِ سَنَةٍۢ مِّمَّا",
+    "original": "وَعْدَهُۥ وَإِنَّ يَوْمًا عِندَ رَبِّكَ كَأَلْفِ سَنَةٍۢ مِّمَّا",
+    "llr": -2.52,
+    "reason": "can't separate said from original",
+    "plainLlr": -0.63,
+    "transcript": "وَإِنَّ يَوْمًا عِندَ رَبِّكَ أَلْفِ سَنَةٍ مِمَّا تَأْمُرُكُمْ",
+    "teacher": {
+     "pass": true,
+     "llr": 51.38,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e15-x5",
+    "class": "repeat",
+    "said": "إِنسٌۭ قَبْلَهُمْ وَلَا وَلَا جَآنٌّۭ فَبِأَىِّ ءَالَآءِ",
+    "original": "إِنسٌۭ قَبْلَهُمْ وَلَا جَآنٌّۭ فَبِأَىِّ ءَالَآءِ",
+    "llr": -4.94,
+    "reason": "prefers the original",
+    "plainLlr": -3.24,
+    "transcript": "جان فبأيام",
+    "teacher": {
+     "pass": true,
+     "llr": 29.8,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e16-x2",
+    "class": "wrong_word",
+    "said": "هُمْ لِأَمَـٰنَـٰتِهِمْ وَعَهْدِهِمْ تُكَلِّمُونِ وَٱلَّذِينَ هُمْ عَلَىٰ صَلَوَٰتِهِمْ",
+    "original": "هُمْ لِأَمَـٰنَـٰتِهِمْ وَعَهْدِهِمْ رَٰعُونَ وَٱلَّذِينَ هُمْ عَلَىٰ صَلَوَٰتِهِمْ",
+    "llr": -32.75,
+    "reason": "prefers the original",
+    "plainLlr": -1.78,
+    "transcript": "هم بأماناتهم وعهدهم خيرا",
+    "teacher": {
+     "pass": false,
+     "llr": 19.75,
+     "reasons": [
+      "teacher doesn't hear the planted version cleanly (local PER 0.28)"
+     ]
+    }
+   },
+   {
+    "id": "lab-v1.1-e16-x4",
+    "class": "added_word",
+    "said": "جَعَلْنَـٰهُ نُطْفَةًۭ فِى فَٱسْلُكْ قَرَارٍۢ مَّكِينٍۢ ثُمَّ",
+    "original": "جَعَلْنَـٰهُ نُطْفَةًۭ فِى قَرَارٍۢ مَّكِينٍۢ ثُمَّ",
+    "llr": -56.62,
+    "reason": "prefers the original",
+    "plainLlr": -11.46,
+    "transcript": "ثُمَّ جَعَلْنَاهُ نُطْفَةً فِي قَسْلِ قَرَارٍ مَكِينٍ",
+    "teacher": {
+     "pass": true,
+     "llr": 18.11,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e19-x5",
+    "class": "added_word",
+    "said": "وَقَالُوٓا۟ إِنْ هَـٰذَآ إِلَّا كَيْفَ سِحْرٌۭ مُّبِينٌ أَءِذَا",
+    "original": "وَقَالُوٓا۟ إِنْ هَـٰذَآ إِلَّا سِحْرٌۭ مُّبِينٌ أَءِذَا",
+    "llr": -17.56,
+    "reason": "prefers the original",
+    "plainLlr": -8.37,
+    "transcript": "وَقَالُوا إِن هَذَا إِلاَّ سِحْرٌ مُّبِينٌ",
+    "teacher": {
+     "pass": true,
+     "llr": 34.85,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e19-x12",
+    "class": "added_word",
+    "said": "لَذَآئِقُونَ فَأَغْوَيْنَـٰكُمْ إِنَّا كَيْفَ كُنَّا غَـٰوِينَ فَإِنَّهُمْ",
+    "original": "لَذَآئِقُونَ فَأَغْوَيْنَـٰكُمْ إِنَّا كُنَّا غَـٰوِينَ فَإِنَّهُمْ",
+    "llr": -1.38,
+    "reason": "can't separate said from original",
+    "plainLlr": 0.88,
+    "transcript": "فَأَغْوَيْنَاكُمْ",
+    "teacher": {
+     "pass": true,
+     "llr": 44.1,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e19-x14",
+    "class": "added_word",
+    "said": "إِلَـٰهَ إِلَّا ٱللَّهُ يَسْتَكْبِرُونَ تَحْكُمُونَ وَيَقُولُونَ أَئِنَّا لَتَارِكُوٓا۟",
+    "original": "إِلَـٰهَ إِلَّا ٱللَّهُ يَسْتَكْبِرُونَ وَيَقُولُونَ أَئِنَّا لَتَارِكُوٓا۟",
+    "llr": -15.08,
+    "reason": "prefers the original",
+    "plainLlr": 0.23,
+    "transcript": "لا إله إلا الله يستكبرون ويقولون أئِنّا",
+    "teacher": {
+     "pass": true,
+     "llr": 50.12,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e20-x9",
+    "class": "added_word",
+    "said": "ءَالَآءِ رَبِّكُمَا تَطْغَوْا۟ تُكَذِّبَانِ مُتَّكِـِٔينَ عَلَىٰ",
+    "original": "ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ مُتَّكِـِٔينَ عَلَىٰ",
+    "llr": -24.86,
+    "reason": "prefers the original",
+    "plainLlr": -9.36,
+    "transcript": "بِآلاء رَبِّكُمَا تَقْضِ الرِّبَا مُتَّكِئِينَ عَلَى الْهُدَى",
+    "teacher": {
+     "pass": true,
+     "llr": 41.38,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-e20-x12",
+    "class": "restart",
+    "said": "فَبِأَىِّ ءَالَآءِ رَبِّكُمَا فَبِأَىِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ وَمِن دُونِهِمَا",
+    "original": "فَبِأَىِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ وَمِن دُونِهِمَا",
+    "llr": -41.44,
+    "reason": "prefers the original",
+    "plainLlr": -14.94,
+    "transcript": "فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ وَمِنْ دُونِهِمَا",
+    "teacher": {
+     "pass": true,
+     "llr": 179.42,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p01-x4",
+    "class": "added_word",
+    "said": "ٱلْعَـٰلَمِينَ ٱلَّذِى خَلَقَنِى فِى فَهُوَ يَهْدِينِ وَٱلَّذِى هُوَ",
+    "original": "ٱلْعَـٰلَمِينَ ٱلَّذِى خَلَقَنِى فَهُوَ يَهْدِينِ وَٱلَّذِى هُوَ",
+    "llr": -9.73,
+    "reason": "prefers the original",
+    "plainLlr": -1.55,
+    "transcript": "الذي خلقني فهو يهدين والذي هو يعينه",
+    "teacher": {
+     "pass": true,
+     "llr": 24.66,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p01-x9",
+    "class": "restart",
+    "said": "لِلْغَاوِينَ وَقِيلَ لَهُمْ أَيْنَ مَا وَقِيلَ لَهُمْ أَيْنَ مَا كُنتُمْ تَعْبُدُونَ مِن",
+    "original": "لِلْغَاوِينَ وَقِيلَ لَهُمْ أَيْنَ مَا كُنتُمْ تَعْبُدُونَ مِن",
+    "llr": -47.73,
+    "reason": "prefers the original",
+    "plainLlr": -43.73,
+    "transcript": "وَلَقَدْ خُلُقَ لِلْغَاوِينَ وَقِيلَ لَهُمْ أَيْنَ مَا كُنتُم تَعْبُدُونَ",
+    "teacher": {
+     "pass": true,
+     "llr": 144.35,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p01-x10",
+    "class": "added_word",
+    "said": "هَلْ يَنصُرُونَكُمْ أَوْ فِى يَنتَصِرُونَ فَكُبْكِبُوا۟ فِيهَا",
+    "original": "هَلْ يَنصُرُونَكُمْ أَوْ يَنتَصِرُونَ فَكُبْكِبُوا۟ فِيهَا",
+    "llr": -11.57,
+    "reason": "prefers the original",
+    "plainLlr": -8.38,
+    "transcript": "هل ينصرونكم أو هل ينتصرون وَكُبْكِبُوا فِيهَا",
+    "teacher": {
+     "pass": false,
+     "llr": -12.18,
+     "reasons": [
+      "teacher prefers the original (llr -12.2)",
+      "greedy decode no closer to the planted words (edits 3 vs 3 to the original)"
+     ]
+    }
+   },
+   {
+    "id": "lab-v1.1-p01-x12",
+    "class": "added_word",
+    "said": "نُسَوِّيكُم بِرَبِّ ٱلْعَـٰلَمِينَ تَعْقِلُونَ وَمَآ أَضَلَّنَآ إِلَّا",
+    "original": "نُسَوِّيكُم بِرَبِّ ٱلْعَـٰلَمِينَ وَمَآ أَضَلَّنَآ إِلَّا",
+    "llr": -6.78,
+    "reason": "prefers the original",
+    "plainLlr": 4.76,
+    "transcript": "برب العالمين تعقدون وما المسلمون",
+    "teacher": {
+     "pass": true,
+     "llr": 54.2,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p01-x18",
+    "class": "added_word",
+    "said": "تَشْعُرُونَ وَمَآ أَنَا۠ بِطَارِدِ ٱللَّهِ ٱلْمُؤْمِنِينَ إِنْ أَنَا۠ إِلَّا نَذِيرٌۭ",
+    "original": "تَشْعُرُونَ وَمَآ أَنَا۠ بِطَارِدِ ٱلْمُؤْمِنِينَ إِنْ أَنَا۠ إِلَّا نَذِيرٌۭ",
+    "llr": 1.59,
+    "reason": "can't separate said from original",
+    "plainLlr": 1.59,
+    "transcript": "وما أنا بطارد الله بالمؤمنين إِن أَنَا إِلا نَذِيرٌ",
+    "teacher": {
+     "pass": true,
+     "llr": 22.08,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p01-x21",
+    "class": "added_word",
+    "said": "إِنَّ فِى ذَٰلِكَ لَـَٔايَةًۭ وَمَا فِى كَانَ أَكْثَرُهُم مُّؤْمِنِينَ",
+    "original": "إِنَّ فِى ذَٰلِكَ لَـَٔايَةًۭ وَمَا كَانَ أَكْثَرُهُم مُّؤْمِنِينَ",
+    "llr": -12.0,
+    "reason": "prefers the original",
+    "plainLlr": -15.15,
+    "transcript": "إِنَّ فِي ذَلِكَ لَآيَةً وَمَا كَانَ أَكْثَرُهُمْ مُؤْمِنِينَ",
+    "teacher": {
+     "pass": true,
+     "llr": 22.49,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p02-x1",
+    "class": "repeat",
+    "said": "رَبَّهُۥٓ أَنَّ هَـٰٓؤُلَآءِ رَبَّهُۥٓ أَنَّ هَـٰٓؤُلَآءِ قَوْمٌۭ مُّجْرِمُونَ فَأَسْرِ",
+    "original": "رَبَّهُۥٓ أَنَّ هَـٰٓؤُلَآءِ قَوْمٌۭ مُّجْرِمُونَ فَأَسْرِ",
+    "llr": -6.7,
+    "reason": "prefers the original",
+    "plainLlr": -10.91,
+    "transcript": "رَبَّهُ أَنَّ هَؤُلَاءِ قَوْمٌ مُجْرِمُونَ",
+    "teacher": {
+     "pass": true,
+     "llr": 150.98,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p03-x8",
+    "class": "wrong_word",
+    "said": "ءَامَنتُ بِرَبِّكُمْ فَٱسْمَعُونِ تُنۢبِتُ ٱدْخُلِ ٱلْجَنَّةَ قَالَ",
+    "original": "ءَامَنتُ بِرَبِّكُمْ فَٱسْمَعُونِ قِيلَ ٱدْخُلِ ٱلْجَنَّةَ قَالَ",
+    "llr": -1.5,
+    "reason": "can't separate said from original",
+    "plainLlr": 3.79,
+    "transcript": "قُلْ آمَنْتُ بِرَبِّكُمْ فَاسْمَعُونِ الجَنَّهَ",
+    "teacher": {
+     "pass": true,
+     "llr": 52.22,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p03-x9",
+    "class": "wrong_word",
+    "said": "ٱلسَّمَآءِ وَمَا كُنَّا صَـٰدِقِينَ إِن كَانَتْ إِلَّا صَيْحَةًۭ",
+    "original": "ٱلسَّمَآءِ وَمَا كُنَّا مُنزِلِينَ إِن كَانَتْ إِلَّا صَيْحَةًۭ",
+    "llr": -13.72,
+    "reason": "prefers the original",
+    "plainLlr": -2.59,
+    "transcript": "من السماء وما كنا منزلين إِن كانت إلا صيحة",
+    "teacher": {
+     "pass": true,
+     "llr": 46.04,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p03-x10",
+    "class": "added_word",
+    "said": "وَٰحِدَةًۭ فَإِذَا هُمْ خَـٰمِدُونَ تَكْفُرُونَ يَـٰحَسْرَةً عَلَى ٱلْعِبَادِ مَا",
+    "original": "وَٰحِدَةًۭ فَإِذَا هُمْ خَـٰمِدُونَ يَـٰحَسْرَةً عَلَى ٱلْعِبَادِ مَا",
+    "llr": -44.32,
+    "reason": "prefers the original",
+    "plainLlr": -5.47,
+    "transcript": "ثقباً واحدة فإذا هم خامدون فاذكرون يا حسرة على العباد",
+    "teacher": {
+     "pass": true,
+     "llr": 18.36,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p03-x17",
+    "class": "wrong_word",
+    "said": "يَرْكَبُونَ وَإِن نَّشَأْ نُغْرِقْهُمْ قَوْلُهُمْ صَرِيخَ لَهُمْ وَلَا هُمْ يُنقَذُونَ",
+    "original": "يَرْكَبُونَ وَإِن نَّشَأْ نُغْرِقْهُمْ فَلَا صَرِيخَ لَهُمْ وَلَا هُمْ يُنقَذُونَ",
+    "llr": -2.18,
+    "reason": "can't separate said from original",
+    "plainLlr": 3.04,
+    "transcript": "وَإِن نَّشَأ يُغْرِقْهُم فُولَهُم لا صَرِيخَ لَهُمْ وَلَا هُمْ يُنقَذُونَ",
+    "teacher": {
+     "pass": true,
+     "llr": 35.51,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p05-x4",
+    "class": "added_word",
+    "said": "بِكَلِمَـٰتِهِۦ وَيَقْطَعَ دَابِرَ ٱلْكَـٰفِرِينَ قَتَلَهُمْ لِيُحِقَّ ٱلْحَقَّ وَيُبْطِلَ ٱلْبَـٰطِلَ",
+    "original": "بِكَلِمَـٰتِهِۦ وَيَقْطَعَ دَابِرَ ٱلْكَـٰفِرِينَ لِيُحِقَّ ٱلْحَقَّ وَيُبْطِلَ ٱلْبَـٰطِلَ",
+    "llr": -7.57,
+    "reason": "prefers the original",
+    "plainLlr": 2.81,
+    "transcript": "كلماته ويقطع دابر الكافرين ختاهم ليحق الحق ويبطل الباطل",
+    "teacher": {
+     "pass": true,
+     "llr": 50.49,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p07-x2",
+    "class": "added_word",
+    "said": "مُّسَوَّمَةً عِندَ رَبِّكَ ذَرْوًۭا لِلْمُسْرِفِينَ فَأَخْرَجْنَا مَن",
+    "original": "مُّسَوَّمَةً عِندَ رَبِّكَ لِلْمُسْرِفِينَ فَأَخْرَجْنَا مَن",
+    "llr": 0.01,
+    "reason": "can't separate said from original",
+    "plainLlr": -1.88,
+    "transcript": "مسومة عند ربك ذر المشرفين فأخرجنا من",
+    "teacher": {
+     "pass": false,
+     "llr": 2.87,
+     "reasons": [
+      "teacher can't separate planted from original (llr 2.9)",
+      "teacher doesn't hear the planted version cleanly (local PER 0.42)"
+     ]
+    }
+   },
+   {
+    "id": "lab-v1.1-p07-x3",
+    "class": "added_word",
+    "said": "فَمَا وَجَدْنَا فِيهَا غَيْرَ تَأْكُلُونَ بَيْتٍۢ مِّنَ ٱلْمُسْلِمِينَ",
+    "original": "فَمَا وَجَدْنَا فِيهَا غَيْرَ بَيْتٍۢ مِّنَ ٱلْمُسْلِمِينَ",
+    "llr": -27.01,
+    "reason": "prefers the original",
+    "plainLlr": -9.4,
+    "transcript": "فَمَا وَجَدْنَا فِيهَا غَيْرَ دَخُولَيْت مِنَ",
+    "teacher": {
+     "pass": true,
+     "llr": 33.46,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p08-x2",
+    "class": "repeat",
+    "said": "ٱلسِّقَايَةَ فِى رَحْلِ أَخِيهِ رَحْلِ أَخِيهِ ثُمَّ أَذَّنَ مُؤَذِّنٌ أَيَّتُهَا",
+    "original": "ٱلسِّقَايَةَ فِى رَحْلِ أَخِيهِ ثُمَّ أَذَّنَ مُؤَذِّنٌ أَيَّتُهَا",
+    "llr": -22.08,
+    "reason": "prefers the original",
+    "plainLlr": -3.29,
+    "transcript": "في رحل أخيه رحل اخيه ثم أذن مؤذن ايتها العلاقة.",
+    "teacher": {
+     "pass": true,
+     "llr": 51.87,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p09-x8",
+    "class": "wrong_word",
+    "said": "وَأَبْشِرُوا۟ بِٱلْجَنَّةِ ٱلَّتِى قُوَّةًۭ تُوعَدُونَ نَحْنُ",
+    "original": "وَأَبْشِرُوا۟ بِٱلْجَنَّةِ ٱلَّتِى كُنتُمْ تُوعَدُونَ نَحْنُ",
+    "llr": -12.97,
+    "reason": "prefers the original",
+    "plainLlr": -6.87,
+    "transcript": "وأبشروا الَّتِي كُنتْ تُوعَدُونَ",
+    "teacher": {
+     "pass": false,
+     "llr": 27.93,
+     "reasons": [
+      "teacher doesn't hear the planted version cleanly (local PER 0.26)"
+     ]
+    }
+   },
+   {
+    "id": "lab-v1.1-p10-x1",
+    "class": "added_word",
+    "said": "ءَالَآءِ رَبِّكُمَا فَيُؤْخَذُ تُكَذِّبَانِ خَلَقَ ٱلْإِنسَـٰنَ",
+    "original": "ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ خَلَقَ ٱلْإِنسَـٰنَ",
+    "llr": -7.66,
+    "reason": "prefers the original",
+    "plainLlr": -3.53,
+    "transcript": "خلق الانسان",
+    "teacher": {
+     "pass": true,
+     "llr": 59.6,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p10-x12",
+    "class": "added_word",
+    "said": "ذَنۢبِهِۦٓ إِنسٌۭ وَلَا تُكَذِّبَانِ جَآنٌّۭ فَبِأَىِّ ءَالَآءِ",
+    "original": "ذَنۢبِهِۦٓ إِنسٌۭ وَلَا جَآنٌّۭ فَبِأَىِّ ءَالَآءِ",
+    "llr": -18.39,
+    "reason": "prefers the original",
+    "plainLlr": -3.53,
+    "transcript": "جانب",
+    "teacher": {
+     "pass": true,
+     "llr": 74.89,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p12-x1",
+    "class": "added_word",
+    "said": "إِنَّمَا تُوعَدُونَ لَوَٰقِعٌۭ فَإِن فَإِذَا ٱلنُّجُومُ طُمِسَتْ وَإِذَا",
+    "original": "إِنَّمَا تُوعَدُونَ لَوَٰقِعٌۭ فَإِذَا ٱلنُّجُومُ طُمِسَتْ وَإِذَا",
+    "llr": -9.59,
+    "reason": "prefers the original",
+    "plainLlr": -2.95,
+    "transcript": "انما تُوعَدُونَ لَوَاقِعٌ فَإِذَا النُّجُومُ طُمِسَتْ",
+    "teacher": {
+     "pass": true,
+     "llr": 26.86,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p12-x10",
+    "class": "added_word",
+    "said": "كَأَنَّهُۥ جِمَـٰلَتٌۭ صُفْرٌۭ فَرْقًۭا وَيْلٌۭ يَوْمَئِذٍۢ لِّلْمُكَذِّبِينَ",
+    "original": "كَأَنَّهُۥ جِمَـٰلَتٌۭ صُفْرٌۭ وَيْلٌۭ يَوْمَئِذٍۢ لِّلْمُكَذِّبِينَ",
+    "llr": 2.8,
+    "reason": "can't separate said from original",
+    "plainLlr": 2.8,
+    "transcript": "كأنه جمالا صفر فرقا ويل يومئذ للمكذبين",
+    "teacher": {
+     "pass": true,
+     "llr": 41.62,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p12-x11",
+    "class": "added_word",
+    "said": "يَنطِقُونَ وَلَا يُؤْذَنُ تَعْمَلُونَ لَهُمْ فَيَعْتَذِرُونَ وَيْلٌۭ",
+    "original": "يَنطِقُونَ وَلَا يُؤْذَنُ لَهُمْ فَيَعْتَذِرُونَ وَيْلٌۭ",
+    "llr": -18.75,
+    "reason": "prefers the original",
+    "plainLlr": 11.13,
+    "transcript": "وينطقون ولا يؤذن العملون لهم فيعتذرون",
+    "teacher": {
+     "pass": true,
+     "llr": 62.67,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p13-x7",
+    "class": "repeat",
+    "said": "مُتَّكِـِٔينَ فِيهَا يَدْعُونَ فِيهَا يَدْعُونَ فِيهَا بِفَـٰكِهَةٍۢ كَثِيرَةٍۢ",
+    "original": "مُتَّكِـِٔينَ فِيهَا يَدْعُونَ فِيهَا بِفَـٰكِهَةٍۢ كَثِيرَةٍۢ",
+    "llr": -21.61,
+    "reason": "prefers the original",
+    "plainLlr": -16.12,
+    "transcript": "مُتَّكِئِينَ فِيهَا يَدْعُونَ فِيهَا بِفَاكِهَةٍ كَثِيرَةٍ",
+    "teacher": {
+     "pass": true,
+     "llr": 123.08,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p13-x11",
+    "class": "wrong_word",
+    "said": "فَوْجٌۭ مُّقْتَحِمٌۭ مَّعَكُمْ فِيهَا مَرْحَبًۢا بِهِمْ إِنَّهُمْ صَالُوا۟",
+    "original": "فَوْجٌۭ مُّقْتَحِمٌۭ مَّعَكُمْ لَا مَرْحَبًۢا بِهِمْ إِنَّهُمْ صَالُوا۟",
+    "llr": -6.11,
+    "reason": "prefers the original",
+    "plainLlr": -1.99,
+    "transcript": "فوز مقتحم معكم قيل مرحبا بهم إنهم صادون.",
+    "teacher": {
+     "pass": true,
+     "llr": 37.97,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p14-x1",
+    "class": "added_word",
+    "said": "يَـٰوَيْلَنَا هَـٰذَا يَوْمُ ٱلْكَرْبِ ٱلدِّينِ هَـٰذَا يَوْمُ ٱلْفَصْلِ",
+    "original": "يَـٰوَيْلَنَا هَـٰذَا يَوْمُ ٱلدِّينِ هَـٰذَا يَوْمُ ٱلْفَصْلِ",
+    "llr": -0.72,
+    "reason": "can't separate said from original",
+    "plainLlr": 5.46,
+    "transcript": "يَا وَيْلَنَا يَوْمُ الْقَرْبِ الدِّينِ هذا يوم الفضل",
+    "teacher": {
+     "pass": true,
+     "llr": 29.64,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p14-x5",
+    "class": "wrong_word",
+    "said": "كُنتُمْ تَأْتُونَنَا عَنِ ٱلْأَلِيمِ قَالُوا۟ بَل لَّمْ تَكُونُوا۟ مُؤْمِنِينَ",
+    "original": "كُنتُمْ تَأْتُونَنَا عَنِ ٱلْيَمِينِ قَالُوا۟ بَل لَّمْ تَكُونُوا۟ مُؤْمِنِينَ",
+    "llr": -19.03,
+    "reason": "prefers the original",
+    "plainLlr": -6.73,
+    "transcript": "إِن كُنتُم تَأْتُونَنَا عَنِ الْأَينِ قَالُوا بَل لّم تَكُونُوا مُؤْمِنِينَ",
+    "teacher": {
+     "pass": true,
+     "llr": 38.69,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p14-x7",
+    "class": "added_word",
+    "said": "إِنَّا كُنَّا غَـٰوِينَ مِن فَإِنَّهُمْ يَوْمَئِذٍۢ فِى ٱلْعَذَابِ",
+    "original": "إِنَّا كُنَّا غَـٰوِينَ فَإِنَّهُمْ يَوْمَئِذٍۢ فِى ٱلْعَذَابِ",
+    "llr": -0.6,
+    "reason": "can't separate said from original",
+    "plainLlr": -3.58,
+    "transcript": "إِنَّا كُنَّا غَاوِينَهُمْ يَوْمَئِذٍ فِي الْعَذَابِ",
+    "teacher": {
+     "pass": true,
+     "llr": 19.34,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p15-x2",
+    "class": "added_word",
+    "said": "مُّخْتَلِفٍۢ يُؤْفَكُ عَنْهُ مَنْ أُفِكَ تَذَكَّرُونَ قُتِلَ ٱلْخَرَّٰصُونَ",
+    "original": "مُّخْتَلِفٍۢ يُؤْفَكُ عَنْهُ مَنْ أُفِكَ قُتِلَ ٱلْخَرَّٰصُونَ",
+    "llr": -32.37,
+    "reason": "prefers the original",
+    "plainLlr": 6.16,
+    "transcript": "مختلف يؤفك عنه من أفك تذكر قتل الخراصون",
+    "teacher": {
+     "pass": true,
+     "llr": 80.06,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p15-x8",
+    "class": "added_word",
+    "said": "إِنَّهُۥ لَحَقٌّۭ مِّثْلَ قَوْمٌۭ مَآ أَنَّكُمْ",
+    "original": "إِنَّهُۥ لَحَقٌّۭ مِّثْلَ مَآ أَنَّكُمْ",
+    "llr": -39.12,
+    "reason": "prefers the original",
+    "plainLlr": -12.94,
+    "transcript": "لحق مثلا",
+    "teacher": {
+     "pass": false,
+     "llr": -9.82,
+     "reasons": [
+      "teacher prefers the original (llr -9.8)",
+      "greedy decode no closer to the planted words (edits 3 vs 1 to the original)",
+      "teacher doesn't hear the planted version cleanly (local PER 0.27)"
+     ]
+    }
+   },
+   {
+    "id": "lab-v1.1-p16-x3",
+    "class": "added_word",
+    "said": "نَّتَّبِعُهُۥٓ إِنَّآ شَىْءٍۢ إِذًۭا لَّفِى ضَلَـٰلٍۢ وَسُعُرٍ",
+    "original": "نَّتَّبِعُهُۥٓ إِنَّآ إِذًۭا لَّفِى ضَلَـٰلٍۢ وَسُعُرٍ",
+    "llr": -5.29,
+    "reason": "prefers the original",
+    "plainLlr": 1.71,
+    "transcript": "هل نتبع عور في ظلام",
+    "teacher": {
+     "pass": false,
+     "llr": 16.13,
+     "reasons": [
+      "teacher doesn't hear the planted version cleanly (local PER 0.46)"
+     ]
+    }
+   },
+   {
+    "id": "lab-v1.1-p17-x4",
+    "class": "restart",
+    "said": "فَبِأَىِّ ءَالَآءِ رَبِّكُمَا فَبِأَىِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ فِيهِنَّ",
+    "original": "فَبِأَىِّ ءَالَآءِ رَبِّكُمَا تُكَذِّبَانِ فِيهِنَّ",
+    "llr": -153.86,
+    "reason": "prefers the original",
+    "plainLlr": -93.39,
+    "transcript": "فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ",
+    "teacher": {
+     "pass": true,
+     "llr": 186.59,
+     "reasons": []
+    }
+   },
+   {
+    "id": "lab-v1.1-p19-x8",
+    "class": "added_word",
+    "said": "عِلِّيُّونَ كِتَـٰبٌۭ مَّرْقُومٌۭ سِجِّينٌۭ يَشْهَدُهُ ٱلْمُقَرَّبُونَ",
+    "original": "عِلِّيُّونَ كِتَـٰبٌۭ مَّرْقُومٌۭ يَشْهَدُهُ ٱلْمُقَرَّبُونَ",
+    "llr": -36.11,
+    "reason": "prefers the original",
+    "plainLlr": -4.89,
+    "transcript": "وعليون كتاب مرقوم في الدين يشهده المقربون",
+    "teacher": {
+     "pass": true,
+     "llr": 48.1,
+     "reasons": []
+    }
+   }
+  ]
+ }
+}

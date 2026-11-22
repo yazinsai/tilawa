@@ -1,0 +1,202 @@
+{
+ "baselineRun": "exp-checker-independent-consonants-4a4c2f5-20261031T131228Z",
+ "newRun": "exp-checker-extra-segmentation-b2fe98d-20261031T142310Z",
+ "variants": {
+  "phone": {
+   "misses": [
+    67,
+    64
+   ],
+   "warnings": [
+    25,
+    25
+   ],
+   "recoveries": [
+    {
+     "key": "lab-v1.5-p30/phone/mistake:added_word/2:283:1/184.74",
+     "kind": "mistake",
+     "session": "lab-v1.5-p30",
+     "variant": "phone",
+     "split": "practice",
+     "strict": false,
+     "errorClass": "added_word",
+     "word": "2:283:1",
+     "startS": 184.735,
+     "endS": 186.495,
+     "outcome": "hit",
+     "component": null,
+     "confirmedS": 189.56,
+     "mutashabihat": false,
+     "oracle": "hit",
+     "truePosition": "hit",
+     "teacher": "hit",
+     "trackerOnPlace": 0.514,
+     "allFail": false,
+     "review": {
+      "path": "lab-v1.5/sessions/lab-v1.5-p30.phone.wav",
+      "startS": 181.74,
+      "endS": 189.5
+     }
+    },
+    {
+     "key": "lab-v1.5-p69/phone/mistake:added_word/35:22:1/166.79",
+     "kind": "mistake",
+     "session": "lab-v1.5-p69",
+     "variant": "phone",
+     "split": "practice",
+     "strict": false,
+     "errorClass": "added_word",
+     "word": "35:22:1",
+     "startS": 166.795,
+     "endS": 167.875,
+     "outcome": "hit",
+     "component": null,
+     "confirmedS": 172.8,
+     "mutashabihat": false,
+     "oracle": "hit",
+     "truePosition": "hit",
+     "teacher": "hit",
+     "trackerOnPlace": 0.871,
+     "allFail": false,
+     "review": {
+      "path": "lab-v1.5/sessions/lab-v1.5-p69.phone.wav",
+      "startS": 163.79,
+      "endS": 170.88
+     }
+    },
+    {
+     "key": "lab-v1.5-p77/phone/mistake:added_word/9:61:1/29.55",
+     "kind": "mistake",
+     "session": "lab-v1.5-p77",
+     "variant": "phone",
+     "split": "practice",
+     "strict": false,
+     "errorClass": "added_word",
+     "word": "9:61:1",
+     "startS": 29.555,
+     "endS": 30.395,
+     "outcome": "hit",
+     "component": null,
+     "confirmedS": 35.2,
+     "mutashabihat": false,
+     "oracle": "hit",
+     "truePosition": "hit",
+     "teacher": "hit",
+     "trackerOnPlace": 0.821,
+     "allFail": false,
+     "review": {
+      "path": "lab-v1.5/sessions/lab-v1.5-p77.phone.wav",
+      "startS": 26.56,
+      "endS": 33.39
+     }
+    }
+   ],
+   "newMisses": [],
+   "newWarnings": [],
+   "removedWarnings": [],
+   "recoveriesByChapter": {
+    "2": 1,
+    "35": 1,
+    "9": 1
+   }
+  },
+  "studio": {
+   "misses": [
+    48,
+    45
+   ],
+   "warnings": [
+    13,
+    13
+   ],
+   "recoveries": [
+    {
+     "key": "lab-v1.5-p30/studio/mistake:added_word/2:283:1/184.74",
+     "kind": "mistake",
+     "session": "lab-v1.5-p30",
+     "variant": "studio",
+     "split": "practice",
+     "strict": false,
+     "errorClass": "added_word",
+     "word": "2:283:1",
+     "startS": 184.735,
+     "endS": 186.495,
+     "outcome": "hit",
+     "component": null,
+     "confirmedS": 189.56,
+     "mutashabihat": false,
+     "oracle": "hit",
+     "truePosition": "hit",
+     "teacher": "hit",
+     "trackerOnPlace": 0.514,
+     "allFail": false,
+     "review": {
+      "path": "lab-v1.5/sessions/lab-v1.5-p30.studio.wav",
+      "startS": 181.74,
+      "endS": 189.5
+     }
+    },
+    {
+     "key": "lab-v1.5-p69/studio/mistake:added_word/35:22:1/166.79",
+     "kind": "mistake",
+     "session": "lab-v1.5-p69",
+     "variant": "studio",
+     "split": "practice",
+     "strict": false,
+     "errorClass": "added_word",
+     "word": "35:22:1",
+     "startS": 166.795,
+     "endS": 167.875,
+     "outcome": "hit",
+     "component": null,
+     "confirmedS": 172.8,
+     "mutashabihat": false,
+     "oracle": "hit",
+     "truePosition": "hit",
+     "teacher": "hit",
+     "trackerOnPlace": 0.871,
+     "allFail": false,
+     "review": {
+      "path": "lab-v1.5/sessions/lab-v1.5-p69.studio.wav",
+      "startS": 163.79,
+      "endS": 170.88
+     }
+    },
+    {
+     "key": "lab-v1.5-p77/studio/mistake:added_word/9:61:1/29.55",
+     "kind": "mistake",
+     "session": "lab-v1.5-p77",
+     "variant": "studio",
+     "split": "practice",
+     "strict": false,
+     "errorClass": "added_word",
+     "word": "9:61:1",
+     "startS": 29.555,
+     "endS": 30.395,
+     "outcome": "hit",
+     "component": null,
+     "confirmedS": 35.2,
+     "mutashabihat": false,
+     "oracle": "hit",
+     "truePosition": "hit",
+     "teacher": "hit",
+     "trackerOnPlace": 0.821,
+     "allFail": false,
+     "review": {
+      "path": "lab-v1.5/sessions/lab-v1.5-p77.studio.wav",
+      "startS": 26.56,
+      "endS": 33.39
+     }
+    }
+   ],
+   "newMisses": [],
+   "newWarnings": [],
+   "removedWarnings": [],
+   "recoveriesByChapter": {
+    "2": 1,
+    "35": 1,
+    "9": 1
+   }
+  }
+ }
+}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Listening check · Tilawa lab</title>
+    <link rel="preload" href="/static/fonts/onest-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/static/lab.css" />
+    <script src="/static/theme.js"></script>
+  </head>
+  <body>
+    <header class="top"><div class="top-in"><div class="top-head" id="head"></div><button class="theme-btn" id="theme" type="button"></button></div></header>
+    <main><div class="narrow">
+      <div id="intro"></div>
+      <div id="main"><p class="rv-head muted">Loading…</p></div>
+      <nav class="rv-nav" id="nav" hidden>
+        <button class="btn" id="prev">Back <kbd>k</kbd></button>
+        <span class="pager num" id="pos"></span>
+        <span class="pager"><button class="btn" id="todo">Next not reviewed</button><button class="btn" id="next">Next <kbd>j</kbd></button></span>
+      </nav>
+    </div></main>
+    <script type="module" src="/static/review.js"></script>
+  </body>
+</html>

@@ -1,0 +1,181 @@
+{
+ "testSet": "lab-v1.4",
+ "models": {
+  "nemotron": {
+   "id": "nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B",
+   "revision": "a99e33f698257b8b69ca7834f19c73582eb1fa7e",
+   "device": "NVIDIA H100 80GB HBM3",
+   "prompt": "Audio transcription. Language: Arabic. Wording: verbatim, including fillers and repetitions. Formatting: punctuation and capitalization. Output: transcript only.",
+   "margin": 2.0,
+   "reading": "LM log-likelihood of the text as the reply to the transcription request, plain spellings (core.plain_candidates against its own label-blind transcript), best spelling per text",
+   "transcriptsReused": 0,
+   "transcriptsNew": 1605
+  },
+  "fastconformer": {
+   "id": "nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0",
+   "revision": "7f32349d952f42a28dce979ba73270aa2bbdfa89",
+   "device": "Tesla T4",
+   "margin": 2.0,
+   "reading": "CTC forced-alignment log-likelihood, diacritised spellings (core.diacritised_candidates against its own label-blind CTC greedy text and RNNT transcript), best spelling per text"
+  }
+ },
+ "counts": {
+  "cases": 1591,
+  "outcomes": {
+   "auto-accepted": 1549,
+   "disagree": 27,
+   "unsure": 14,
+   "both-mismatch": 1
+  },
+  "byClass": {
+   "added_word": {
+    "n": 43,
+    "auto-accepted": 23,
+    "both-mismatch": 0,
+    "disagree": 15,
+    "unsure": 5
+   },
+   "clean": {
+    "n": 1299,
+    "auto-accepted": 1295,
+    "both-mismatch": 0,
+    "disagree": 1,
+    "unsure": 3
+   },
+   "mutashabihat": {
+    "n": 19,
+    "auto-accepted": 16,
+    "both-mismatch": 0,
+    "disagree": 2,
+    "unsure": 1
+   },
+   "omitted_word": {
+    "n": 135,
+    "auto-accepted": 127,
+    "both-mismatch": 0,
+    "disagree": 4,
+    "unsure": 4
+   },
+   "repeat": {
+    "n": 24,
+    "auto-accepted": 22,
+    "both-mismatch": 0,
+    "disagree": 2,
+    "unsure": 0
+   },
+   "restart": {
+    "n": 16,
+    "auto-accepted": 11,
+    "both-mismatch": 1,
+    "disagree": 3,
+    "unsure": 1
+   },
+   "skipped_passage": {
+    "n": 50,
+    "auto-accepted": 50,
+    "both-mismatch": 0,
+    "disagree": 0,
+    "unsure": 0
+   },
+   "wrong_word": {
+    "n": 5,
+    "auto-accepted": 5,
+    "both-mismatch": 0,
+    "disagree": 0,
+    "unsure": 0
+   }
+  },
+  "byGroup": {
+   "repeat": {
+    "n": 40,
+    "auto-accepted": 33,
+    "both-mismatch": 1,
+    "disagree": 5,
+    "unsure": 1
+   },
+   "clean": {
+    "n": 1299,
+    "auto-accepted": 1295,
+    "both-mismatch": 0,
+    "disagree": 1,
+    "unsure": 3
+   },
+   "edit": {
+    "n": 252,
+    "auto-accepted": 221,
+    "both-mismatch": 0,
+    "disagree": 21,
+    "unsure": 10
+   }
+  },
+  "perModel": {
+   "nemotron": {
+    "match": 1580,
+    "mismatch": 8,
+    "unsure": 3
+   },
+   "fastconformer": {
+    "match": 1557,
+    "mismatch": 23,
+    "unsure": 11
+   }
+  },
+  "queue": {
+   "items": 88,
+   "byFirstReason": {
+    "both-mismatch": 1,
+    "disagree": 27,
+    "unsure": 14,
+    "seam": 17,
+    "spot": 29
+   },
+   "byAnyReason": {
+    "both-mismatch": 1,
+    "disagree": 27,
+    "unsure": 14,
+    "seam": 20,
+    "spot": 30
+   },
+   "seamByPool": {
+    "inserted": 4,
+    "other": 16
+   },
+   "carriedOver": 2,
+   "maxBad": 2
+  }
+ },
+ "reviewed": {
+  "n": 0,
+  "ok": 0,
+  "outcomesOnOk": {},
+  "falseAlarms": [],
+  "items": {}
+ },
+ "carriedFromPrior": {
+  "lab-v1.4-e10-x1": "carried over from lab-v1.3 lab-v1.3-e10-x1 (same audio bytes and text)",
+  "lab-v1.4-e15-x1": "carried over from lab-v1.3 lab-v1.3-e15-x2 (same audio bytes and text)",
+  "lab-v1.4-e15-x12": "carried over from lab-v1.3 lab-v1.3-e15-x21 (same audio bytes and text)",
+  "lab-v1.4-e15-clean-14-1": "carried over from lab-v1.3 lab-v1.3-e15-clean-20-1 (same audio bytes and text)",
+  "lab-v1.4-e17-clean-0-1": "carried over from lab-v1.3 lab-v1.3-e17-clean-0-1 (same audio bytes and text)",
+  "lab-v1.4-e19-x9": "carried over from lab-v1.3 lab-v1.3-e19-x11 (same audio bytes and text)",
+  "lab-v1.4-e19-clean-16-0": "carried over from lab-v1.3 lab-v1.3-e19-clean-19-0 (same audio bytes and text)",
+  "lab-v1.4-p12-x10": "carried over from lab-v1.3 lab-v1.3-p12-x9 (same audio bytes and text)",
+  "lab-v1.4-p14-clean-0-2": "carried over from lab-v1.3 lab-v1.3-p14-clean-0-2 (same audio bytes and text)"
+ },
+ "gpu": {
+  "nemotronTranscribeS": 1720.9,
+  "nemotronScoreS": 471.2,
+  "fastconformerS": 133.3,
+  "containers": {
+   "nemotron": 4,
+   "fastconformer": 1
+  },
+  "loadS": {
+   "nemotron": 151.8,
+   "fastconformer": 9.3
+  },
+  "wallS": 727.7
+ },
+ "queue": "lab-v1.4/review/triage.json",
+ "confirm": "lab-v1.4/review/triage-confirm.json"
+}

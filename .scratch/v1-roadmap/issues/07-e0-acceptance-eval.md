@@ -1,0 +1,140 @@
+# 07: E0 and acceptance eval on scripted recordings
+
+**What to build:** The v1 acceptance harness on held-out acted-error recordings, plus E0: which component (listener, tracker or checker) loses each planted mistake.
+
+**Blocked by:** 04, 12. Ticket 05 adds classes and long sessions later; each re-run is a new report version.
+
+**Status:** needs-triage
+
+- [x] Phase 1 (help clips from 12): memorization classes, short vowels, and false warnings on the 464 clean clips. Score repeats as non-errors.
+- [ ] Phase 2 (05 recordings): letter pairs, missing shadda, self-correction, and false warnings per 5 minutes on long clean scripts.
+- [x] Run the teacher, tracker and checker on held-out speakers only, scored against the planted labels.
+- [ ] Memorization: precision ≥ 90%, recall ≥ 80%, and ≤ 1 false warning per 5 minutes on clean audio. Phase 1 reports false warnings per clean clip and per 5 minutes, but only phase 2's long sessions can pass the per-5-minutes bar.
+- [ ] Each pronunciation class: precision ≥ 80% on ≥ 50 positives from ≥ 15 sites, or it's marked `unsupported`.
+- [x] Re-run `tools/e1_report.py` on the same clips (real acted errors), next to E1 and E1b (ticket 11).
+- [ ] Tracker gate on this audio plus ambiguous tlog clips: correct ayah within 5 s in ≥ 95% of starts, ≤ 2% false jumps. QUD stays a regression report.
+- [x] E0 attribution for each missed error: not visible in the evidence, lost by the tracker, or rejected by the checker.
+- [x] Versioned report under `docs/benchmarks/`.
+
+## To explore: declared-passage mode
+
+On the provisional help-clip run (`docs/benchmarks/help-memorization-v1`), wrong_word recall is 1/29. Most misses are a substitution that forms another valid ayah: the tracker follows it, and the checker (Decision 3: it consumes the tracker's lock) sees no error. Passing the intended ayah as the tracker `prior` (`help-cli.ts --prior`) doesn't change this, because `MAX_PRIOR_BONUS` is capped below `minSeparation` on purpose.
+
+Idea: when the session declares the passage (memorization), the checker aligns against that passage. The tracker lock is used only without a declared passage, or to detect a deliberate jump (several consecutive wrong words that fit elsewhere). This would amend Decision 3, and it needs the session API (09) to accept a declared passage. Free recitation keeps the ambiguity, so report it separately. The help clips already carry their prompted passage, so the idea can be tested on them directly.
+
+## Comments
+
+### Proposed experiment: confirm warnings from a short local audio window (2026-10-07)
+
+This is proposed work, not an implemented fix or a demonstrated improvement. It belongs here because this ticket tracks the remaining checker precision gap and the acceptance experiments; ticket 04's initial checker implementation is complete. Keep this ticket's current status.
+
+- [x] When the checker suspects a wrong or omitted word, examine the already-computed sound probabilities around that word and its immediate neighbours. Compare how well the audio supports the intended sequence versus plausible substitutions or omissions, allowing several possible sound timings rather than committing to one decoded path. Start with the suspect word plus one word on each side; expand only when the boundaries are unclear. Reuse cached listener outputs: do not rerun the full recording or the listener. If the cached top-5 probabilities omit a needed alternative, record that limitation and leave the decision uncertain rather than inventing support.
+- [x] Use this comparison to help decide whether a warning is supported. Preserve the observed transcript and the existing self-correction, repeat and confirmation policies. Do not force the intended words into the listener output or suppress errors merely because the intended passage is known. A genuinely substituted or omitted word must remain detectable.
+- [x] Offline pilot: inspect 100 development examples from speakers outside the acceptance split (40 false-warning candidates, 30 verified real mistakes, 30 clean controls; if fewer false warnings exist, use all available and report the actual count). Freeze the local-window rules and thresholds there, then replay the existing 388 scored help clips from 29 held-out speakers with teacher evidence, comparing enabled versus disabled. Report hits, false warnings and misses by wrong/omitted words, clean clips, repeats and clip edges. Test the best student separately once its scores are available.
+- [x] Proposed intermediate success criterion on that frozen teacher test: reduce false positives from 17 to at most 12 while keeping at least 55 of 64 labelled word errors (at least 85.9% recall; 55 hits and 12 false positives gives 82.1% precision). This would be progress, not the 90% shipping gate. At least 55 hits with at most 6 false positives would exceed 90% precision. Report every newly missed real mistake; do not repeatedly tune on the held-out test. Keep the existing 30 planted vowel sites as a separate error-preservation check, without treating this experiment as a shipped pronunciation checker.
+- [ ] Only after the offline pilot helps, measure the extra calculation and any wait for the next word on the physical Android floor and iPhone XR/11. Record added processing time, memory, and p95 word-highlight and confirmation delay; retain the existing 600 ms highlight and 2–3 s confirmation targets. Use at least 30 minutes of clean long-session audio across several speakers as an initial false-warning check; this pilot alone cannot certify the long-session shipping bar. Add the required scoreboard row when an implementation or evaluation change moves metrics.
+
+Background: [Tilawa research report](../research-listener-2026-10-07.md), especially priority experiment 1; [Segmentation-Free Goodness of Pronunciation](https://arxiv.org/abs/2507.16838) (revised February 2026). The paper supports comparing sound evidence across possible timings; its English pronunciation-score results do not demonstrate better Tilawa checker precision. The sample sizes and success criteria above are proposed Tilawa choices.
+
+- **Phase 1 done, 2026-10-06** (`docs/benchmarks/acceptance-v1.md` + `.json`, E1 part in `acceptance-v1-e1.json`). Final ticket-12 labels, eval split only: 388 scored clips, 29 speakers. Run: `uv run --python cpython-3.12-macos-aarch64-none tools/e1_report.py --help-clips`, then `pnpm --filter @tilawa/core exec tsx src/bench/acceptance-cli.ts` (both read `HELP_DIR`). Existing teacher evidence was reused; no Modal run was needed.
+  - Memorization, free recitation (default): precision 55.2%, recall 50.0% (32 / 26 FP / 32 missed). wrong_word recall 1/29, omitted_word 31/35. Clean audio: 8 false warnings on 225 clips (0.036 per clip, 0.86 per 5 min, short clips). No false positives on the 23 repeat clips. Fails both bars.
+  - Declared-passage arm (prototype, scoring-side only; core unchanged): the checker is anchored once to the prompted passage and ignores the lock. Precision 61.4%, recall 67.2%; wrong_word recall 10/29. Clean false warnings are unchanged (8).
+  - E0, free arm, 32 misses: wrong_word: 5 evidence, 9 tracker, 14 checker. omitted_word: 0 / 2 / 2. **All 14 wrong_word checker misses end `uncertain` at clip end**: the clip ends before the 2.5 s confirm delay or the next word. So on these clips the checker's loss is the confirmation rule, not the alignment. Short clips understate recall; phase 2's long scripts won't have this edge.
+  - short_vowel: 30 positives at 27 sites. The checker has no pronunciation classes, so it's `unsupported` as feedback. Teacher E1 on the same clips: greedy 19/30, posterior 28/30, greedy FP 0.1%, so it's `viable` at the teacher level. ص/س has 4 planted sites (7 positive phonemes, since الصمد is geminate), so it's unsupported.
+  - Tracker gate on help audio (proxy: start = first decoded phoneme): correct ayah within 5 s on 191/225 clean clips (84.9%), 308/388 all. 0 false jumps; 21 error clips locked outside the passage first, all of them substitutions that form another ayah. Fails 95%.
+  - **Not done, blocked:** the tracker gate on ambiguous tlog clips. tlog-v2 `ambiguous` has no passage truth (`label: null`), and the bucket review's 30 ambiguous samples are wrong-passage or no-recitation. It needs labelled ambiguous clips first. Memorization and pronunciation bars stay unticked: measured, not met.
+  - Declared-passage follow-up: the prototype never re-anchors, so a deliberate jump isn't handled. Amending Decision 3 still needs 09's session API.
+- **Declared-passage mode in core, 2026-10-07** (`docs/benchmarks/acceptance-v2.md` + `.json`; same evidence and labels, no Modal). `CheckerOptions.passage` aligns against the declared passage. The tracker lock is used only to follow a deliberate jump: a lock of 4+ words more than an ayah off the passage whose words don't also fit it (cost per phoneme ≥ 0.35). Without the fit check, a substitution forming another ayah tripped it and recall fell to 56%. At session end, a declared session confirms a suspected wrong or added word once a later word was recited right. Free recitation is unchanged, and v2 reproduces v1 exactly.
+  - Free: precision 55.2%, recall 50.0% (32 / 26 / 32), 8 clean false warnings on 225 clips.
+  - Declared: precision 62.6%, recall 89.1% (57 / 34 / 7); wrong_word 24/29, omitted_word 33/35. 13 clean false warnings (0.058 per clip, 1.40 per 5 min, short clips). 0 FP on repeats. Recall passes the bar; precision fails it.
+  - Finalisation is scoped to declared sessions. In free recitation it gave +2 hits and +5 FP, and confirmed two decoder-noise errors on a clean tlog fixture. In the declared arm, turning it off gives 43 / 30 / 21.
+  - Still open: precision. Jump detection is checked only by a synthetic test; the help clips contain no jumps. 09's session API still has to pass `passage` through.
+- **Checker precision fixes, 2026-10-07** (`docs/benchmarks/acceptance-v3.md` + `.json`; one scoreboard row per fix). Recall is unchanged in both arms.
+  - Skip placement: when a word recurs across a skip, the alignment had two equally good placements for the gap. An-Nas with 114:2 skipped gave the 9 false omitted_word events seen with oracle lock and oracle evidence, and Al-Kafirun had the same tie the other way. The checker now takes the placement that starts on an ayah's first word.
+  - A word with no consonants (ghunna or madd only) needs a hard edit to be a wrong word.
+  - An added word between two words needs two consonants, as inside a word.
+  - Oracle: 86.8% / 92.2% → 100% / 92.2%. Free: 55.2% / 50.0% → 76.2% / 50.0%, 8 → 2 clean warnings. Declared: 62.6% / 89.1% → 77.0% / 89.1% (57 / 17 / 7), 13 → 6 clean warnings.
+  - The 17 declared false positives that remain: about 11 decoder noise (ب decoded as م or ض, sandhi), 4 at a clip edge or next to a planted substitution (possibly incomplete labels), and 2 skip placements a word off where the ayah's first word was restarted. Not judging the passage's first word would give 80.3% precision at the same recall, but it would hide a wrong first word, so it isn't applied. The rest of the gap to 90% is the listener.
+
+**Agent, 2026-10-07: free recitation latches onto its first lock.** Branch `ticket-10-device`, commit db72fff.
+
+- Change: in free recitation the checker takes the tracker's first lock as a declared passage, grown forward as the reciter goes on (across ayah and surah boundaries) and trailing one ayah behind the anchor. It re-anchors only on the declared arm's jump rule (a lock of 4+ words more than an ayah off the passage whose words don't also fit it), or when the tracker loses its lock. The tracker's lock events are unchanged. Confirmation is unchanged too: a free error still needs the tracker locked, and there is no end-of-session finalisation.
+- Help clips (teacher, 0.32 s chunks), before → after: free 33 / 10 / 31 (hits / FP / misses; 76.7% / 51.6%) → identical; declared 57 / 17 / 7 → identical; clean false warnings 2 → 2. QUD tracker regression unchanged (76.9% within 5 s, 8/91 false jumps; tracker untouched).
+- Why no recall gain: of the 24 misses the free arm makes and the declared arm doesn't, 21 have the **first** lock on the other ayah (26:124 with its fifth word swapped is 26:142; 12:2 ↔ 43:3; 7:111 ↔ 26:36; 26:106 → 26:124/177). Latching keeps that wrong place. On a single-ayah clip the audio is a correct recitation of the other ayah, so free recitation can't tell. 2 never lock (1:5), and 1 has its error in the lock span's first words (80:26:2). None is a correct first lock lost to a later relock, which is the case latching fixes (unit test `free recitation > checks a wrong word that sends the tracker to another ayah`).
+- Stitched sessions (ticket 13, 747 min, real jumps): new metric, false confirmed wrong/added words from a free checker (omissions and skips excluded: contiguous runs drop up to an ayah and spans trim edge words). 305 (2.04 per 5 min) → 309 (2.07). Planted-jump sessions 47 → 48. So jumps are still followed with no flood of errors after them.
+- What would move the free arm: context before the first lock. In an app session the previous ayah or the last position is usually known. Passing it as a hint (or carrying the latch across sessions) turns these 21 into declared-arm cases, and the declared arm catches all 21.
+
+**Agent, 2026-10-09: mutashabihat split.** Branch `mutashabihat-split`, commit ded4480.
+
+- Labels: each planted error in `labels.jsonl` / `eval-labels.jsonl` now has `forms_other_ayah` (`tools/help_import.py`). It's true when the recited words, with the planted mistakes applied, are at most as far (word edit distance on letter skeletons) from a run of 1 to n+1 whole consecutive ayahs that share no ayah with the prompt as from the prompted ayahs. Ties count. The labels are otherwise unchanged.
+- Eval memorization positives (scoreboard, 64): 26 mutashabihat, all wrong_word slips onto a twin ayah (26:106, 26:124, 12:2, 43:3, 7:111, 26:36, 79:39), and 38 unambiguous (3 wrong_word, 35 omitted_word). FPs are all counted in the overall and unambiguous lines.
+- Teacher: free unambiguous 76.7% / 86.8% (33 / 10 FP / 5 missed), up from 76.7% / 51.6% overall. Free mutashabihat 0/26, shown as info ("needs declared passage or position hint"). Declared unambiguous 67.9% / 94.7% (36/38), declared mutashabihat 100% / 80.8% (21/26).
+- spliced-clean-int8 (shipped full tier, `.scratch/sdk-help/spliced-clean-int8-node`): free unambiguous 77.8% / 73.7% (28/38), was 77.8% / 43.8%. Free mutashabihat 0/26. Declared unambiguous 74.5% / 92.1% (35/38), declared mutashabihat 100% / 80.8% (21/26).
+- So free-recitation recall passes the bar on unambiguous errors for the teacher and not for int8. Precision fails both arms. Mutashabihat slips are a declared-mode (or position-hint) feature: the free arm catches none.
+
+**Agent, 2026-10-09: free recitation with a lead-in.** Branch `mutashabihat-split`, commit 88fad18.
+
+- Why: mutashabihat slips happen mid-recitation. The 0/26 free mutashabihat result came from single-ayah clips that start the recitation, so the first lock lands on the twin ayah.
+- Build (`tools/leadin_build.py`, `docs/benchmarks/leadin-v1-manifest.json`): each help eval clip gets 1–2 correctly recited ayahs that end on the ayah before it, in the same surah. They're stitched in front at the evidence level, after 600 ms of silence (`bench/leadin.ts`, on `stitchSession`). Sources, in order of preference: the same speaker's clean help clip (4 clips), another help speaker's (17), held-out tlog clean-match (255), tlog train (70). 18 clips start on a surah's first ayah and 24 have no clean recitation of the preceding ayah, so those are scored without a lead-in. That includes 3 of the 26 mutashabihat clips (43:3; nothing recites 43:2). The tlog lead-in audio was fetched with ranged parquet reads from `tarteel-ai/tlog` (191 rows, `.scratch/leadin/audio`). For int8 it was decoded on CPU with the new `pnpm --filter @tilawa/sdk decode` (same session path as `bench:help`, 20 ms pushes). Errors and false positives are scored inside the original clip. Confirmed events on the lead-in's ayahs are counted separately as lead-in false warnings. The declared arm declares from the lead-in's first ayah.
+- Teacher, free with lead-in (now the tracked free metric): 71.0% / 68.8% overall (44 / 18 FP / 20 missed). Unambiguous 65.4% / 89.5%. **Mutashabihat recall 10/26 (38.5%), was 0/26**; 18/26 are raised in some state. Lead-in false warnings: 21 in 55.8 min (1.88 per 5 min). Clean-clip warnings inside the clip go from 2 to 4.
+- spliced-clean-int8, free with lead-in: 71.9% / 64.1% (41/57). Unambiguous 67.3% / 86.8%. **Mutashabihat recall 8/26 (30.8%)**, 18/26 raised. Lead-in false warnings: 10 in 55.4 min (0.90 per 5 min).
+- Declared with lead-in: teacher unambiguous 61.4% / 92.1%, mutashabihat 21/26; int8 64.2% / 89.5%, 21/26. Mutashabihat is the same as without a lead-in. Lead-in warnings: 25 (teacher) and 13 (int8).
+- Reading: with context, the free arm now places most slips at the right word (18/26). The gap to confirmed is the clip-end rule again: the error is still `uncertain` when the clip ends, and free recitation has no end-of-session confirmation. A lead-out (the following ayah) would measure that the same way. Free precision drops from 76.7% to 65.4% on unambiguous errors, because the extra free hits come with more in-clip false positives on error clips (10 → 18 teacher). Those weren't broken down here.
+- The no-lead-in free numbers stay on the scoreboard as info.
+
+**Agent, 2026-10-09: local-window warning confirmation shipped.** Branch `local-window`, commit adbcafe; report `docs/benchmarks/local-window-v1.md`.
+
+- Change: before confirming a wrong, omitted or added word, the checker compares the CTC likelihood (summed over all timings) of the written words against the decoded ones. The window is the word plus one recited word either side, scored on the chunk posteriors. If the decode doesn't win by 10 nats, the error ends `uncertain`. The transcript and the self-correction, repeat, skip and confirm rules are unchanged, and skipped passages aren't checked. On by default in both arms (`CheckerPolicy.localWindow`). The SDK session asks the listener for top-5 posteriors and passes them to the checker only, so the tracker is unchanged.
+- Dev pilot: no train-split teacher evidence was cached, so `tools/decode_cpu.py` decoded all 433 scored train clips (98 speakers) with Muaalem on local CPU. That decode differs from the GPU evidence by 0.1% of phonemes on 10 eval clips. The pilot used every clip: 32 false-warning candidates (fewer than 40), 81 real mistakes caught, 211 clean. The declared arm sweep gave off 81/32/8, 8 nats 81/20/8, 10 nats 81/19/8, 12 nats 81/19/8, 16 nats 80/16/9, 40 nats 73/9/16. Frozen at 10, before the first lost hit.
+- Held-out, one replay (388 clips, 29 speakers), disabled → enabled: teacher declared 57 / 17 / 7 → **57 / 11 / 7** (precision 77.0% → 83.8%, recall 89.1%). Teacher free 33 / 10 / 31 → 33 / 6 / 31 (84.6%). int8 `full` through the SDK: declared 56 / 12 / 8 → **56 / 8 / 8** (87.5% / 87.5%), free 28 / 8 / 36 → 28 / 4 / 36. **No newly missed real mistake on either listener.** All removed false positives are wrong words; clean-clip warnings 6 → 5 (teacher) and 6 → 4 (int8), repeats 0 → 0, clip-edge FP 3 → 2 (teacher). **The intermediate criterion is met** (≤ 12 FP, ≥ 55 hits). The 90% gate is not.
+- The six teacher FPs removed are decoder noise (ب heard as م/ض, غ as ع). Eleven remain: 5 clean-clip wrong words the decode really shows, 2 skipped passages, 2 omissions, 1 added word, 1 wrong word next to a planted error.
+- Vowel sites: the decode is never edited, so the 30 short-vowel positives keep their evidence (E1 19/30 greedy, 28/30 posterior, unchanged). The one warning removed on a vowel clip was decoder noise (المغضوب → المعضوم).
+- Free with lead-in (scoreboard): teacher 71.0% (44/62) → 77.2% (44/57), lead-in false warnings 21 → 10 (1.88 → 0.90 per 5 min); int8 71.9% → 73.2% (41/56). Recall is unchanged. int8 tlog lead-ins carry no posteriors, so the check is inactive there.
+- Scoreboard rows: teacher and spliced-clean-int8 @ 34d1c16 (merged with v1-roadmap; same counts). Laptop RTF for int8 0.0494 → 0.0506. The device box (Android floor, iPhone XR/11, 30 min clean long-session audio) is still open.
+
+**Agent, 2026-10-09: lead-out, and session-end finalisation in free recitation.** Branch `free-finalise`, commit a4cc202.
+
+- Lead-out: `tools/leadin_build.py` now writes `leadin-v2-manifest.json`. Each clip also gets the next 1–2 correctly recited ayahs in the same surah, picked with the same source preference as the lead-in. 354/388 clips get one: 251 held-out tlog, 70 tlog train, 31 another help speaker, 2 same speaker; 20 clips end their surah and 14 have no clean recitation of the next ayah. The lead-ins are the same as in v1. Errors are scored inside the original clip. False warnings on the lead-in and on the lead-out are counted separately (`e2e.leadin.followWarnings`, a new ≤ 1 per 5 min gate). The tracked free metric `e2e.leadin.*` now has both the lead-in and the lead-out.
+- Finalisation: `CheckerPolicy.finaliseFree`, on by default. While free recitation is latched (a passage is set and it isn't following a jump), session end confirms a suspected wrong or added word once a later word was recited right. This is the declared rule, and it never applies to the last word. Tests: a wrong word two words before the end is confirmed with it on and not with it off; a wrong last word is never confirmed; lead-out stitching confirms a slip inside the session even with finalisation off.
+- int8 lead-in/out evidence: `pnpm decode` (packages/sdk) now writes the listener's top-5 posteriors. `.scratch/leadin/evidence/spliced-clean-int8-lw` holds all 374 tlog recordings with posteriors. The 191 recordings shared with the old decode have identical phonemes.
+- Results, free with lead-in + lead-out, finalisation off → on (hits / FP / misses):
+
+  | Listener | Off | On | Precision | Recall | Unambiguous P / R | Mutashabihat recall | Lead-in / lead-out FW per 5 min |
+  |---|---|---|---|---|---|---|---|
+  | Teacher | 51 / 22 / 13 | **54 / 24 / 10** | 69.9% → 69.2% | 79.7% → 84.4% | 62.1% → 60.0% / 94.7% | 15/26 → **18/26** | 0.90 / 0.93 → 0.90 / 3.36 |
+  | int8 `full` | 50 / 14 / 14 | **53 / 15 / 11** | 78.1% → 77.9% | 78.1% → 82.8% | 71.4% → 70.0% / 92.1% | 15/26 → **18/26** | 0.54 / 2.35 → 0.54 / 2.73 |
+
+  Lead-in only (before this change): teacher 44 / 13 / 20, mutashabihat 10/26; int8 41 / 15 / 23, 8/26. The lead-out alone gives +7 (teacher) and +9 (int8) hits. With finalisation, every mutashabihat slip that is raised is now confirmed (18/18). int8 lead-in false warnings go from 10 to 6 because local-window now has posteriors on the tlog lead-ins.
+- Decision: shipped on by default. Free precision drops 0.7 pt (teacher) and 0.2 pt (int8) for +3 hits on each, inside the ~2 pt budget. The unambiguous slice drops 2.1 and 1.4 pt.
+- Costs: (1) On the teacher, false warnings in the lead-out go from 10 to 36 (0.93 → 3.36 per 5 min). That matches the declared arm's 36, so it is the same session-end rule confirming decoder noise near the end. Each clip's session ends inside its lead-out, which concentrates every session end there. int8 already fails that gate with finalisation off (25 → 29). (2) Free without a lead-in (info): teacher 33 / 6 → 34 / 9 and int8 28 / 4 → 29 / 7; clean-clip warnings 0.22 → 0.32 per 5 min on both.
+- Re-checks: on the 62 clean tlog fixtures finalisation confirms one error, `tlog-clean-00000-of-00411-232` 100:2:1 (فالموريات decoded as فمليات, which the posteriors back too; it was 2 before local-window). It is pinned in `checker.test.ts`. Stitched-session false words (`e2e.stitched.falseWords`, 747 min) stay at 309 (2.07 per 5 min). Declared is unchanged: teacher 57 / 11 / 7, int8 56 / 8 / 8; declared with lead-in/out is 57 / 22 / 7 (teacher) and 56 / 15 / 8 (int8).
+- Scoreboard rows: teacher and spliced-clean-int8 @ a4cc202.
+
+- **Status, 2026-10-09:** Phase 1 is done, and every free-recitation and precision improvement is on the scoreboard. The shipped `full` int8 doesn't pass the memorization bar yet:
+  - declared passage: precision 87.5% against 90%, recall 87.5% (passes);
+  - free recitation with a lead-in and lead-out: precision 77.9%, recall 82.8%.
+  
+  Open:
+  - phase 2 (needs ticket 05);
+  - the tracker gate on ambiguous tlog clips (they have no passage labels);
+  - lead-out false warnings at 2.7 per 5 min. Next check: the rate on long stitched sessions (ticket 13), to tell a short-session artifact from a real problem.
+
+### Lead-out false warnings on long stitched sessions (2026-10-11)
+
+Agent note. Report `docs/benchmarks/stitched-warnings-v1.md` (+ `.json`), run with `pnpm --filter @tilawa/core stitched-warnings`. Ticket 13's 129 clean sessions (747 min), confirmed false wrong/added words from the free-recitation checker, with posteriors (local-window on). int8 tlog clips were fetched with `tools/jumps_build.py --audio` and decoded locally. No Modal runs.
+
+- `e2e.stitched.falseWords` (2.07) already counted confirmed checker warnings, but `pnpm jumps` replays without posteriors, so local-window confirmation never ran. With posteriors the teacher gives 211 warnings, 1.41 per 5 min. The scoreboard gate now reads the new report for both listeners. int8 is measured for the first time there: 1.46.
+- Where the warnings land (the session end is the last 20 s plus anything confirmed by `checker.end()`):
+
+  | Listener | Finalise | Total (per 5 min) | Mid-session | Last 20 s, live | Confirmed by session end | End region per 5 min |
+  |---|---|---:|---:|---:|---:|---:|
+  | teacher | on | 211 (1.41) | 199 (1.41) | 10 | 2 | 1.40 |
+  | teacher | off | 209 (1.40) | 199 (1.41) | 10 | 0 | 1.16 |
+  | int8 | on | 217 (1.46) | 205 (1.47) | 12 | 0 | 1.40 |
+  | int8 | off | 217 (1.46) | 205 (1.47) | 12 | 0 | 1.40 |
+
+- By source, int8 gives 1.38 per 5 min on tlog (706 min) and 2.84 on the help-speaker sessions (40 min, 23 warnings). The int8 lead-out rate is 2.73, and lead-outs mostly come from the same help speakers.
+
+**Verdict: the checker, not short sessions.** The session end isn't special on long sessions: the end-region rate matches the mid-session rate, and finalisation adds 0 (int8) or 2 (teacher) warnings in 129 session ends. The int8 lead-out rate matches its long-session rate on help-speaker audio. The baseline on clean continuous recitation is about 1.4 per 5 min, already above the ≤ 1 bar. One part is a short-session artifact: the teacher's lead-out jump with finalisation (10 → 36). int8's moved only 25 → 29. The next lever is the checker's confirmation step (local-window margin, confidence floor), not session-end handling.
+
+- **Roadmap closed, 2026-10-12:** carried over open; the status is unchanged. See the spec's "Closed" section.

@@ -1,0 +1,9289 @@
+{
+ "version": "stitched-warnings-v1",
+ "manifest": "jumps-v1",
+ "commit": "441dddc3",
+ "tailS": 20,
+ "results": [
+  {
+   "arm": {
+    "listener": "teacher",
+    "posteriors": false,
+    "finalise": true
+   },
+   "tally": {
+    "sessions": 129,
+    "minutes": 746.8573333333335,
+    "warnings": 279,
+    "atEnd": 2,
+    "tail": 10,
+    "mid": 267,
+    "missing": 0
+   },
+   "detail": [
+    {
+     "id": "tlog-contiguous-000",
+     "audioS": 563.2,
+     "warnings": [
+      {
+       "timeMs": 92280,
+       "ayah": "2:6",
+       "atEnd": false
+      },
+      {
+       "timeMs": 163560,
+       "ayah": "2:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 186640,
+       "ayah": "2:16",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-001",
+     "audioS": 551.9,
+     "warnings": [
+      {
+       "timeMs": 175480,
+       "ayah": "2:61",
+       "atEnd": false
+      },
+      {
+       "timeMs": 468600,
+       "ayah": "2:86",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-002",
+     "audioS": 557.9,
+     "warnings": [
+      {
+       "timeMs": 131560,
+       "ayah": "2:106",
+       "atEnd": false
+      },
+      {
+       "timeMs": 189760,
+       "ayah": "2:110",
+       "atEnd": false
+      },
+      {
+       "timeMs": 231920,
+       "ayah": "2:114",
+       "atEnd": false
+      },
+      {
+       "timeMs": 241920,
+       "ayah": "2:114",
+       "atEnd": false
+      },
+      {
+       "timeMs": 541840,
+       "ayah": "2:133",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-003",
+     "audioS": 543.1,
+     "warnings": [
+      {
+       "timeMs": 111320,
+       "ayah": "2:146",
+       "atEnd": false
+      },
+      {
+       "timeMs": 325960,
+       "ayah": "2:167",
+       "atEnd": false
+      },
+      {
+       "timeMs": 387080,
+       "ayah": "2:173",
+       "atEnd": false
+      },
+      {
+       "timeMs": 537440,
+       "ayah": "2:180",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-004",
+     "audioS": 610.5,
+     "warnings": [
+      {
+       "timeMs": 42120,
+       "ayah": "2:186",
+       "atEnd": false
+      },
+      {
+       "timeMs": 60240,
+       "ayah": "2:187",
+       "atEnd": false
+      },
+      {
+       "timeMs": 297720,
+       "ayah": "2:207",
+       "atEnd": false
+      },
+      {
+       "timeMs": 324120,
+       "ayah": "2:210",
+       "atEnd": false
+      },
+      {
+       "timeMs": 410480,
+       "ayah": "2:217",
+       "atEnd": false
+      },
+      {
+       "timeMs": 464440,
+       "ayah": "2:223",
+       "atEnd": false
+      },
+      {
+       "timeMs": 504560,
+       "ayah": "2:228",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-005",
+     "audioS": 335.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-006",
+     "audioS": 451.8,
+     "warnings": [
+      {
+       "timeMs": 339920,
+       "ayah": "3:16",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-007",
+     "audioS": 306,
+     "warnings": [
+      {
+       "timeMs": 96040,
+       "ayah": "3:40",
+       "atEnd": false
+      },
+      {
+       "timeMs": 156320,
+       "ayah": "3:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 146320,
+       "ayah": "3:45",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-008",
+     "audioS": 500.8,
+     "warnings": [
+      {
+       "timeMs": 79120,
+       "ayah": "3:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 373040,
+       "ayah": "3:107",
+       "atEnd": false
+      },
+      {
+       "timeMs": 478400,
+       "ayah": "3:117",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-009",
+     "audioS": 504.7,
+     "warnings": [
+      {
+       "timeMs": 183560,
+       "ayah": "3:144",
+       "atEnd": false
+      },
+      {
+       "timeMs": 388560,
+       "ayah": "3:168",
+       "atEnd": false
+      },
+      {
+       "timeMs": 426000,
+       "ayah": "3:168",
+       "atEnd": false
+      },
+      {
+       "timeMs": 433080,
+       "ayah": "3:172",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-010",
+     "audioS": 517.6,
+     "warnings": [
+      {
+       "timeMs": 54120,
+       "ayah": "3:188",
+       "atEnd": false
+      },
+      {
+       "timeMs": 228440,
+       "ayah": "4:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 302840,
+       "ayah": "4:11",
+       "atEnd": false
+      },
+      {
+       "timeMs": 362400,
+       "ayah": "4:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 365360,
+       "ayah": "4:18",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-011",
+     "audioS": 272.2,
+     "warnings": [
+      {
+       "timeMs": 157440,
+       "ayah": "4:56",
+       "atEnd": false
+      },
+      {
+       "timeMs": 179520,
+       "ayah": "4:58",
+       "atEnd": false
+      },
+      {
+       "timeMs": 249880,
+       "ayah": "4:64",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-012",
+     "audioS": 451.1,
+     "warnings": [
+      {
+       "timeMs": 72320,
+       "ayah": "4:80",
+       "atEnd": false
+      },
+      {
+       "timeMs": 411560,
+       "ayah": "4:110",
+       "atEnd": false
+      },
+      {
+       "timeMs": 406600,
+       "ayah": "4:111",
+       "atEnd": false
+      },
+      {
+       "timeMs": 415680,
+       "ayah": "4:112",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-013",
+     "audioS": 479.3,
+     "warnings": [
+      {
+       "timeMs": 55080,
+       "ayah": "4:121",
+       "atEnd": false
+      },
+      {
+       "timeMs": 277040,
+       "ayah": "4:151",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-014",
+     "audioS": 524.9,
+     "warnings": [
+      {
+       "timeMs": 137160,
+       "ayah": "5:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 175200,
+       "ayah": "5:20",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-015",
+     "audioS": 199,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-016",
+     "audioS": 235,
+     "warnings": [
+      {
+       "timeMs": 116400,
+       "ayah": "5:115",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-017",
+     "audioS": 271.2,
+     "warnings": [
+      {
+       "timeMs": 44200,
+       "ayah": "6:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 63160,
+       "ayah": "6:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 89400,
+       "ayah": "6:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 95400,
+       "ayah": "6:33",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-018",
+     "audioS": 394,
+     "warnings": [
+      {
+       "timeMs": 43000,
+       "ayah": "6:77",
+       "atEnd": false
+      },
+      {
+       "timeMs": 100200,
+       "ayah": "6:84",
+       "atEnd": false
+      },
+      {
+       "timeMs": 232720,
+       "ayah": "6:100",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-019",
+     "audioS": 566.7,
+     "warnings": [
+      {
+       "timeMs": 9840,
+       "ayah": "6:157",
+       "atEnd": false
+      },
+      {
+       "timeMs": 184640,
+       "ayah": "7:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 216560,
+       "ayah": "7:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 240760,
+       "ayah": "7:23",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-020",
+     "audioS": 214.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-021",
+     "audioS": 424.1,
+     "warnings": [
+      {
+       "timeMs": 399480,
+       "ayah": "8:46",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-022",
+     "audioS": 246.1,
+     "warnings": [
+      {
+       "timeMs": 194920,
+       "ayah": "9:77",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-023",
+     "audioS": 270.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-024",
+     "audioS": 300,
+     "warnings": [
+      {
+       "timeMs": 133160,
+       "ayah": "10:26",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-025",
+     "audioS": 294.9,
+     "warnings": [
+      {
+       "timeMs": 69320,
+       "ayah": "11:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 125040,
+       "ayah": "11:52",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-026",
+     "audioS": 333.1,
+     "warnings": [
+      {
+       "timeMs": 16000,
+       "ayah": "11:123",
+       "atEnd": false
+      },
+      {
+       "timeMs": 70280,
+       "ayah": "12:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 181920,
+       "ayah": "12:15",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-027",
+     "audioS": 235.1,
+     "warnings": [
+      {
+       "timeMs": 83240,
+       "ayah": "12:103",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-028",
+     "audioS": 355.3,
+     "warnings": [
+      {
+       "timeMs": 207240,
+       "ayah": "13:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-029",
+     "audioS": 558.8,
+     "warnings": [
+      {
+       "timeMs": 272320,
+       "ayah": "14:36",
+       "atEnd": false
+      },
+      {
+       "timeMs": 357240,
+       "ayah": "14:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 387760,
+       "ayah": "14:46",
+       "atEnd": false
+      },
+      {
+       "timeMs": 411920,
+       "ayah": "14:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 531160,
+       "ayah": "15:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-030",
+     "audioS": 214.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-031",
+     "audioS": 217.1,
+     "warnings": [
+      {
+       "timeMs": 63320,
+       "ayah": "15:95",
+       "atEnd": false
+      },
+      {
+       "timeMs": 142600,
+       "ayah": "16:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-032",
+     "audioS": 198.5,
+     "warnings": [
+      {
+       "timeMs": 72240,
+       "ayah": "16:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 72240,
+       "ayah": "16:26",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-033",
+     "audioS": 355.7,
+     "warnings": [
+      {
+       "timeMs": 342880,
+       "ayah": "17:26",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-034",
+     "audioS": 529.2,
+     "warnings": [
+      {
+       "timeMs": 118560,
+       "ayah": "17:111",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-035",
+     "audioS": 420.2,
+     "warnings": [
+      {
+       "timeMs": 352400,
+       "ayah": "18:75",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-036",
+     "audioS": 450.1,
+     "warnings": [
+      {
+       "timeMs": 129200,
+       "ayah": "18:95",
+       "atEnd": false
+      },
+      {
+       "timeMs": 333200,
+       "ayah": "19:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 434560,
+       "ayah": "19:13",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-037",
+     "audioS": 327.1,
+     "warnings": [
+      {
+       "timeMs": 42200,
+       "ayah": "19:25",
+       "atEnd": false
+      },
+      {
+       "timeMs": 70440,
+       "ayah": "19:27",
+       "atEnd": false
+      },
+      {
+       "timeMs": 190880,
+       "ayah": "19:39",
+       "atEnd": false
+      },
+      {
+       "timeMs": 268120,
+       "ayah": "19:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 279160,
+       "ayah": "19:48",
+       "atEnd": false
+      },
+      {
+       "timeMs": 311360,
+       "ayah": "19:50",
+       "atEnd": false
+      },
+      {
+       "timeMs": 320400,
+       "ayah": "19:51",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-038",
+     "audioS": 351.8,
+     "warnings": [
+      {
+       "timeMs": 159480,
+       "ayah": "19:70",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-039",
+     "audioS": 575.4,
+     "warnings": [
+      {
+       "timeMs": 141200,
+       "ayah": "20:25",
+       "atEnd": false
+      },
+      {
+       "timeMs": 450320,
+       "ayah": "20:70",
+       "atEnd": false
+      },
+      {
+       "timeMs": 547440,
+       "ayah": "20:84",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-040",
+     "audioS": 344.5,
+     "warnings": [
+      {
+       "timeMs": 233600,
+       "ayah": "20:134",
+       "atEnd": false
+      },
+      {
+       "timeMs": 247840,
+       "ayah": "21:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-041",
+     "audioS": 459.2,
+     "warnings": [
+      {
+       "timeMs": 24040,
+       "ayah": "21:84",
+       "atEnd": false
+      },
+      {
+       "timeMs": 402920,
+       "ayah": "22:15",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-042",
+     "audioS": 261.1,
+     "warnings": [
+      {
+       "timeMs": 8960,
+       "ayah": "22:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 237880,
+       "ayah": "22:68",
+       "atEnd": false
+      },
+      {
+       "timeMs": 241880,
+       "ayah": "22:71",
+       "atEnd": false
+      },
+      {
+       "timeMs": 249880,
+       "ayah": "22:72",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-043",
+     "audioS": 260,
+     "warnings": [
+      {
+       "timeMs": 140120,
+       "ayah": "23:107",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-044",
+     "audioS": 212.3,
+     "warnings": [
+      {
+       "timeMs": 73320,
+       "ayah": "24:13",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-045",
+     "audioS": 258.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-046",
+     "audioS": 243.6,
+     "warnings": [
+      {
+       "timeMs": 10160,
+       "ayah": "25:53",
+       "atEnd": false
+      },
+      {
+       "timeMs": 69320,
+       "ayah": "25:60",
+       "atEnd": false
+      },
+      {
+       "timeMs": 77360,
+       "ayah": "25:60",
+       "atEnd": false
+      },
+      {
+       "timeMs": 200880,
+       "ayah": "25:71",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-047",
+     "audioS": 442.6,
+     "warnings": [
+      {
+       "timeMs": 95400,
+       "ayah": "27:10",
+       "atEnd": false
+      },
+      {
+       "timeMs": 198840,
+       "ayah": "27:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 209960,
+       "ayah": "27:22",
+       "atEnd": false
+      },
+      {
+       "timeMs": 231120,
+       "ayah": "27:24",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-048",
+     "audioS": 191.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-049",
+     "audioS": 544,
+     "warnings": [
+      {
+       "timeMs": 108320,
+       "ayah": "28:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 271640,
+       "ayah": "29:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 366000,
+       "ayah": "29:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-050",
+     "audioS": 320.9,
+     "warnings": [
+      {
+       "timeMs": 208560,
+       "ayah": "30:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 286960,
+       "ayah": "30:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 269000,
+       "ayah": "30:18",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-051",
+     "audioS": 603.6,
+     "warnings": [
+      {
+       "timeMs": 73160,
+       "ayah": "31:1",
+       "atEnd": false
+      },
+      {
+       "timeMs": 76200,
+       "ayah": "31:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 144280,
+       "ayah": "31:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 161400,
+       "ayah": "31:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 251520,
+       "ayah": "31:21",
+       "atEnd": false
+      },
+      {
+       "timeMs": 307640,
+       "ayah": "31:26",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-052",
+     "audioS": 605,
+     "warnings": [
+      {
+       "timeMs": 208000,
+       "ayah": "33:36",
+       "atEnd": false
+      },
+      {
+       "timeMs": 323240,
+       "ayah": "33:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 526320,
+       "ayah": "33:67",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-053",
+     "audioS": 306.2,
+     "warnings": [
+      {
+       "timeMs": 272840,
+       "ayah": "35:12",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-054",
+     "audioS": 545.5,
+     "warnings": [
+      {
+       "timeMs": 251320,
+       "ayah": "36:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 299000,
+       "ayah": "36:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 347120,
+       "ayah": "36:53",
+       "atEnd": false
+      },
+      {
+       "timeMs": 515680,
+       "ayah": "36:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 525760,
+       "ayah": "36:80",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-055",
+     "audioS": 215,
+     "warnings": [
+      {
+       "timeMs": 62160,
+       "ayah": "38:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 137480,
+       "ayah": "38:21",
+       "atEnd": false
+      },
+      {
+       "timeMs": 185640,
+       "ayah": "38:22",
+       "atEnd": false
+      },
+      {
+       "timeMs": 173640,
+       "ayah": "38:25",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-056",
+     "audioS": 517.4,
+     "warnings": [
+      {
+       "timeMs": 21040,
+       "ayah": "39:58",
+       "atEnd": false
+      },
+      {
+       "timeMs": 163440,
+       "ayah": "39:69",
+       "atEnd": false
+      },
+      {
+       "timeMs": 361120,
+       "ayah": "40:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 442480,
+       "ayah": "40:24",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-057",
+     "audioS": 292.2,
+     "warnings": [
+      {
+       "timeMs": 257920,
+       "ayah": "40:60",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-058",
+     "audioS": 293,
+     "warnings": [
+      {
+       "timeMs": 121120,
+       "ayah": "41:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 235560,
+       "ayah": "41:48",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-059",
+     "audioS": 360,
+     "warnings": [
+      {
+       "timeMs": 224400,
+       "ayah": "42:16",
+       "atEnd": false
+      },
+      {
+       "timeMs": 274600,
+       "ayah": "42:20",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-060",
+     "audioS": 613,
+     "warnings": [
+      {
+       "timeMs": 297800,
+       "ayah": "43:51",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-061",
+     "audioS": 277.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-062",
+     "audioS": 190.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-063",
+     "audioS": 267,
+     "warnings": [
+      {
+       "timeMs": 220600,
+       "ayah": "46:18",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-064",
+     "audioS": 331.6,
+     "warnings": [
+      {
+       "timeMs": 95360,
+       "ayah": "48:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 80320,
+       "ayah": "48:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 101280,
+       "ayah": "48:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-065",
+     "audioS": 332.7,
+     "warnings": [
+      {
+       "timeMs": 16800,
+       "ayah": "48:29",
+       "atEnd": false
+      },
+      {
+       "timeMs": 46080,
+       "ayah": "49:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 123240,
+       "ayah": "49:10",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-066",
+     "audioS": 241,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-067",
+     "audioS": 234.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-068",
+     "audioS": 524.7,
+     "warnings": [
+      {
+       "timeMs": 157440,
+       "ayah": "53:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 238760,
+       "ayah": "53:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 282880,
+       "ayah": "53:37",
+       "atEnd": false
+      },
+      {
+       "timeMs": 313960,
+       "ayah": "53:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 444840,
+       "ayah": "54:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-069",
+     "audioS": 352.8,
+     "warnings": [
+      {
+       "timeMs": 17960,
+       "ayah": "54:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 51280,
+       "ayah": "54:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 117320,
+       "ayah": "54:51",
+       "atEnd": false
+      },
+      {
+       "timeMs": 149040,
+       "ayah": "55:6",
+       "atEnd": false
+      },
+      {
+       "timeMs": 229680,
+       "ayah": "55:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-070",
+     "audioS": 221.2,
+     "warnings": [
+      {
+       "timeMs": 84320,
+       "ayah": "56:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 188520,
+       "ayah": "56:37",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-071",
+     "audioS": 483.7,
+     "warnings": [
+      {
+       "timeMs": 55080,
+       "ayah": "56:59",
+       "atEnd": false
+      },
+      {
+       "timeMs": 68280,
+       "ayah": "56:60",
+       "atEnd": false
+      },
+      {
+       "timeMs": 93520,
+       "ayah": "56:65",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-072",
+     "audioS": 284.4,
+     "warnings": [
+      {
+       "timeMs": 51120,
+       "ayah": "58:12",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-073",
+     "audioS": 219.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-074",
+     "audioS": 472.6,
+     "warnings": [
+      {
+       "timeMs": 295960,
+       "ayah": "63:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 298720,
+       "ayah": "63:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-075",
+     "audioS": 566.2,
+     "warnings": [
+      {
+       "timeMs": 213640,
+       "ayah": "66:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 249760,
+       "ayah": "66:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 305920,
+       "ayah": "67:1",
+       "atEnd": false
+      },
+      {
+       "timeMs": 357000,
+       "ayah": "67:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 475480,
+       "ayah": "67:21",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-076",
+     "audioS": 583.9,
+     "warnings": [
+      {
+       "timeMs": 34840,
+       "ayah": "68:16",
+       "atEnd": false
+      },
+      {
+       "timeMs": 332000,
+       "ayah": "69:12",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-077",
+     "audioS": 339.7,
+     "warnings": [
+      {
+       "timeMs": 228760,
+       "ayah": "72:4",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-078",
+     "audioS": 359.6,
+     "warnings": [
+      {
+       "timeMs": 125360,
+       "ayah": "73:9",
+       "atEnd": false
+      },
+      {
+       "timeMs": 180720,
+       "ayah": "73:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 245280,
+       "ayah": "74:11",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-079",
+     "audioS": 618.5,
+     "warnings": [
+      {
+       "timeMs": 86320,
+       "ayah": "75:16",
+       "atEnd": false
+      },
+      {
+       "timeMs": 288440,
+       "ayah": "76:11",
+       "atEnd": false
+      },
+      {
+       "timeMs": 507200,
+       "ayah": "77:11",
+       "atEnd": false
+      },
+      {
+       "timeMs": 594400,
+       "ayah": "77:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-080",
+     "audioS": 693.6,
+     "warnings": [
+      {
+       "timeMs": 11040,
+       "ayah": "78:1",
+       "atEnd": false
+      },
+      {
+       "timeMs": 13880,
+       "ayah": "78:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 29080,
+       "ayah": "78:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 161280,
+       "ayah": "78:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 404120,
+       "ayah": "79:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 502080,
+       "ayah": "80:24",
+       "atEnd": false
+      },
+      {
+       "timeMs": 516920,
+       "ayah": "80:27",
+       "atEnd": false
+      },
+      {
+       "timeMs": 559400,
+       "ayah": "80:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 589400,
+       "ayah": "80:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 684760,
+       "ayah": "81:23",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-081",
+     "audioS": 670.2,
+     "warnings": [
+      {
+       "timeMs": 424480,
+       "ayah": "84:22",
+       "atEnd": false
+      },
+      {
+       "timeMs": 553920,
+       "ayah": "85:21",
+       "atEnd": false
+      },
+      {
+       "timeMs": 633320,
+       "ayah": "86:13",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-082",
+     "audioS": 678.6,
+     "warnings": [
+      {
+       "timeMs": 16000,
+       "ayah": "87:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 188440,
+       "ayah": "89:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 245480,
+       "ayah": "89:16",
+       "atEnd": false
+      },
+      {
+       "timeMs": 390000,
+       "ayah": "90:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 392200,
+       "ayah": "90:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 440240,
+       "ayah": "91:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 465120,
+       "ayah": "91:10",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-083",
+     "audioS": 708.3,
+     "warnings": [
+      {
+       "timeMs": 136560,
+       "ayah": "97:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 193200,
+       "ayah": "99:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 566480,
+       "ayah": "109:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 597560,
+       "ayah": "110:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 619320,
+       "ayah": "111:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 662560,
+       "ayah": "113:2",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-hard-084",
+     "audioS": 176.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-hard-085",
+     "audioS": 202.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-086",
+     "audioS": 197.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-087",
+     "audioS": 224.1,
+     "warnings": [
+      {
+       "timeMs": 97560,
+       "ayah": "24:31",
+       "atEnd": false
+      },
+      {
+       "timeMs": 173720,
+       "ayah": "24:38",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-088",
+     "audioS": 226.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-089",
+     "audioS": 252.1,
+     "warnings": [
+      {
+       "timeMs": 66080,
+       "ayah": "74:50",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-090",
+     "audioS": 298.4,
+     "warnings": [
+      {
+       "timeMs": 73160,
+       "ayah": "9:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-091",
+     "audioS": 290.2,
+     "warnings": [
+      {
+       "timeMs": 168240,
+       "ayah": "50:35",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-092",
+     "audioS": 240.1,
+     "warnings": [
+      {
+       "timeMs": 44880,
+       "ayah": "16:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 80040,
+       "ayah": "16:75",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-093",
+     "audioS": 325,
+     "warnings": [
+      {
+       "timeMs": 145480,
+       "ayah": "40:82",
+       "atEnd": false
+      },
+      {
+       "timeMs": 269640,
+       "ayah": "26:84",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-094",
+     "audioS": 281.5,
+     "warnings": [
+      {
+       "timeMs": 187920,
+       "ayah": "9:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 259000,
+       "ayah": "34:14",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-095",
+     "audioS": 220,
+     "warnings": [
+      {
+       "timeMs": 35160,
+       "ayah": "10:1",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-096",
+     "audioS": 314.8,
+     "warnings": [
+      {
+       "timeMs": 209800,
+       "ayah": "25:25",
+       "atEnd": false
+      },
+      {
+       "timeMs": 282120,
+       "ayah": "25:29",
+       "atEnd": false
+      },
+      {
+       "timeMs": 278080,
+       "ayah": "25:32",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-097",
+     "audioS": 356.6,
+     "warnings": [
+      {
+       "timeMs": 152360,
+       "ayah": "5:100",
+       "atEnd": false
+      },
+      {
+       "timeMs": 200760,
+       "ayah": "28:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 351320,
+       "ayah": "28:39",
+       "atEnd": true
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-098",
+     "audioS": 206.5,
+     "warnings": [
+      {
+       "timeMs": 27000,
+       "ayah": "21:64",
+       "atEnd": false
+      },
+      {
+       "timeMs": 151480,
+       "ayah": "21:79",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-099",
+     "audioS": 267,
+     "warnings": [
+      {
+       "timeMs": 120280,
+       "ayah": "37:84",
+       "atEnd": false
+      },
+      {
+       "timeMs": 129240,
+       "ayah": "37:86",
+       "atEnd": false
+      },
+      {
+       "timeMs": 236640,
+       "ayah": "37:103",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-100",
+     "audioS": 237.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-101",
+     "audioS": 221.6,
+     "warnings": [
+      {
+       "timeMs": 54160,
+       "ayah": "11:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 221120,
+       "ayah": "30:40",
+       "atEnd": true
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-102",
+     "audioS": 221,
+     "warnings": [
+      {
+       "timeMs": 151240,
+       "ayah": "37:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 181520,
+       "ayah": "37:51",
+       "atEnd": false
+      },
+      {
+       "timeMs": 186520,
+       "ayah": "37:51",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-103",
+     "audioS": 200.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-104",
+     "audioS": 275.1,
+     "warnings": [
+      {
+       "timeMs": 59040,
+       "ayah": "7:88",
+       "atEnd": false
+      },
+      {
+       "timeMs": 177720,
+       "ayah": "12:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-105",
+     "audioS": 214.6,
+     "warnings": [
+      {
+       "timeMs": 6960,
+       "ayah": "30:27",
+       "atEnd": false
+      },
+      {
+       "timeMs": 47120,
+       "ayah": "30:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 78240,
+       "ayah": "30:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 110280,
+       "ayah": "39:28",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-106",
+     "audioS": 204.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-107",
+     "audioS": 241.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-108",
+     "audioS": 265.7,
+     "warnings": [
+      {
+       "timeMs": 99320,
+       "ayah": "12:68",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-109",
+     "audioS": 297.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-110",
+     "audioS": 199.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-111",
+     "audioS": 236.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-112",
+     "audioS": 283.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-113",
+     "audioS": 283.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-114",
+     "audioS": 219.2,
+     "warnings": [
+      {
+       "timeMs": 154520,
+       "ayah": "10:83",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-115",
+     "audioS": 202.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-116",
+     "audioS": 275.2,
+     "warnings": [
+      {
+       "timeMs": 38960,
+       "ayah": "25:45",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-117",
+     "audioS": 261.3,
+     "warnings": [
+      {
+       "timeMs": 184240,
+       "ayah": "23:52",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-118",
+     "audioS": 217.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-119",
+     "audioS": 245.4,
+     "warnings": [
+      {
+       "timeMs": 141160,
+       "ayah": "9:39",
+       "atEnd": false
+      },
+      {
+       "timeMs": 169200,
+       "ayah": "9:40",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-120",
+     "audioS": 250.7,
+     "warnings": [
+      {
+       "timeMs": 148680,
+       "ayah": "47:9",
+       "atEnd": false
+      },
+      {
+       "timeMs": 159560,
+       "ayah": "47:10",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-121",
+     "audioS": 463.3,
+     "warnings": [
+      {
+       "timeMs": 166760,
+       "ayah": "11:82",
+       "atEnd": false
+      },
+      {
+       "timeMs": 400040,
+       "ayah": "56:76",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-122",
+     "audioS": 179.4,
+     "warnings": [
+      {
+       "timeMs": 12440,
+       "ayah": "101:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 93480,
+       "ayah": "18:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 89480,
+       "ayah": "18:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 92480,
+       "ayah": "18:43",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-123",
+     "audioS": 170,
+     "warnings": [
+      {
+       "timeMs": 18040,
+       "ayah": "25:73",
+       "atEnd": false
+      },
+      {
+       "timeMs": 29960,
+       "ayah": "25:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 35960,
+       "ayah": "25:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 79280,
+       "ayah": "83:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 118440,
+       "ayah": "79:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-124",
+     "audioS": 208.1,
+     "warnings": []
+    },
+    {
+     "id": "help-help-125",
+     "audioS": 370.5,
+     "warnings": [
+      {
+       "timeMs": 28120,
+       "ayah": "22:72",
+       "atEnd": false
+      },
+      {
+       "timeMs": 208400,
+       "ayah": "102:7",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-126",
+     "audioS": 566.4,
+     "warnings": [
+      {
+       "timeMs": 18080,
+       "ayah": "75:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 289400,
+       "ayah": "20:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 423160,
+       "ayah": "13:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 439200,
+       "ayah": "85:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 506480,
+       "ayah": "50:32",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-127",
+     "audioS": 314.9,
+     "warnings": [
+      {
+       "timeMs": 199840,
+       "ayah": "56:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 201840,
+       "ayah": "56:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 280200,
+       "ayah": "29:58",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-128",
+     "audioS": 155.2,
+     "warnings": [
+      {
+       "timeMs": 80040,
+       "ayah": "14:13",
+       "atEnd": false
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "arm": {
+    "listener": "teacher",
+    "posteriors": true,
+    "finalise": true
+   },
+   "tally": {
+    "sessions": 129,
+    "minutes": 746.8573333333335,
+    "warnings": 212,
+    "atEnd": 2,
+    "tail": 9,
+    "mid": 201,
+    "missing": 0
+   },
+   "detail": [
+    {
+     "id": "tlog-contiguous-000",
+     "audioS": 563.2,
+     "warnings": [
+      {
+       "timeMs": 39080,
+       "ayah": "1:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 124200,
+       "ayah": "2:9",
+       "atEnd": false
+      },
+      {
+       "timeMs": 163560,
+       "ayah": "2:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 203720,
+       "ayah": "2:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-001",
+     "audioS": 551.9,
+     "warnings": [
+      {
+       "timeMs": 175480,
+       "ayah": "2:61",
+       "atEnd": false
+      },
+      {
+       "timeMs": 280000,
+       "ayah": "2:72",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-002",
+     "audioS": 557.9,
+     "warnings": [
+      {
+       "timeMs": 231920,
+       "ayah": "2:114",
+       "atEnd": false
+      },
+      {
+       "timeMs": 241920,
+       "ayah": "2:114",
+       "atEnd": false
+      },
+      {
+       "timeMs": 541840,
+       "ayah": "2:133",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-003",
+     "audioS": 543.1,
+     "warnings": [
+      {
+       "timeMs": 325960,
+       "ayah": "2:167",
+       "atEnd": false
+      },
+      {
+       "timeMs": 387080,
+       "ayah": "2:173",
+       "atEnd": false
+      },
+      {
+       "timeMs": 537440,
+       "ayah": "2:180",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-004",
+     "audioS": 610.5,
+     "warnings": [
+      {
+       "timeMs": 42120,
+       "ayah": "2:186",
+       "atEnd": false
+      },
+      {
+       "timeMs": 297720,
+       "ayah": "2:207",
+       "atEnd": false
+      },
+      {
+       "timeMs": 314000,
+       "ayah": "2:210",
+       "atEnd": false
+      },
+      {
+       "timeMs": 346120,
+       "ayah": "2:213",
+       "atEnd": false
+      },
+      {
+       "timeMs": 410480,
+       "ayah": "2:217",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-005",
+     "audioS": 335.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-006",
+     "audioS": 451.8,
+     "warnings": [
+      {
+       "timeMs": 339920,
+       "ayah": "3:16",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-007",
+     "audioS": 306,
+     "warnings": [
+      {
+       "timeMs": 96040,
+       "ayah": "3:40",
+       "atEnd": false
+      },
+      {
+       "timeMs": 156320,
+       "ayah": "3:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 146320,
+       "ayah": "3:45",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-008",
+     "audioS": 500.8,
+     "warnings": [
+      {
+       "timeMs": 79120,
+       "ayah": "3:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 230720,
+       "ayah": "3:94",
+       "atEnd": false
+      },
+      {
+       "timeMs": 357680,
+       "ayah": "3:105",
+       "atEnd": false
+      },
+      {
+       "timeMs": 478400,
+       "ayah": "3:117",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-009",
+     "audioS": 504.7,
+     "warnings": [
+      {
+       "timeMs": 433080,
+       "ayah": "3:172",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-010",
+     "audioS": 517.6,
+     "warnings": [
+      {
+       "timeMs": 54120,
+       "ayah": "3:188",
+       "atEnd": false
+      },
+      {
+       "timeMs": 228440,
+       "ayah": "4:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-011",
+     "audioS": 272.2,
+     "warnings": [
+      {
+       "timeMs": 249880,
+       "ayah": "4:64",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-012",
+     "audioS": 451.1,
+     "warnings": [
+      {
+       "timeMs": 411560,
+       "ayah": "4:110",
+       "atEnd": false
+      },
+      {
+       "timeMs": 419520,
+       "ayah": "4:112",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-013",
+     "audioS": 479.3,
+     "warnings": [
+      {
+       "timeMs": 55080,
+       "ayah": "4:121",
+       "atEnd": false
+      },
+      {
+       "timeMs": 214800,
+       "ayah": "4:142",
+       "atEnd": false
+      },
+      {
+       "timeMs": 277040,
+       "ayah": "4:151",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-014",
+     "audioS": 524.9,
+     "warnings": [
+      {
+       "timeMs": 175200,
+       "ayah": "5:20",
+       "atEnd": false
+      },
+      {
+       "timeMs": 302520,
+       "ayah": "5:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-015",
+     "audioS": 199,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-016",
+     "audioS": 235,
+     "warnings": [
+      {
+       "timeMs": 116400,
+       "ayah": "5:115",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-017",
+     "audioS": 271.2,
+     "warnings": [
+      {
+       "timeMs": 95400,
+       "ayah": "6:33",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-018",
+     "audioS": 394,
+     "warnings": [
+      {
+       "timeMs": 43000,
+       "ayah": "6:77",
+       "atEnd": false
+      },
+      {
+       "timeMs": 100200,
+       "ayah": "6:84",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-019",
+     "audioS": 566.7,
+     "warnings": [
+      {
+       "timeMs": 184640,
+       "ayah": "7:14",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-020",
+     "audioS": 214.2,
+     "warnings": [
+      {
+       "timeMs": 40080,
+       "ayah": "7:148",
+       "atEnd": false
+      },
+      {
+       "timeMs": 87240,
+       "ayah": "7:153",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-021",
+     "audioS": 424.1,
+     "warnings": [
+      {
+       "timeMs": 279880,
+       "ayah": "8:29",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-022",
+     "audioS": 246.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-023",
+     "audioS": 270.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-024",
+     "audioS": 300,
+     "warnings": [
+      {
+       "timeMs": 173640,
+       "ayah": "10:29",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-025",
+     "audioS": 294.9,
+     "warnings": [
+      {
+       "timeMs": 125040,
+       "ayah": "11:52",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-026",
+     "audioS": 333.1,
+     "warnings": [
+      {
+       "timeMs": 181920,
+       "ayah": "12:15",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-027",
+     "audioS": 235.1,
+     "warnings": [
+      {
+       "timeMs": 83240,
+       "ayah": "12:103",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-028",
+     "audioS": 355.3,
+     "warnings": [
+      {
+       "timeMs": 285800,
+       "ayah": "13:43",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-029",
+     "audioS": 558.8,
+     "warnings": [
+      {
+       "timeMs": 216000,
+       "ayah": "14:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 272320,
+       "ayah": "14:36",
+       "atEnd": false
+      },
+      {
+       "timeMs": 365800,
+       "ayah": "14:41",
+       "atEnd": false
+      },
+      {
+       "timeMs": 357240,
+       "ayah": "14:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 531160,
+       "ayah": "15:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-030",
+     "audioS": 214.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-031",
+     "audioS": 217.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-032",
+     "audioS": 198.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-033",
+     "audioS": 355.7,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-034",
+     "audioS": 529.2,
+     "warnings": [
+      {
+       "timeMs": 118560,
+       "ayah": "17:111",
+       "atEnd": false
+      },
+      {
+       "timeMs": 188240,
+       "ayah": "18:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-035",
+     "audioS": 420.2,
+     "warnings": [
+      {
+       "timeMs": 352400,
+       "ayah": "18:75",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-036",
+     "audioS": 450.1,
+     "warnings": [
+      {
+       "timeMs": 129200,
+       "ayah": "18:95",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-037",
+     "audioS": 327.1,
+     "warnings": [
+      {
+       "timeMs": 279160,
+       "ayah": "19:48",
+       "atEnd": false
+      },
+      {
+       "timeMs": 311360,
+       "ayah": "19:50",
+       "atEnd": false
+      },
+      {
+       "timeMs": 320400,
+       "ayah": "19:51",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-038",
+     "audioS": 351.8,
+     "warnings": [
+      {
+       "timeMs": 159480,
+       "ayah": "19:70",
+       "atEnd": false
+      },
+      {
+       "timeMs": 301920,
+       "ayah": "19:89",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-039",
+     "audioS": 575.4,
+     "warnings": [
+      {
+       "timeMs": 479400,
+       "ayah": "20:75",
+       "atEnd": false
+      },
+      {
+       "timeMs": 547440,
+       "ayah": "20:84",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-040",
+     "audioS": 344.5,
+     "warnings": [
+      {
+       "timeMs": 247840,
+       "ayah": "21:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-041",
+     "audioS": 459.2,
+     "warnings": [
+      {
+       "timeMs": 387200,
+       "ayah": "22:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 402920,
+       "ayah": "22:15",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-042",
+     "audioS": 261.1,
+     "warnings": [
+      {
+       "timeMs": 237880,
+       "ayah": "22:68",
+       "atEnd": false
+      },
+      {
+       "timeMs": 255920,
+       "ayah": "22:72",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-043",
+     "audioS": 260,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-044",
+     "audioS": 212.3,
+     "warnings": [
+      {
+       "timeMs": 73320,
+       "ayah": "24:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 146600,
+       "ayah": "24:21",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-045",
+     "audioS": 258.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-046",
+     "audioS": 243.6,
+     "warnings": [
+      {
+       "timeMs": 10160,
+       "ayah": "25:53",
+       "atEnd": false
+      },
+      {
+       "timeMs": 77360,
+       "ayah": "25:60",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-047",
+     "audioS": 442.6,
+     "warnings": [
+      {
+       "timeMs": 209960,
+       "ayah": "27:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-048",
+     "audioS": 191.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-049",
+     "audioS": 544,
+     "warnings": [
+      {
+       "timeMs": 108320,
+       "ayah": "28:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 271640,
+       "ayah": "29:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 366000,
+       "ayah": "29:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-050",
+     "audioS": 320.9,
+     "warnings": [
+      {
+       "timeMs": 103280,
+       "ayah": "29:63",
+       "atEnd": false
+      },
+      {
+       "timeMs": 208560,
+       "ayah": "30:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 286960,
+       "ayah": "30:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 269000,
+       "ayah": "30:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 286960,
+       "ayah": "30:20",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-051",
+     "audioS": 603.6,
+     "warnings": [
+      {
+       "timeMs": 73160,
+       "ayah": "31:1",
+       "atEnd": false
+      },
+      {
+       "timeMs": 76200,
+       "ayah": "31:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 144280,
+       "ayah": "31:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 307640,
+       "ayah": "31:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 318840,
+       "ayah": "31:28",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-052",
+     "audioS": 605,
+     "warnings": [
+      {
+       "timeMs": 77440,
+       "ayah": "33:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 208000,
+       "ayah": "33:36",
+       "atEnd": false
+      },
+      {
+       "timeMs": 311200,
+       "ayah": "33:46",
+       "atEnd": false
+      },
+      {
+       "timeMs": 526320,
+       "ayah": "33:67",
+       "atEnd": false
+      },
+      {
+       "timeMs": 602120,
+       "ayah": "34:1",
+       "atEnd": true
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-053",
+     "audioS": 306.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-054",
+     "audioS": 545.5,
+     "warnings": [
+      {
+       "timeMs": 154560,
+       "ayah": "36:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 251320,
+       "ayah": "36:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 299000,
+       "ayah": "36:44",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-055",
+     "audioS": 215,
+     "warnings": [
+      {
+       "timeMs": 62160,
+       "ayah": "38:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 185640,
+       "ayah": "38:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-056",
+     "audioS": 517.4,
+     "warnings": [
+      {
+       "timeMs": 163440,
+       "ayah": "39:69",
+       "atEnd": false
+      },
+      {
+       "timeMs": 231680,
+       "ayah": "39:75",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-057",
+     "audioS": 292.2,
+     "warnings": [
+      {
+       "timeMs": 69440,
+       "ayah": "40:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-058",
+     "audioS": 293,
+     "warnings": [
+      {
+       "timeMs": 183480,
+       "ayah": "41:41",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-059",
+     "audioS": 360,
+     "warnings": [
+      {
+       "timeMs": 67160,
+       "ayah": "42:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 176280,
+       "ayah": "42:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 327560,
+       "ayah": "42:28",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-060",
+     "audioS": 613,
+     "warnings": [
+      {
+       "timeMs": 213480,
+       "ayah": "43:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 297800,
+       "ayah": "43:51",
+       "atEnd": false
+      },
+      {
+       "timeMs": 421160,
+       "ayah": "43:65",
+       "atEnd": false
+      },
+      {
+       "timeMs": 459240,
+       "ayah": "43:71",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-061",
+     "audioS": 277.6,
+     "warnings": [
+      {
+       "timeMs": 26000,
+       "ayah": "44:4",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-062",
+     "audioS": 190.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-063",
+     "audioS": 267,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-064",
+     "audioS": 331.6,
+     "warnings": [
+      {
+       "timeMs": 95360,
+       "ayah": "48:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 80320,
+       "ayah": "48:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 101280,
+       "ayah": "48:6",
+       "atEnd": false
+      },
+      {
+       "timeMs": 218720,
+       "ayah": "48:20",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-065",
+     "audioS": 332.7,
+     "warnings": [
+      {
+       "timeMs": 46080,
+       "ayah": "49:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 123240,
+       "ayah": "49:10",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-066",
+     "audioS": 241,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-067",
+     "audioS": 234.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-068",
+     "audioS": 524.7,
+     "warnings": [
+      {
+       "timeMs": 238760,
+       "ayah": "53:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 313960,
+       "ayah": "53:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 442240,
+       "ayah": "54:4",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-069",
+     "audioS": 352.8,
+     "warnings": [
+      {
+       "timeMs": 229680,
+       "ayah": "55:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-070",
+     "audioS": 221.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-071",
+     "audioS": 483.7,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-072",
+     "audioS": 284.4,
+     "warnings": [
+      {
+       "timeMs": 51120,
+       "ayah": "58:12",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-073",
+     "audioS": 219.5,
+     "warnings": [
+      {
+       "timeMs": 208720,
+       "ayah": "60:9",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-074",
+     "audioS": 472.6,
+     "warnings": [
+      {
+       "timeMs": 457360,
+       "ayah": "64:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 458400,
+       "ayah": "64:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-075",
+     "audioS": 566.2,
+     "warnings": [
+      {
+       "timeMs": 213640,
+       "ayah": "66:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 249760,
+       "ayah": "66:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 305920,
+       "ayah": "67:1",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-076",
+     "audioS": 583.9,
+     "warnings": [
+      {
+       "timeMs": 47160,
+       "ayah": "68:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 96400,
+       "ayah": "68:29",
+       "atEnd": false
+      },
+      {
+       "timeMs": 504520,
+       "ayah": "69:40",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-077",
+     "audioS": 339.7,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-078",
+     "audioS": 359.6,
+     "warnings": [
+      {
+       "timeMs": 125360,
+       "ayah": "73:9",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-079",
+     "audioS": 618.5,
+     "warnings": [
+      {
+       "timeMs": 324320,
+       "ayah": "76:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 418840,
+       "ayah": "76:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 594400,
+       "ayah": "77:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-080",
+     "audioS": 693.6,
+     "warnings": [
+      {
+       "timeMs": 11040,
+       "ayah": "78:1",
+       "atEnd": false
+      },
+      {
+       "timeMs": 29080,
+       "ayah": "78:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 161280,
+       "ayah": "78:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 404120,
+       "ayah": "79:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 502080,
+       "ayah": "80:24",
+       "atEnd": false
+      },
+      {
+       "timeMs": 559400,
+       "ayah": "80:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 589400,
+       "ayah": "80:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-081",
+     "audioS": 670.2,
+     "warnings": [
+      {
+       "timeMs": 424480,
+       "ayah": "84:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-082",
+     "audioS": 678.6,
+     "warnings": [
+      {
+       "timeMs": 275880,
+       "ayah": "89:21",
+       "atEnd": false
+      },
+      {
+       "timeMs": 392200,
+       "ayah": "90:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 440240,
+       "ayah": "91:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-083",
+     "audioS": 708.3,
+     "warnings": [
+      {
+       "timeMs": 136560,
+       "ayah": "97:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 566480,
+       "ayah": "109:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 597560,
+       "ayah": "110:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 662560,
+       "ayah": "113:2",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-hard-084",
+     "audioS": 176.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-hard-085",
+     "audioS": 202.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-086",
+     "audioS": 197.9,
+     "warnings": [
+      {
+       "timeMs": 126360,
+       "ayah": "23:78",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-087",
+     "audioS": 224.1,
+     "warnings": [
+      {
+       "timeMs": 173720,
+       "ayah": "24:38",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-088",
+     "audioS": 226.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-089",
+     "audioS": 252.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-090",
+     "audioS": 298.4,
+     "warnings": [
+      {
+       "timeMs": 73160,
+       "ayah": "9:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-091",
+     "audioS": 290.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-092",
+     "audioS": 240.1,
+     "warnings": [
+      {
+       "timeMs": 80040,
+       "ayah": "16:75",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-093",
+     "audioS": 325,
+     "warnings": [
+      {
+       "timeMs": 145480,
+       "ayah": "40:82",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-094",
+     "audioS": 281.5,
+     "warnings": [
+      {
+       "timeMs": 187920,
+       "ayah": "9:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 259000,
+       "ayah": "34:14",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-095",
+     "audioS": 220,
+     "warnings": [
+      {
+       "timeMs": 201520,
+       "ayah": "10:104",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-096",
+     "audioS": 314.8,
+     "warnings": [
+      {
+       "timeMs": 96440,
+       "ayah": "7:190",
+       "atEnd": false
+      },
+      {
+       "timeMs": 209800,
+       "ayah": "25:25",
+       "atEnd": false
+      },
+      {
+       "timeMs": 278080,
+       "ayah": "25:32",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-097",
+     "audioS": 356.6,
+     "warnings": [
+      {
+       "timeMs": 200760,
+       "ayah": "28:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 234960,
+       "ayah": "28:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 294200,
+       "ayah": "28:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 351320,
+       "ayah": "28:39",
+       "atEnd": true
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-098",
+     "audioS": 206.5,
+     "warnings": [
+      {
+       "timeMs": 65280,
+       "ayah": "21:70",
+       "atEnd": false
+      },
+      {
+       "timeMs": 151480,
+       "ayah": "21:79",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-099",
+     "audioS": 267,
+     "warnings": [
+      {
+       "timeMs": 129240,
+       "ayah": "37:86",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-100",
+     "audioS": 237.6,
+     "warnings": [
+      {
+       "timeMs": 159360,
+       "ayah": "7:96",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-101",
+     "audioS": 221.6,
+     "warnings": [
+      {
+       "timeMs": 54160,
+       "ayah": "11:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 84320,
+       "ayah": "42:45",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-102",
+     "audioS": 221,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-103",
+     "audioS": 200.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-104",
+     "audioS": 275.1,
+     "warnings": [
+      {
+       "timeMs": 59040,
+       "ayah": "7:88",
+       "atEnd": false
+      },
+      {
+       "timeMs": 177720,
+       "ayah": "12:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-105",
+     "audioS": 214.6,
+     "warnings": [
+      {
+       "timeMs": 78240,
+       "ayah": "30:30",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-106",
+     "audioS": 204.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-107",
+     "audioS": 241.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-108",
+     "audioS": 265.7,
+     "warnings": [
+      {
+       "timeMs": 99320,
+       "ayah": "12:68",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-109",
+     "audioS": 297.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-110",
+     "audioS": 199.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-111",
+     "audioS": 236.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-112",
+     "audioS": 283.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-113",
+     "audioS": 283.8,
+     "warnings": [
+      {
+       "timeMs": 27120,
+       "ayah": "33:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-114",
+     "audioS": 219.2,
+     "warnings": [
+      {
+       "timeMs": 137960,
+       "ayah": "10:81",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-115",
+     "audioS": 202.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-116",
+     "audioS": 275.2,
+     "warnings": [
+      {
+       "timeMs": 38960,
+       "ayah": "25:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 180640,
+       "ayah": "39:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 221760,
+       "ayah": "39:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-117",
+     "audioS": 261.3,
+     "warnings": [
+      {
+       "timeMs": 153960,
+       "ayah": "17:87",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-118",
+     "audioS": 217.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-119",
+     "audioS": 245.4,
+     "warnings": [
+      {
+       "timeMs": 15960,
+       "ayah": "9:117",
+       "atEnd": false
+      },
+      {
+       "timeMs": 141160,
+       "ayah": "9:39",
+       "atEnd": false
+      },
+      {
+       "timeMs": 169200,
+       "ayah": "9:40",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-120",
+     "audioS": 250.7,
+     "warnings": [
+      {
+       "timeMs": 10000,
+       "ayah": "46:25",
+       "atEnd": false
+      },
+      {
+       "timeMs": 159560,
+       "ayah": "47:10",
+       "atEnd": false
+      },
+      {
+       "timeMs": 186760,
+       "ayah": "9:27",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-121",
+     "audioS": 463.3,
+     "warnings": [
+      {
+       "timeMs": 95440,
+       "ayah": "36:9",
+       "atEnd": false
+      },
+      {
+       "timeMs": 166760,
+       "ayah": "11:82",
+       "atEnd": false
+      },
+      {
+       "timeMs": 400040,
+       "ayah": "56:76",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-122",
+     "audioS": 179.4,
+     "warnings": [
+      {
+       "timeMs": 12440,
+       "ayah": "101:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 93480,
+       "ayah": "18:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 89480,
+       "ayah": "18:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 92480,
+       "ayah": "18:43",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-123",
+     "audioS": 170,
+     "warnings": [
+      {
+       "timeMs": 18040,
+       "ayah": "25:73",
+       "atEnd": false
+      },
+      {
+       "timeMs": 29960,
+       "ayah": "25:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 35960,
+       "ayah": "25:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 79280,
+       "ayah": "83:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 118440,
+       "ayah": "79:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-124",
+     "audioS": 208.1,
+     "warnings": [
+      {
+       "timeMs": 70480,
+       "ayah": "89:23",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-125",
+     "audioS": 370.5,
+     "warnings": [
+      {
+       "timeMs": 28120,
+       "ayah": "22:72",
+       "atEnd": false
+      },
+      {
+       "timeMs": 208400,
+       "ayah": "102:7",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-126",
+     "audioS": 566.4,
+     "warnings": [
+      {
+       "timeMs": 182760,
+       "ayah": "78:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 237200,
+       "ayah": "2:64",
+       "atEnd": false
+      },
+      {
+       "timeMs": 306320,
+       "ayah": "7:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 373840,
+       "ayah": "67:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 423160,
+       "ayah": "13:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 439200,
+       "ayah": "85:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 506480,
+       "ayah": "50:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 537480,
+       "ayah": "30:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-127",
+     "audioS": 314.9,
+     "warnings": [
+      {
+       "timeMs": 199840,
+       "ayah": "56:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 201840,
+       "ayah": "56:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 280200,
+       "ayah": "29:58",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-128",
+     "audioS": 155.2,
+     "warnings": []
+    }
+   ]
+  },
+  {
+   "arm": {
+    "listener": "teacher",
+    "posteriors": true,
+    "finalise": false
+   },
+   "tally": {
+    "sessions": 129,
+    "minutes": 746.8573333333335,
+    "warnings": 210,
+    "atEnd": 0,
+    "tail": 9,
+    "mid": 201,
+    "missing": 0
+   },
+   "detail": [
+    {
+     "id": "tlog-contiguous-000",
+     "audioS": 563.2,
+     "warnings": [
+      {
+       "timeMs": 39080,
+       "ayah": "1:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 124200,
+       "ayah": "2:9",
+       "atEnd": false
+      },
+      {
+       "timeMs": 163560,
+       "ayah": "2:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 203720,
+       "ayah": "2:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-001",
+     "audioS": 551.9,
+     "warnings": [
+      {
+       "timeMs": 175480,
+       "ayah": "2:61",
+       "atEnd": false
+      },
+      {
+       "timeMs": 280000,
+       "ayah": "2:72",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-002",
+     "audioS": 557.9,
+     "warnings": [
+      {
+       "timeMs": 231920,
+       "ayah": "2:114",
+       "atEnd": false
+      },
+      {
+       "timeMs": 241920,
+       "ayah": "2:114",
+       "atEnd": false
+      },
+      {
+       "timeMs": 541840,
+       "ayah": "2:133",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-003",
+     "audioS": 543.1,
+     "warnings": [
+      {
+       "timeMs": 325960,
+       "ayah": "2:167",
+       "atEnd": false
+      },
+      {
+       "timeMs": 387080,
+       "ayah": "2:173",
+       "atEnd": false
+      },
+      {
+       "timeMs": 537440,
+       "ayah": "2:180",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-004",
+     "audioS": 610.5,
+     "warnings": [
+      {
+       "timeMs": 42120,
+       "ayah": "2:186",
+       "atEnd": false
+      },
+      {
+       "timeMs": 297720,
+       "ayah": "2:207",
+       "atEnd": false
+      },
+      {
+       "timeMs": 314000,
+       "ayah": "2:210",
+       "atEnd": false
+      },
+      {
+       "timeMs": 346120,
+       "ayah": "2:213",
+       "atEnd": false
+      },
+      {
+       "timeMs": 410480,
+       "ayah": "2:217",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-005",
+     "audioS": 335.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-006",
+     "audioS": 451.8,
+     "warnings": [
+      {
+       "timeMs": 339920,
+       "ayah": "3:16",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-007",
+     "audioS": 306,
+     "warnings": [
+      {
+       "timeMs": 96040,
+       "ayah": "3:40",
+       "atEnd": false
+      },
+      {
+       "timeMs": 156320,
+       "ayah": "3:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 146320,
+       "ayah": "3:45",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-008",
+     "audioS": 500.8,
+     "warnings": [
+      {
+       "timeMs": 79120,
+       "ayah": "3:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 230720,
+       "ayah": "3:94",
+       "atEnd": false
+      },
+      {
+       "timeMs": 357680,
+       "ayah": "3:105",
+       "atEnd": false
+      },
+      {
+       "timeMs": 478400,
+       "ayah": "3:117",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-009",
+     "audioS": 504.7,
+     "warnings": [
+      {
+       "timeMs": 433080,
+       "ayah": "3:172",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-010",
+     "audioS": 517.6,
+     "warnings": [
+      {
+       "timeMs": 54120,
+       "ayah": "3:188",
+       "atEnd": false
+      },
+      {
+       "timeMs": 228440,
+       "ayah": "4:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-011",
+     "audioS": 272.2,
+     "warnings": [
+      {
+       "timeMs": 249880,
+       "ayah": "4:64",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-012",
+     "audioS": 451.1,
+     "warnings": [
+      {
+       "timeMs": 411560,
+       "ayah": "4:110",
+       "atEnd": false
+      },
+      {
+       "timeMs": 419520,
+       "ayah": "4:112",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-013",
+     "audioS": 479.3,
+     "warnings": [
+      {
+       "timeMs": 55080,
+       "ayah": "4:121",
+       "atEnd": false
+      },
+      {
+       "timeMs": 214800,
+       "ayah": "4:142",
+       "atEnd": false
+      },
+      {
+       "timeMs": 277040,
+       "ayah": "4:151",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-014",
+     "audioS": 524.9,
+     "warnings": [
+      {
+       "timeMs": 175200,
+       "ayah": "5:20",
+       "atEnd": false
+      },
+      {
+       "timeMs": 302520,
+       "ayah": "5:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-015",
+     "audioS": 199,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-016",
+     "audioS": 235,
+     "warnings": [
+      {
+       "timeMs": 116400,
+       "ayah": "5:115",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-017",
+     "audioS": 271.2,
+     "warnings": [
+      {
+       "timeMs": 95400,
+       "ayah": "6:33",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-018",
+     "audioS": 394,
+     "warnings": [
+      {
+       "timeMs": 43000,
+       "ayah": "6:77",
+       "atEnd": false
+      },
+      {
+       "timeMs": 100200,
+       "ayah": "6:84",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-019",
+     "audioS": 566.7,
+     "warnings": [
+      {
+       "timeMs": 184640,
+       "ayah": "7:14",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-020",
+     "audioS": 214.2,
+     "warnings": [
+      {
+       "timeMs": 40080,
+       "ayah": "7:148",
+       "atEnd": false
+      },
+      {
+       "timeMs": 87240,
+       "ayah": "7:153",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-021",
+     "audioS": 424.1,
+     "warnings": [
+      {
+       "timeMs": 279880,
+       "ayah": "8:29",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-022",
+     "audioS": 246.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-023",
+     "audioS": 270.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-024",
+     "audioS": 300,
+     "warnings": [
+      {
+       "timeMs": 173640,
+       "ayah": "10:29",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-025",
+     "audioS": 294.9,
+     "warnings": [
+      {
+       "timeMs": 125040,
+       "ayah": "11:52",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-026",
+     "audioS": 333.1,
+     "warnings": [
+      {
+       "timeMs": 181920,
+       "ayah": "12:15",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-027",
+     "audioS": 235.1,
+     "warnings": [
+      {
+       "timeMs": 83240,
+       "ayah": "12:103",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-028",
+     "audioS": 355.3,
+     "warnings": [
+      {
+       "timeMs": 285800,
+       "ayah": "13:43",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-029",
+     "audioS": 558.8,
+     "warnings": [
+      {
+       "timeMs": 216000,
+       "ayah": "14:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 272320,
+       "ayah": "14:36",
+       "atEnd": false
+      },
+      {
+       "timeMs": 365800,
+       "ayah": "14:41",
+       "atEnd": false
+      },
+      {
+       "timeMs": 357240,
+       "ayah": "14:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 531160,
+       "ayah": "15:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-030",
+     "audioS": 214.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-031",
+     "audioS": 217.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-032",
+     "audioS": 198.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-033",
+     "audioS": 355.7,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-034",
+     "audioS": 529.2,
+     "warnings": [
+      {
+       "timeMs": 118560,
+       "ayah": "17:111",
+       "atEnd": false
+      },
+      {
+       "timeMs": 188240,
+       "ayah": "18:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-035",
+     "audioS": 420.2,
+     "warnings": [
+      {
+       "timeMs": 352400,
+       "ayah": "18:75",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-036",
+     "audioS": 450.1,
+     "warnings": [
+      {
+       "timeMs": 129200,
+       "ayah": "18:95",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-037",
+     "audioS": 327.1,
+     "warnings": [
+      {
+       "timeMs": 279160,
+       "ayah": "19:48",
+       "atEnd": false
+      },
+      {
+       "timeMs": 311360,
+       "ayah": "19:50",
+       "atEnd": false
+      },
+      {
+       "timeMs": 320400,
+       "ayah": "19:51",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-038",
+     "audioS": 351.8,
+     "warnings": [
+      {
+       "timeMs": 159480,
+       "ayah": "19:70",
+       "atEnd": false
+      },
+      {
+       "timeMs": 301920,
+       "ayah": "19:89",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-039",
+     "audioS": 575.4,
+     "warnings": [
+      {
+       "timeMs": 479400,
+       "ayah": "20:75",
+       "atEnd": false
+      },
+      {
+       "timeMs": 547440,
+       "ayah": "20:84",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-040",
+     "audioS": 344.5,
+     "warnings": [
+      {
+       "timeMs": 247840,
+       "ayah": "21:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-041",
+     "audioS": 459.2,
+     "warnings": [
+      {
+       "timeMs": 387200,
+       "ayah": "22:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 402920,
+       "ayah": "22:15",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-042",
+     "audioS": 261.1,
+     "warnings": [
+      {
+       "timeMs": 237880,
+       "ayah": "22:68",
+       "atEnd": false
+      },
+      {
+       "timeMs": 255920,
+       "ayah": "22:72",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-043",
+     "audioS": 260,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-044",
+     "audioS": 212.3,
+     "warnings": [
+      {
+       "timeMs": 73320,
+       "ayah": "24:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 146600,
+       "ayah": "24:21",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-045",
+     "audioS": 258.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-046",
+     "audioS": 243.6,
+     "warnings": [
+      {
+       "timeMs": 10160,
+       "ayah": "25:53",
+       "atEnd": false
+      },
+      {
+       "timeMs": 77360,
+       "ayah": "25:60",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-047",
+     "audioS": 442.6,
+     "warnings": [
+      {
+       "timeMs": 209960,
+       "ayah": "27:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-048",
+     "audioS": 191.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-049",
+     "audioS": 544,
+     "warnings": [
+      {
+       "timeMs": 108320,
+       "ayah": "28:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 271640,
+       "ayah": "29:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 366000,
+       "ayah": "29:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-050",
+     "audioS": 320.9,
+     "warnings": [
+      {
+       "timeMs": 103280,
+       "ayah": "29:63",
+       "atEnd": false
+      },
+      {
+       "timeMs": 208560,
+       "ayah": "30:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 286960,
+       "ayah": "30:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 269000,
+       "ayah": "30:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 286960,
+       "ayah": "30:20",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-051",
+     "audioS": 603.6,
+     "warnings": [
+      {
+       "timeMs": 73160,
+       "ayah": "31:1",
+       "atEnd": false
+      },
+      {
+       "timeMs": 76200,
+       "ayah": "31:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 144280,
+       "ayah": "31:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 307640,
+       "ayah": "31:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 318840,
+       "ayah": "31:28",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-052",
+     "audioS": 605,
+     "warnings": [
+      {
+       "timeMs": 77440,
+       "ayah": "33:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 208000,
+       "ayah": "33:36",
+       "atEnd": false
+      },
+      {
+       "timeMs": 311200,
+       "ayah": "33:46",
+       "atEnd": false
+      },
+      {
+       "timeMs": 526320,
+       "ayah": "33:67",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-053",
+     "audioS": 306.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-054",
+     "audioS": 545.5,
+     "warnings": [
+      {
+       "timeMs": 154560,
+       "ayah": "36:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 251320,
+       "ayah": "36:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 299000,
+       "ayah": "36:44",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-055",
+     "audioS": 215,
+     "warnings": [
+      {
+       "timeMs": 62160,
+       "ayah": "38:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 185640,
+       "ayah": "38:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-056",
+     "audioS": 517.4,
+     "warnings": [
+      {
+       "timeMs": 163440,
+       "ayah": "39:69",
+       "atEnd": false
+      },
+      {
+       "timeMs": 231680,
+       "ayah": "39:75",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-057",
+     "audioS": 292.2,
+     "warnings": [
+      {
+       "timeMs": 69440,
+       "ayah": "40:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-058",
+     "audioS": 293,
+     "warnings": [
+      {
+       "timeMs": 183480,
+       "ayah": "41:41",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-059",
+     "audioS": 360,
+     "warnings": [
+      {
+       "timeMs": 67160,
+       "ayah": "42:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 176280,
+       "ayah": "42:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 327560,
+       "ayah": "42:28",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-060",
+     "audioS": 613,
+     "warnings": [
+      {
+       "timeMs": 213480,
+       "ayah": "43:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 297800,
+       "ayah": "43:51",
+       "atEnd": false
+      },
+      {
+       "timeMs": 421160,
+       "ayah": "43:65",
+       "atEnd": false
+      },
+      {
+       "timeMs": 459240,
+       "ayah": "43:71",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-061",
+     "audioS": 277.6,
+     "warnings": [
+      {
+       "timeMs": 26000,
+       "ayah": "44:4",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-062",
+     "audioS": 190.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-063",
+     "audioS": 267,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-064",
+     "audioS": 331.6,
+     "warnings": [
+      {
+       "timeMs": 95360,
+       "ayah": "48:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 80320,
+       "ayah": "48:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 101280,
+       "ayah": "48:6",
+       "atEnd": false
+      },
+      {
+       "timeMs": 218720,
+       "ayah": "48:20",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-065",
+     "audioS": 332.7,
+     "warnings": [
+      {
+       "timeMs": 46080,
+       "ayah": "49:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 123240,
+       "ayah": "49:10",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-066",
+     "audioS": 241,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-067",
+     "audioS": 234.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-068",
+     "audioS": 524.7,
+     "warnings": [
+      {
+       "timeMs": 238760,
+       "ayah": "53:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 313960,
+       "ayah": "53:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 442240,
+       "ayah": "54:4",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-069",
+     "audioS": 352.8,
+     "warnings": [
+      {
+       "timeMs": 229680,
+       "ayah": "55:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-070",
+     "audioS": 221.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-071",
+     "audioS": 483.7,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-072",
+     "audioS": 284.4,
+     "warnings": [
+      {
+       "timeMs": 51120,
+       "ayah": "58:12",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-073",
+     "audioS": 219.5,
+     "warnings": [
+      {
+       "timeMs": 208720,
+       "ayah": "60:9",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-074",
+     "audioS": 472.6,
+     "warnings": [
+      {
+       "timeMs": 457360,
+       "ayah": "64:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 458400,
+       "ayah": "64:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-075",
+     "audioS": 566.2,
+     "warnings": [
+      {
+       "timeMs": 213640,
+       "ayah": "66:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 249760,
+       "ayah": "66:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 305920,
+       "ayah": "67:1",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-076",
+     "audioS": 583.9,
+     "warnings": [
+      {
+       "timeMs": 47160,
+       "ayah": "68:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 96400,
+       "ayah": "68:29",
+       "atEnd": false
+      },
+      {
+       "timeMs": 504520,
+       "ayah": "69:40",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-077",
+     "audioS": 339.7,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-078",
+     "audioS": 359.6,
+     "warnings": [
+      {
+       "timeMs": 125360,
+       "ayah": "73:9",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-079",
+     "audioS": 618.5,
+     "warnings": [
+      {
+       "timeMs": 324320,
+       "ayah": "76:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 418840,
+       "ayah": "76:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 594400,
+       "ayah": "77:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-080",
+     "audioS": 693.6,
+     "warnings": [
+      {
+       "timeMs": 11040,
+       "ayah": "78:1",
+       "atEnd": false
+      },
+      {
+       "timeMs": 29080,
+       "ayah": "78:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 161280,
+       "ayah": "78:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 404120,
+       "ayah": "79:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 502080,
+       "ayah": "80:24",
+       "atEnd": false
+      },
+      {
+       "timeMs": 559400,
+       "ayah": "80:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 589400,
+       "ayah": "80:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-081",
+     "audioS": 670.2,
+     "warnings": [
+      {
+       "timeMs": 424480,
+       "ayah": "84:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-082",
+     "audioS": 678.6,
+     "warnings": [
+      {
+       "timeMs": 275880,
+       "ayah": "89:21",
+       "atEnd": false
+      },
+      {
+       "timeMs": 392200,
+       "ayah": "90:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 440240,
+       "ayah": "91:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-083",
+     "audioS": 708.3,
+     "warnings": [
+      {
+       "timeMs": 136560,
+       "ayah": "97:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 566480,
+       "ayah": "109:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 597560,
+       "ayah": "110:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 662560,
+       "ayah": "113:2",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-hard-084",
+     "audioS": 176.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-hard-085",
+     "audioS": 202.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-086",
+     "audioS": 197.9,
+     "warnings": [
+      {
+       "timeMs": 126360,
+       "ayah": "23:78",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-087",
+     "audioS": 224.1,
+     "warnings": [
+      {
+       "timeMs": 173720,
+       "ayah": "24:38",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-088",
+     "audioS": 226.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-089",
+     "audioS": 252.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-090",
+     "audioS": 298.4,
+     "warnings": [
+      {
+       "timeMs": 73160,
+       "ayah": "9:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-091",
+     "audioS": 290.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-092",
+     "audioS": 240.1,
+     "warnings": [
+      {
+       "timeMs": 80040,
+       "ayah": "16:75",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-093",
+     "audioS": 325,
+     "warnings": [
+      {
+       "timeMs": 145480,
+       "ayah": "40:82",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-094",
+     "audioS": 281.5,
+     "warnings": [
+      {
+       "timeMs": 187920,
+       "ayah": "9:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 259000,
+       "ayah": "34:14",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-095",
+     "audioS": 220,
+     "warnings": [
+      {
+       "timeMs": 201520,
+       "ayah": "10:104",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-096",
+     "audioS": 314.8,
+     "warnings": [
+      {
+       "timeMs": 96440,
+       "ayah": "7:190",
+       "atEnd": false
+      },
+      {
+       "timeMs": 209800,
+       "ayah": "25:25",
+       "atEnd": false
+      },
+      {
+       "timeMs": 278080,
+       "ayah": "25:32",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-097",
+     "audioS": 356.6,
+     "warnings": [
+      {
+       "timeMs": 200760,
+       "ayah": "28:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 234960,
+       "ayah": "28:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 294200,
+       "ayah": "28:35",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-098",
+     "audioS": 206.5,
+     "warnings": [
+      {
+       "timeMs": 65280,
+       "ayah": "21:70",
+       "atEnd": false
+      },
+      {
+       "timeMs": 151480,
+       "ayah": "21:79",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-099",
+     "audioS": 267,
+     "warnings": [
+      {
+       "timeMs": 129240,
+       "ayah": "37:86",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-100",
+     "audioS": 237.6,
+     "warnings": [
+      {
+       "timeMs": 159360,
+       "ayah": "7:96",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-101",
+     "audioS": 221.6,
+     "warnings": [
+      {
+       "timeMs": 54160,
+       "ayah": "11:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 84320,
+       "ayah": "42:45",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-102",
+     "audioS": 221,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-103",
+     "audioS": 200.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-104",
+     "audioS": 275.1,
+     "warnings": [
+      {
+       "timeMs": 59040,
+       "ayah": "7:88",
+       "atEnd": false
+      },
+      {
+       "timeMs": 177720,
+       "ayah": "12:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-105",
+     "audioS": 214.6,
+     "warnings": [
+      {
+       "timeMs": 78240,
+       "ayah": "30:30",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-106",
+     "audioS": 204.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-107",
+     "audioS": 241.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-108",
+     "audioS": 265.7,
+     "warnings": [
+      {
+       "timeMs": 99320,
+       "ayah": "12:68",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-109",
+     "audioS": 297.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-110",
+     "audioS": 199.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-111",
+     "audioS": 236.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-112",
+     "audioS": 283.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-113",
+     "audioS": 283.8,
+     "warnings": [
+      {
+       "timeMs": 27120,
+       "ayah": "33:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-114",
+     "audioS": 219.2,
+     "warnings": [
+      {
+       "timeMs": 137960,
+       "ayah": "10:81",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-115",
+     "audioS": 202.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-116",
+     "audioS": 275.2,
+     "warnings": [
+      {
+       "timeMs": 38960,
+       "ayah": "25:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 180640,
+       "ayah": "39:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 221760,
+       "ayah": "39:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-117",
+     "audioS": 261.3,
+     "warnings": [
+      {
+       "timeMs": 153960,
+       "ayah": "17:87",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-118",
+     "audioS": 217.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-119",
+     "audioS": 245.4,
+     "warnings": [
+      {
+       "timeMs": 15960,
+       "ayah": "9:117",
+       "atEnd": false
+      },
+      {
+       "timeMs": 141160,
+       "ayah": "9:39",
+       "atEnd": false
+      },
+      {
+       "timeMs": 169200,
+       "ayah": "9:40",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-120",
+     "audioS": 250.7,
+     "warnings": [
+      {
+       "timeMs": 10000,
+       "ayah": "46:25",
+       "atEnd": false
+      },
+      {
+       "timeMs": 159560,
+       "ayah": "47:10",
+       "atEnd": false
+      },
+      {
+       "timeMs": 186760,
+       "ayah": "9:27",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-121",
+     "audioS": 463.3,
+     "warnings": [
+      {
+       "timeMs": 95440,
+       "ayah": "36:9",
+       "atEnd": false
+      },
+      {
+       "timeMs": 166760,
+       "ayah": "11:82",
+       "atEnd": false
+      },
+      {
+       "timeMs": 400040,
+       "ayah": "56:76",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-122",
+     "audioS": 179.4,
+     "warnings": [
+      {
+       "timeMs": 12440,
+       "ayah": "101:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 93480,
+       "ayah": "18:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 89480,
+       "ayah": "18:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 92480,
+       "ayah": "18:43",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-123",
+     "audioS": 170,
+     "warnings": [
+      {
+       "timeMs": 18040,
+       "ayah": "25:73",
+       "atEnd": false
+      },
+      {
+       "timeMs": 29960,
+       "ayah": "25:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 35960,
+       "ayah": "25:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 79280,
+       "ayah": "83:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 118440,
+       "ayah": "79:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-124",
+     "audioS": 208.1,
+     "warnings": [
+      {
+       "timeMs": 70480,
+       "ayah": "89:23",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-125",
+     "audioS": 370.5,
+     "warnings": [
+      {
+       "timeMs": 28120,
+       "ayah": "22:72",
+       "atEnd": false
+      },
+      {
+       "timeMs": 208400,
+       "ayah": "102:7",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-126",
+     "audioS": 566.4,
+     "warnings": [
+      {
+       "timeMs": 182760,
+       "ayah": "78:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 237200,
+       "ayah": "2:64",
+       "atEnd": false
+      },
+      {
+       "timeMs": 306320,
+       "ayah": "7:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 373840,
+       "ayah": "67:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 423160,
+       "ayah": "13:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 439200,
+       "ayah": "85:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 506480,
+       "ayah": "50:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 537480,
+       "ayah": "30:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-127",
+     "audioS": 314.9,
+     "warnings": [
+      {
+       "timeMs": 199840,
+       "ayah": "56:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 201840,
+       "ayah": "56:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 280200,
+       "ayah": "29:58",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-128",
+     "audioS": 155.2,
+     "warnings": []
+    }
+   ]
+  },
+  {
+   "arm": {
+    "listener": "spliced-clean-int8",
+    "posteriors": true,
+    "finalise": true
+   },
+   "tally": {
+    "sessions": 129,
+    "minutes": 742.5606666666664,
+    "warnings": 200,
+    "atEnd": 0,
+    "tail": 8,
+    "mid": 192,
+    "missing": 0
+   },
+   "detail": [
+    {
+     "id": "tlog-contiguous-000",
+     "audioS": 560.4,
+     "warnings": [
+      {
+       "timeMs": 202560,
+       "ayah": "2:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 389800,
+       "ayah": "2:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 451120,
+       "ayah": "2:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-001",
+     "audioS": 549.4,
+     "warnings": [
+      {
+       "timeMs": 74000,
+       "ayah": "2:50",
+       "atEnd": false
+      },
+      {
+       "timeMs": 170440,
+       "ayah": "2:61",
+       "atEnd": false
+      },
+      {
+       "timeMs": 278760,
+       "ayah": "2:72",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-002",
+     "audioS": 555.6,
+     "warnings": [
+      {
+       "timeMs": 539280,
+       "ayah": "2:133",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-003",
+     "audioS": 540.6,
+     "warnings": [
+      {
+       "timeMs": 527320,
+       "ayah": "2:184",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-004",
+     "audioS": 607.6,
+     "warnings": [
+      {
+       "timeMs": 42040,
+       "ayah": "2:186",
+       "atEnd": false
+      },
+      {
+       "timeMs": 121560,
+       "ayah": "2:193",
+       "atEnd": false
+      },
+      {
+       "timeMs": 295960,
+       "ayah": "2:207",
+       "atEnd": false
+      },
+      {
+       "timeMs": 312080,
+       "ayah": "2:210",
+       "atEnd": false
+      },
+      {
+       "timeMs": 344160,
+       "ayah": "2:213",
+       "atEnd": false
+      },
+      {
+       "timeMs": 483480,
+       "ayah": "2:225",
+       "atEnd": false
+      },
+      {
+       "timeMs": 506520,
+       "ayah": "2:228",
+       "atEnd": false
+      },
+      {
+       "timeMs": 534640,
+       "ayah": "2:228",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-005",
+     "audioS": 334.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-006",
+     "audioS": 449.4,
+     "warnings": [
+      {
+       "timeMs": 239160,
+       "ayah": "3:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-007",
+     "audioS": 304.2,
+     "warnings": [
+      {
+       "timeMs": 155400,
+       "ayah": "3:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 145280,
+       "ayah": "3:45",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-008",
+     "audioS": 498.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-009",
+     "audioS": 502.2,
+     "warnings": [
+      {
+       "timeMs": 74280,
+       "ayah": "3:129",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-010",
+     "audioS": 515,
+     "warnings": [
+      {
+       "timeMs": 54160,
+       "ayah": "3:188",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-011",
+     "audioS": 271,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-012",
+     "audioS": 449.1,
+     "warnings": [
+      {
+       "timeMs": 417800,
+       "ayah": "4:112",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-013",
+     "audioS": 476.8,
+     "warnings": [
+      {
+       "timeMs": 275440,
+       "ayah": "4:151",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-014",
+     "audioS": 521.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-015",
+     "audioS": 198.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-016",
+     "audioS": 234,
+     "warnings": [
+      {
+       "timeMs": 54280,
+       "ayah": "5:113",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-017",
+     "audioS": 269.7,
+     "warnings": [
+      {
+       "timeMs": 95360,
+       "ayah": "6:33",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-018",
+     "audioS": 391.6,
+     "warnings": [
+      {
+       "timeMs": 99120,
+       "ayah": "6:84",
+       "atEnd": false
+      },
+      {
+       "timeMs": 146080,
+       "ayah": "6:90",
+       "atEnd": false
+      },
+      {
+       "timeMs": 258560,
+       "ayah": "6:102",
+       "atEnd": false
+      },
+      {
+       "timeMs": 258560,
+       "ayah": "6:102",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-019",
+     "audioS": 563.8,
+     "warnings": [
+      {
+       "timeMs": 367760,
+       "ayah": "7:35",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-020",
+     "audioS": 212.8,
+     "warnings": [
+      {
+       "timeMs": 57200,
+       "ayah": "7:146",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-021",
+     "audioS": 421.8,
+     "warnings": [
+      {
+       "timeMs": 268800,
+       "ayah": "8:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 278760,
+       "ayah": "8:29",
+       "atEnd": false
+      },
+      {
+       "timeMs": 380960,
+       "ayah": "8:44",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-022",
+     "audioS": 244.9,
+     "warnings": [
+      {
+       "timeMs": 41080,
+       "ayah": "9:59",
+       "atEnd": false
+      },
+      {
+       "timeMs": 196680,
+       "ayah": "9:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 193440,
+       "ayah": "9:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 193440,
+       "ayah": "9:80",
+       "atEnd": false
+      },
+      {
+       "timeMs": 196680,
+       "ayah": "9:80",
+       "atEnd": false
+      },
+      {
+       "timeMs": 210640,
+       "ayah": "9:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 199680,
+       "ayah": "9:82",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-023",
+     "audioS": 268.8,
+     "warnings": [
+      {
+       "timeMs": 179320,
+       "ayah": "9:106",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-024",
+     "audioS": 298.6,
+     "warnings": [
+      {
+       "timeMs": 196560,
+       "ayah": "10:31",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-025",
+     "audioS": 293.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-026",
+     "audioS": 331.5,
+     "warnings": [
+      {
+       "timeMs": 82200,
+       "ayah": "12:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 133280,
+       "ayah": "12:11",
+       "atEnd": false
+      },
+      {
+       "timeMs": 181080,
+       "ayah": "12:15",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-027",
+     "audioS": 234,
+     "warnings": [
+      {
+       "timeMs": 176520,
+       "ayah": "13:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-028",
+     "audioS": 353.6,
+     "warnings": [
+      {
+       "timeMs": 191480,
+       "ayah": "13:34",
+       "atEnd": false
+      },
+      {
+       "timeMs": 238760,
+       "ayah": "13:37",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-029",
+     "audioS": 556.2,
+     "warnings": [
+      {
+       "timeMs": 159480,
+       "ayah": "14:24",
+       "atEnd": false
+      },
+      {
+       "timeMs": 214680,
+       "ayah": "14:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 270560,
+       "ayah": "14:36",
+       "atEnd": false
+      },
+      {
+       "timeMs": 347200,
+       "ayah": "14:41",
+       "atEnd": false
+      },
+      {
+       "timeMs": 360120,
+       "ayah": "14:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 528560,
+       "ayah": "15:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-030",
+     "audioS": 213.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-031",
+     "audioS": 215.8,
+     "warnings": [
+      {
+       "timeMs": 118400,
+       "ayah": "16:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-032",
+     "audioS": 197.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-033",
+     "audioS": 353.9,
+     "warnings": [
+      {
+       "timeMs": 271920,
+       "ayah": "17:16",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-034",
+     "audioS": 526.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-035",
+     "audioS": 418.4,
+     "warnings": [
+      {
+       "timeMs": 51280,
+       "ayah": "18:45",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-036",
+     "audioS": 447.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-037",
+     "audioS": 325.5,
+     "warnings": [
+      {
+       "timeMs": 80120,
+       "ayah": "19:27",
+       "atEnd": false
+      },
+      {
+       "timeMs": 277800,
+       "ayah": "19:48",
+       "atEnd": false
+      },
+      {
+       "timeMs": 310120,
+       "ayah": "19:50",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-038",
+     "audioS": 349.5,
+     "warnings": [
+      {
+       "timeMs": 30040,
+       "ayah": "19:55",
+       "atEnd": false
+      },
+      {
+       "timeMs": 300000,
+       "ayah": "19:89",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-039",
+     "audioS": 570.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-040",
+     "audioS": 342.7,
+     "warnings": [
+      {
+       "timeMs": 130280,
+       "ayah": "20:130",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-041",
+     "audioS": 456.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-042",
+     "audioS": 260,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-043",
+     "audioS": 258.8,
+     "warnings": [
+      {
+       "timeMs": 33120,
+       "ayah": "23:95",
+       "atEnd": false
+      },
+      {
+       "timeMs": 233800,
+       "ayah": "23:118",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-044",
+     "audioS": 211.4,
+     "warnings": [
+      {
+       "timeMs": 146400,
+       "ayah": "24:21",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-045",
+     "audioS": 256.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-046",
+     "audioS": 242.3,
+     "warnings": [
+      {
+       "timeMs": 48080,
+       "ayah": "25:57",
+       "atEnd": false
+      },
+      {
+       "timeMs": 67120,
+       "ayah": "25:57",
+       "atEnd": false
+      },
+      {
+       "timeMs": 178400,
+       "ayah": "25:67",
+       "atEnd": false
+      },
+      {
+       "timeMs": 225560,
+       "ayah": "25:73",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-047",
+     "audioS": 440.4,
+     "warnings": [
+      {
+       "timeMs": 231760,
+       "ayah": "27:23",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-048",
+     "audioS": 191,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-049",
+     "audioS": 541.4,
+     "warnings": [
+      {
+       "timeMs": 107320,
+       "ayah": "28:79",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-050",
+     "audioS": 319.1,
+     "warnings": [
+      {
+       "timeMs": 102320,
+       "ayah": "29:63",
+       "atEnd": false
+      },
+      {
+       "timeMs": 267800,
+       "ayah": "30:18",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-051",
+     "audioS": 600.7,
+     "warnings": [
+      {
+       "timeMs": 73080,
+       "ayah": "31:1",
+       "atEnd": false
+      },
+      {
+       "timeMs": 76440,
+       "ayah": "31:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 144280,
+       "ayah": "31:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 186080,
+       "ayah": "31:13",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-052",
+     "audioS": 602.2,
+     "warnings": [
+      {
+       "timeMs": 77200,
+       "ayah": "33:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 524000,
+       "ayah": "33:67",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-053",
+     "audioS": 305.2,
+     "warnings": [
+      {
+       "timeMs": 265720,
+       "ayah": "35:12",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-054",
+     "audioS": 541.2,
+     "warnings": [
+      {
+       "timeMs": 153360,
+       "ayah": "36:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 248600,
+       "ayah": "36:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 296800,
+       "ayah": "36:44",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-055",
+     "audioS": 213.9,
+     "warnings": [
+      {
+       "timeMs": 129480,
+       "ayah": "38:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 188880,
+       "ayah": "38:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-056",
+     "audioS": 515.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-057",
+     "audioS": 290.8,
+     "warnings": [
+      {
+       "timeMs": 69200,
+       "ayah": "40:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-058",
+     "audioS": 291.6,
+     "warnings": [
+      {
+       "timeMs": 123360,
+       "ayah": "41:35",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-059",
+     "audioS": 358.6,
+     "warnings": [
+      {
+       "timeMs": 66040,
+       "ayah": "42:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 165120,
+       "ayah": "42:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 174920,
+       "ayah": "42:15",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-060",
+     "audioS": 609.4,
+     "warnings": [
+      {
+       "timeMs": 208680,
+       "ayah": "43:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 258080,
+       "ayah": "43:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 296400,
+       "ayah": "43:51",
+       "atEnd": false
+      },
+      {
+       "timeMs": 608560,
+       "ayah": "43:88",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-061",
+     "audioS": 275.6,
+     "warnings": [
+      {
+       "timeMs": 18920,
+       "ayah": "44:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-062",
+     "audioS": 189.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-063",
+     "audioS": 265.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-064",
+     "audioS": 330,
+     "warnings": [
+      {
+       "timeMs": 79360,
+       "ayah": "48:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 217880,
+       "ayah": "48:20",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-065",
+     "audioS": 331.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-066",
+     "audioS": 239.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-067",
+     "audioS": 232.8,
+     "warnings": [
+      {
+       "timeMs": 16080,
+       "ayah": "51:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-068",
+     "audioS": 520,
+     "warnings": [
+      {
+       "timeMs": 280760,
+       "ayah": "53:37",
+       "atEnd": false
+      },
+      {
+       "timeMs": 311800,
+       "ayah": "53:43",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-069",
+     "audioS": 349.8,
+     "warnings": [
+      {
+       "timeMs": 169320,
+       "ayah": "55:9",
+       "atEnd": false
+      },
+      {
+       "timeMs": 306680,
+       "ayah": "55:39",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-070",
+     "audioS": 218.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-071",
+     "audioS": 480,
+     "warnings": [
+      {
+       "timeMs": 303640,
+       "ayah": "57:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-072",
+     "audioS": 283.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-073",
+     "audioS": 218.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-074",
+     "audioS": 470.4,
+     "warnings": [
+      {
+       "timeMs": 456240,
+       "ayah": "64:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-075",
+     "audioS": 563.2,
+     "warnings": [
+      {
+       "timeMs": 211440,
+       "ayah": "66:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 248640,
+       "ayah": "66:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 304040,
+       "ayah": "67:1",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-076",
+     "audioS": 579.6,
+     "warnings": [
+      {
+       "timeMs": 45920,
+       "ayah": "68:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 95320,
+       "ayah": "68:29",
+       "atEnd": false
+      },
+      {
+       "timeMs": 116320,
+       "ayah": "68:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 437000,
+       "ayah": "69:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 470120,
+       "ayah": "69:33",
+       "atEnd": false
+      },
+      {
+       "timeMs": 501080,
+       "ayah": "69:40",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-077",
+     "audioS": 337.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-078",
+     "audioS": 356,
+     "warnings": [
+      {
+       "timeMs": 138320,
+       "ayah": "73:10",
+       "atEnd": false
+      },
+      {
+       "timeMs": 248400,
+       "ayah": "73:20",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-079",
+     "audioS": 613,
+     "warnings": [
+      {
+       "timeMs": 26000,
+       "ayah": "75:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 44000,
+       "ayah": "75:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 46120,
+       "ayah": "75:9",
+       "atEnd": false
+      },
+      {
+       "timeMs": 156320,
+       "ayah": "75:33",
+       "atEnd": false
+      },
+      {
+       "timeMs": 568480,
+       "ayah": "77:28",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-080",
+     "audioS": 686.3,
+     "warnings": [
+      {
+       "timeMs": 159400,
+       "ayah": "78:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 486280,
+       "ayah": "80:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 497000,
+       "ayah": "80:24",
+       "atEnd": false
+      },
+      {
+       "timeMs": 553480,
+       "ayah": "80:35",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-081",
+     "audioS": 664.3,
+     "warnings": [
+      {
+       "timeMs": 226600,
+       "ayah": "83:16",
+       "atEnd": false
+      },
+      {
+       "timeMs": 422160,
+       "ayah": "84:22",
+       "atEnd": false
+      },
+      {
+       "timeMs": 519200,
+       "ayah": "85:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 549120,
+       "ayah": "85:21",
+       "atEnd": false
+      },
+      {
+       "timeMs": 583200,
+       "ayah": "86:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-082",
+     "audioS": 671.6,
+     "warnings": [
+      {
+       "timeMs": 407760,
+       "ayah": "90:13",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-083",
+     "audioS": 701.7,
+     "warnings": [
+      {
+       "timeMs": 94240,
+       "ayah": "96:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 561240,
+       "ayah": "109:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 592280,
+       "ayah": "110:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 656520,
+       "ayah": "113:2",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-hard-084",
+     "audioS": 175.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-hard-085",
+     "audioS": 201.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-086",
+     "audioS": 196.7,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-087",
+     "audioS": 222.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-088",
+     "audioS": 224.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-089",
+     "audioS": 250.2,
+     "warnings": [
+      {
+       "timeMs": 10040,
+       "ayah": "74:40",
+       "atEnd": false
+      },
+      {
+       "timeMs": 25960,
+       "ayah": "74:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 66080,
+       "ayah": "74:50",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-090",
+     "audioS": 296.8,
+     "warnings": [
+      {
+       "timeMs": 73000,
+       "ayah": "9:6",
+       "atEnd": false
+      },
+      {
+       "timeMs": 185400,
+       "ayah": "7:124",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-091",
+     "audioS": 287.9,
+     "warnings": [
+      {
+       "timeMs": 37960,
+       "ayah": "50:19",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-092",
+     "audioS": 238.8,
+     "warnings": [
+      {
+       "timeMs": 216680,
+       "ayah": "23:38",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-093",
+     "audioS": 322.8,
+     "warnings": [
+      {
+       "timeMs": 144520,
+       "ayah": "40:82",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-094",
+     "audioS": 280.3,
+     "warnings": [
+      {
+       "timeMs": 142320,
+       "ayah": "9:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-095",
+     "audioS": 219,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-096",
+     "audioS": 313.3,
+     "warnings": [
+      {
+       "timeMs": 253880,
+       "ayah": "25:27",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-097",
+     "audioS": 354.9,
+     "warnings": [
+      {
+       "timeMs": 60080,
+       "ayah": "5:91",
+       "atEnd": false
+      },
+      {
+       "timeMs": 224440,
+       "ayah": "28:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 233440,
+       "ayah": "28:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 293200,
+       "ayah": "28:35",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-098",
+     "audioS": 205,
+     "warnings": [
+      {
+       "timeMs": 65160,
+       "ayah": "21:70",
+       "atEnd": false
+      },
+      {
+       "timeMs": 150400,
+       "ayah": "21:79",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-099",
+     "audioS": 264.8,
+     "warnings": [
+      {
+       "timeMs": 95200,
+       "ayah": "70:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 127200,
+       "ayah": "37:85",
+       "atEnd": false
+      },
+      {
+       "timeMs": 127200,
+       "ayah": "37:85",
+       "atEnd": false
+      },
+      {
+       "timeMs": 127200,
+       "ayah": "37:86",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-100",
+     "audioS": 236.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-101",
+     "audioS": 220.6,
+     "warnings": [
+      {
+       "timeMs": 53920,
+       "ayah": "11:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 84040,
+       "ayah": "42:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 170240,
+       "ayah": "42:52",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-102",
+     "audioS": 219.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-103",
+     "audioS": 199.5,
+     "warnings": [
+      {
+       "timeMs": 154200,
+       "ayah": "27:63",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-104",
+     "audioS": 273.9,
+     "warnings": [
+      {
+       "timeMs": 177320,
+       "ayah": "12:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-105",
+     "audioS": 213.8,
+     "warnings": [
+      {
+       "timeMs": 78160,
+       "ayah": "30:30",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-106",
+     "audioS": 203.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-107",
+     "audioS": 240.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-108",
+     "audioS": 264,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-109",
+     "audioS": 296.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-110",
+     "audioS": 198.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-111",
+     "audioS": 234.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-112",
+     "audioS": 281.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-113",
+     "audioS": 282.2,
+     "warnings": [
+      {
+       "timeMs": 26800,
+       "ayah": "33:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 120320,
+       "ayah": "33:13",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-114",
+     "audioS": 218,
+     "warnings": [
+      {
+       "timeMs": 140480,
+       "ayah": "10:81",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-115",
+     "audioS": 201.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-116",
+     "audioS": 273.5,
+     "warnings": [
+      {
+       "timeMs": 39120,
+       "ayah": "25:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 220520,
+       "ayah": "39:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-117",
+     "audioS": 259.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-118",
+     "audioS": 216.6,
+     "warnings": [
+      {
+       "timeMs": 96160,
+       "ayah": "8:58",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-119",
+     "audioS": 244.2,
+     "warnings": [
+      {
+       "timeMs": 168360,
+       "ayah": "9:40",
+       "atEnd": false
+      },
+      {
+       "timeMs": 204400,
+       "ayah": "9:46",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-120",
+     "audioS": 249.4,
+     "warnings": [
+      {
+       "timeMs": 129520,
+       "ayah": "47:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 158440,
+       "ayah": "47:10",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-121",
+     "audioS": 460.8,
+     "warnings": [
+      {
+       "timeMs": 165680,
+       "ayah": "11:82",
+       "atEnd": false
+      },
+      {
+       "timeMs": 267160,
+       "ayah": "21:49",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-122",
+     "audioS": 178.3,
+     "warnings": [
+      {
+       "timeMs": 12400,
+       "ayah": "101:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 89040,
+       "ayah": "18:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 92200,
+       "ayah": "18:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 102160,
+       "ayah": "78:16",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-123",
+     "audioS": 168.8,
+     "warnings": [
+      {
+       "timeMs": 79280,
+       "ayah": "83:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 91280,
+       "ayah": "86:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 87240,
+       "ayah": "86:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 88160,
+       "ayah": "86:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 118360,
+       "ayah": "79:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-124",
+     "audioS": 207.4,
+     "warnings": []
+    },
+    {
+     "id": "help-help-125",
+     "audioS": 368.9,
+     "warnings": [
+      {
+       "timeMs": 28000,
+       "ayah": "22:72",
+       "atEnd": false
+      },
+      {
+       "timeMs": 207520,
+       "ayah": "102:7",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-126",
+     "audioS": 564.2,
+     "warnings": [
+      {
+       "timeMs": 182640,
+       "ayah": "78:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 235960,
+       "ayah": "2:64",
+       "atEnd": false
+      },
+      {
+       "timeMs": 305400,
+       "ayah": "7:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 372440,
+       "ayah": "67:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 375400,
+       "ayah": "67:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 385400,
+       "ayah": "56:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 421760,
+       "ayah": "13:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 437680,
+       "ayah": "85:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 502000,
+       "ayah": "50:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 535680,
+       "ayah": "30:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-127",
+     "audioS": 313.8,
+     "warnings": [
+      {
+       "timeMs": 195840,
+       "ayah": "56:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 195840,
+       "ayah": "56:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 200920,
+       "ayah": "56:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 298280,
+       "ayah": "29:60",
+       "atEnd": false
+      },
+      {
+       "timeMs": 299240,
+       "ayah": "29:60",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-128",
+     "audioS": 154.6,
+     "warnings": []
+    }
+   ]
+  },
+  {
+   "arm": {
+    "listener": "spliced-clean-int8",
+    "posteriors": true,
+    "finalise": false
+   },
+   "tally": {
+    "sessions": 129,
+    "minutes": 742.5606666666664,
+    "warnings": 200,
+    "atEnd": 0,
+    "tail": 8,
+    "mid": 192,
+    "missing": 0
+   },
+   "detail": [
+    {
+     "id": "tlog-contiguous-000",
+     "audioS": 560.4,
+     "warnings": [
+      {
+       "timeMs": 202560,
+       "ayah": "2:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 389800,
+       "ayah": "2:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 451120,
+       "ayah": "2:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-001",
+     "audioS": 549.4,
+     "warnings": [
+      {
+       "timeMs": 74000,
+       "ayah": "2:50",
+       "atEnd": false
+      },
+      {
+       "timeMs": 170440,
+       "ayah": "2:61",
+       "atEnd": false
+      },
+      {
+       "timeMs": 278760,
+       "ayah": "2:72",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-002",
+     "audioS": 555.6,
+     "warnings": [
+      {
+       "timeMs": 539280,
+       "ayah": "2:133",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-003",
+     "audioS": 540.6,
+     "warnings": [
+      {
+       "timeMs": 527320,
+       "ayah": "2:184",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-004",
+     "audioS": 607.6,
+     "warnings": [
+      {
+       "timeMs": 42040,
+       "ayah": "2:186",
+       "atEnd": false
+      },
+      {
+       "timeMs": 121560,
+       "ayah": "2:193",
+       "atEnd": false
+      },
+      {
+       "timeMs": 295960,
+       "ayah": "2:207",
+       "atEnd": false
+      },
+      {
+       "timeMs": 312080,
+       "ayah": "2:210",
+       "atEnd": false
+      },
+      {
+       "timeMs": 344160,
+       "ayah": "2:213",
+       "atEnd": false
+      },
+      {
+       "timeMs": 483480,
+       "ayah": "2:225",
+       "atEnd": false
+      },
+      {
+       "timeMs": 506520,
+       "ayah": "2:228",
+       "atEnd": false
+      },
+      {
+       "timeMs": 534640,
+       "ayah": "2:228",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-005",
+     "audioS": 334.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-006",
+     "audioS": 449.4,
+     "warnings": [
+      {
+       "timeMs": 239160,
+       "ayah": "3:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-007",
+     "audioS": 304.2,
+     "warnings": [
+      {
+       "timeMs": 155400,
+       "ayah": "3:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 145280,
+       "ayah": "3:45",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-008",
+     "audioS": 498.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-009",
+     "audioS": 502.2,
+     "warnings": [
+      {
+       "timeMs": 74280,
+       "ayah": "3:129",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-010",
+     "audioS": 515,
+     "warnings": [
+      {
+       "timeMs": 54160,
+       "ayah": "3:188",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-011",
+     "audioS": 271,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-012",
+     "audioS": 449.1,
+     "warnings": [
+      {
+       "timeMs": 417800,
+       "ayah": "4:112",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-013",
+     "audioS": 476.8,
+     "warnings": [
+      {
+       "timeMs": 275440,
+       "ayah": "4:151",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-014",
+     "audioS": 521.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-015",
+     "audioS": 198.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-016",
+     "audioS": 234,
+     "warnings": [
+      {
+       "timeMs": 54280,
+       "ayah": "5:113",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-017",
+     "audioS": 269.7,
+     "warnings": [
+      {
+       "timeMs": 95360,
+       "ayah": "6:33",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-018",
+     "audioS": 391.6,
+     "warnings": [
+      {
+       "timeMs": 99120,
+       "ayah": "6:84",
+       "atEnd": false
+      },
+      {
+       "timeMs": 146080,
+       "ayah": "6:90",
+       "atEnd": false
+      },
+      {
+       "timeMs": 258560,
+       "ayah": "6:102",
+       "atEnd": false
+      },
+      {
+       "timeMs": 258560,
+       "ayah": "6:102",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-019",
+     "audioS": 563.8,
+     "warnings": [
+      {
+       "timeMs": 367760,
+       "ayah": "7:35",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-020",
+     "audioS": 212.8,
+     "warnings": [
+      {
+       "timeMs": 57200,
+       "ayah": "7:146",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-021",
+     "audioS": 421.8,
+     "warnings": [
+      {
+       "timeMs": 268800,
+       "ayah": "8:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 278760,
+       "ayah": "8:29",
+       "atEnd": false
+      },
+      {
+       "timeMs": 380960,
+       "ayah": "8:44",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-022",
+     "audioS": 244.9,
+     "warnings": [
+      {
+       "timeMs": 41080,
+       "ayah": "9:59",
+       "atEnd": false
+      },
+      {
+       "timeMs": 196680,
+       "ayah": "9:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 193440,
+       "ayah": "9:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 193440,
+       "ayah": "9:80",
+       "atEnd": false
+      },
+      {
+       "timeMs": 196680,
+       "ayah": "9:80",
+       "atEnd": false
+      },
+      {
+       "timeMs": 210640,
+       "ayah": "9:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 199680,
+       "ayah": "9:82",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-023",
+     "audioS": 268.8,
+     "warnings": [
+      {
+       "timeMs": 179320,
+       "ayah": "9:106",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-024",
+     "audioS": 298.6,
+     "warnings": [
+      {
+       "timeMs": 196560,
+       "ayah": "10:31",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-025",
+     "audioS": 293.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-026",
+     "audioS": 331.5,
+     "warnings": [
+      {
+       "timeMs": 82200,
+       "ayah": "12:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 133280,
+       "ayah": "12:11",
+       "atEnd": false
+      },
+      {
+       "timeMs": 181080,
+       "ayah": "12:15",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-027",
+     "audioS": 234,
+     "warnings": [
+      {
+       "timeMs": 176520,
+       "ayah": "13:5",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-028",
+     "audioS": 353.6,
+     "warnings": [
+      {
+       "timeMs": 191480,
+       "ayah": "13:34",
+       "atEnd": false
+      },
+      {
+       "timeMs": 238760,
+       "ayah": "13:37",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-029",
+     "audioS": 556.2,
+     "warnings": [
+      {
+       "timeMs": 159480,
+       "ayah": "14:24",
+       "atEnd": false
+      },
+      {
+       "timeMs": 214680,
+       "ayah": "14:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 270560,
+       "ayah": "14:36",
+       "atEnd": false
+      },
+      {
+       "timeMs": 347200,
+       "ayah": "14:41",
+       "atEnd": false
+      },
+      {
+       "timeMs": 360120,
+       "ayah": "14:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 528560,
+       "ayah": "15:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-030",
+     "audioS": 213.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-031",
+     "audioS": 215.8,
+     "warnings": [
+      {
+       "timeMs": 118400,
+       "ayah": "16:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-032",
+     "audioS": 197.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-033",
+     "audioS": 353.9,
+     "warnings": [
+      {
+       "timeMs": 271920,
+       "ayah": "17:16",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-034",
+     "audioS": 526.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-035",
+     "audioS": 418.4,
+     "warnings": [
+      {
+       "timeMs": 51280,
+       "ayah": "18:45",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-036",
+     "audioS": 447.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-037",
+     "audioS": 325.5,
+     "warnings": [
+      {
+       "timeMs": 80120,
+       "ayah": "19:27",
+       "atEnd": false
+      },
+      {
+       "timeMs": 277800,
+       "ayah": "19:48",
+       "atEnd": false
+      },
+      {
+       "timeMs": 310120,
+       "ayah": "19:50",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-038",
+     "audioS": 349.5,
+     "warnings": [
+      {
+       "timeMs": 30040,
+       "ayah": "19:55",
+       "atEnd": false
+      },
+      {
+       "timeMs": 300000,
+       "ayah": "19:89",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-039",
+     "audioS": 570.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-040",
+     "audioS": 342.7,
+     "warnings": [
+      {
+       "timeMs": 130280,
+       "ayah": "20:130",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-041",
+     "audioS": 456.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-042",
+     "audioS": 260,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-043",
+     "audioS": 258.8,
+     "warnings": [
+      {
+       "timeMs": 33120,
+       "ayah": "23:95",
+       "atEnd": false
+      },
+      {
+       "timeMs": 233800,
+       "ayah": "23:118",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-044",
+     "audioS": 211.4,
+     "warnings": [
+      {
+       "timeMs": 146400,
+       "ayah": "24:21",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-045",
+     "audioS": 256.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-046",
+     "audioS": 242.3,
+     "warnings": [
+      {
+       "timeMs": 48080,
+       "ayah": "25:57",
+       "atEnd": false
+      },
+      {
+       "timeMs": 67120,
+       "ayah": "25:57",
+       "atEnd": false
+      },
+      {
+       "timeMs": 178400,
+       "ayah": "25:67",
+       "atEnd": false
+      },
+      {
+       "timeMs": 225560,
+       "ayah": "25:73",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-047",
+     "audioS": 440.4,
+     "warnings": [
+      {
+       "timeMs": 231760,
+       "ayah": "27:23",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-048",
+     "audioS": 191,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-049",
+     "audioS": 541.4,
+     "warnings": [
+      {
+       "timeMs": 107320,
+       "ayah": "28:79",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-050",
+     "audioS": 319.1,
+     "warnings": [
+      {
+       "timeMs": 102320,
+       "ayah": "29:63",
+       "atEnd": false
+      },
+      {
+       "timeMs": 267800,
+       "ayah": "30:18",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-051",
+     "audioS": 600.7,
+     "warnings": [
+      {
+       "timeMs": 73080,
+       "ayah": "31:1",
+       "atEnd": false
+      },
+      {
+       "timeMs": 76440,
+       "ayah": "31:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 144280,
+       "ayah": "31:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 186080,
+       "ayah": "31:13",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-052",
+     "audioS": 602.2,
+     "warnings": [
+      {
+       "timeMs": 77200,
+       "ayah": "33:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 524000,
+       "ayah": "33:67",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-053",
+     "audioS": 305.2,
+     "warnings": [
+      {
+       "timeMs": 265720,
+       "ayah": "35:12",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-054",
+     "audioS": 541.2,
+     "warnings": [
+      {
+       "timeMs": 153360,
+       "ayah": "36:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 248600,
+       "ayah": "36:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 296800,
+       "ayah": "36:44",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-055",
+     "audioS": 213.9,
+     "warnings": [
+      {
+       "timeMs": 129480,
+       "ayah": "38:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 188880,
+       "ayah": "38:22",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-056",
+     "audioS": 515.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-057",
+     "audioS": 290.8,
+     "warnings": [
+      {
+       "timeMs": 69200,
+       "ayah": "40:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-058",
+     "audioS": 291.6,
+     "warnings": [
+      {
+       "timeMs": 123360,
+       "ayah": "41:35",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-059",
+     "audioS": 358.6,
+     "warnings": [
+      {
+       "timeMs": 66040,
+       "ayah": "42:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 165120,
+       "ayah": "42:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 174920,
+       "ayah": "42:15",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-060",
+     "audioS": 609.4,
+     "warnings": [
+      {
+       "timeMs": 208680,
+       "ayah": "43:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 258080,
+       "ayah": "43:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 296400,
+       "ayah": "43:51",
+       "atEnd": false
+      },
+      {
+       "timeMs": 608560,
+       "ayah": "43:88",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-061",
+     "audioS": 275.6,
+     "warnings": [
+      {
+       "timeMs": 18920,
+       "ayah": "44:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-062",
+     "audioS": 189.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-063",
+     "audioS": 265.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-064",
+     "audioS": 330,
+     "warnings": [
+      {
+       "timeMs": 79360,
+       "ayah": "48:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 217880,
+       "ayah": "48:20",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-065",
+     "audioS": 331.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-066",
+     "audioS": 239.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-067",
+     "audioS": 232.8,
+     "warnings": [
+      {
+       "timeMs": 16080,
+       "ayah": "51:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-068",
+     "audioS": 520,
+     "warnings": [
+      {
+       "timeMs": 280760,
+       "ayah": "53:37",
+       "atEnd": false
+      },
+      {
+       "timeMs": 311800,
+       "ayah": "53:43",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-069",
+     "audioS": 349.8,
+     "warnings": [
+      {
+       "timeMs": 169320,
+       "ayah": "55:9",
+       "atEnd": false
+      },
+      {
+       "timeMs": 306680,
+       "ayah": "55:39",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-070",
+     "audioS": 218.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-071",
+     "audioS": 480,
+     "warnings": [
+      {
+       "timeMs": 303640,
+       "ayah": "57:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-072",
+     "audioS": 283.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-073",
+     "audioS": 218.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-074",
+     "audioS": 470.4,
+     "warnings": [
+      {
+       "timeMs": 456240,
+       "ayah": "64:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-075",
+     "audioS": 563.2,
+     "warnings": [
+      {
+       "timeMs": 211440,
+       "ayah": "66:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 248640,
+       "ayah": "66:8",
+       "atEnd": false
+      },
+      {
+       "timeMs": 304040,
+       "ayah": "67:1",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-076",
+     "audioS": 579.6,
+     "warnings": [
+      {
+       "timeMs": 45920,
+       "ayah": "68:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 95320,
+       "ayah": "68:29",
+       "atEnd": false
+      },
+      {
+       "timeMs": 116320,
+       "ayah": "68:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 437000,
+       "ayah": "69:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 470120,
+       "ayah": "69:33",
+       "atEnd": false
+      },
+      {
+       "timeMs": 501080,
+       "ayah": "69:40",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-077",
+     "audioS": 337.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-contiguous-078",
+     "audioS": 356,
+     "warnings": [
+      {
+       "timeMs": 138320,
+       "ayah": "73:10",
+       "atEnd": false
+      },
+      {
+       "timeMs": 248400,
+       "ayah": "73:20",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-079",
+     "audioS": 613,
+     "warnings": [
+      {
+       "timeMs": 26000,
+       "ayah": "75:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 44000,
+       "ayah": "75:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 46120,
+       "ayah": "75:9",
+       "atEnd": false
+      },
+      {
+       "timeMs": 156320,
+       "ayah": "75:33",
+       "atEnd": false
+      },
+      {
+       "timeMs": 568480,
+       "ayah": "77:28",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-080",
+     "audioS": 686.3,
+     "warnings": [
+      {
+       "timeMs": 159400,
+       "ayah": "78:35",
+       "atEnd": false
+      },
+      {
+       "timeMs": 486280,
+       "ayah": "80:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 497000,
+       "ayah": "80:24",
+       "atEnd": false
+      },
+      {
+       "timeMs": 553480,
+       "ayah": "80:35",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-081",
+     "audioS": 664.3,
+     "warnings": [
+      {
+       "timeMs": 226600,
+       "ayah": "83:16",
+       "atEnd": false
+      },
+      {
+       "timeMs": 422160,
+       "ayah": "84:22",
+       "atEnd": false
+      },
+      {
+       "timeMs": 519200,
+       "ayah": "85:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 549120,
+       "ayah": "85:21",
+       "atEnd": false
+      },
+      {
+       "timeMs": 583200,
+       "ayah": "86:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-082",
+     "audioS": 671.6,
+     "warnings": [
+      {
+       "timeMs": 407760,
+       "ayah": "90:13",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-contiguous-083",
+     "audioS": 701.7,
+     "warnings": [
+      {
+       "timeMs": 94240,
+       "ayah": "96:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 561240,
+       "ayah": "109:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 592280,
+       "ayah": "110:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 656520,
+       "ayah": "113:2",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-hard-084",
+     "audioS": 175.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-hard-085",
+     "audioS": 201.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-086",
+     "audioS": 196.7,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-087",
+     "audioS": 222.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-088",
+     "audioS": 224.8,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-089",
+     "audioS": 250.2,
+     "warnings": [
+      {
+       "timeMs": 10040,
+       "ayah": "74:40",
+       "atEnd": false
+      },
+      {
+       "timeMs": 25960,
+       "ayah": "74:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 66080,
+       "ayah": "74:50",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-090",
+     "audioS": 296.8,
+     "warnings": [
+      {
+       "timeMs": 73000,
+       "ayah": "9:6",
+       "atEnd": false
+      },
+      {
+       "timeMs": 185400,
+       "ayah": "7:124",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-091",
+     "audioS": 287.9,
+     "warnings": [
+      {
+       "timeMs": 37960,
+       "ayah": "50:19",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-092",
+     "audioS": 238.8,
+     "warnings": [
+      {
+       "timeMs": 216680,
+       "ayah": "23:38",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-093",
+     "audioS": 322.8,
+     "warnings": [
+      {
+       "timeMs": 144520,
+       "ayah": "40:82",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-094",
+     "audioS": 280.3,
+     "warnings": [
+      {
+       "timeMs": 142320,
+       "ayah": "9:17",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-095",
+     "audioS": 219,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-096",
+     "audioS": 313.3,
+     "warnings": [
+      {
+       "timeMs": 253880,
+       "ayah": "25:27",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-097",
+     "audioS": 354.9,
+     "warnings": [
+      {
+       "timeMs": 60080,
+       "ayah": "5:91",
+       "atEnd": false
+      },
+      {
+       "timeMs": 224440,
+       "ayah": "28:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 233440,
+       "ayah": "28:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 293200,
+       "ayah": "28:35",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-098",
+     "audioS": 205,
+     "warnings": [
+      {
+       "timeMs": 65160,
+       "ayah": "21:70",
+       "atEnd": false
+      },
+      {
+       "timeMs": 150400,
+       "ayah": "21:79",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-099",
+     "audioS": 264.8,
+     "warnings": [
+      {
+       "timeMs": 95200,
+       "ayah": "70:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 127200,
+       "ayah": "37:85",
+       "atEnd": false
+      },
+      {
+       "timeMs": 127200,
+       "ayah": "37:85",
+       "atEnd": false
+      },
+      {
+       "timeMs": 127200,
+       "ayah": "37:86",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-100",
+     "audioS": 236.1,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-101",
+     "audioS": 220.6,
+     "warnings": [
+      {
+       "timeMs": 53920,
+       "ayah": "11:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 84040,
+       "ayah": "42:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 170240,
+       "ayah": "42:52",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-102",
+     "audioS": 219.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-103",
+     "audioS": 199.5,
+     "warnings": [
+      {
+       "timeMs": 154200,
+       "ayah": "27:63",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-104",
+     "audioS": 273.9,
+     "warnings": [
+      {
+       "timeMs": 177320,
+       "ayah": "12:42",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-105",
+     "audioS": 213.8,
+     "warnings": [
+      {
+       "timeMs": 78160,
+       "ayah": "30:30",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-106",
+     "audioS": 203.5,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-107",
+     "audioS": 240.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-108",
+     "audioS": 264,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-109",
+     "audioS": 296.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-110",
+     "audioS": 198.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-111",
+     "audioS": 234.9,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-112",
+     "audioS": 281.2,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-113",
+     "audioS": 282.2,
+     "warnings": [
+      {
+       "timeMs": 26800,
+       "ayah": "33:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 120320,
+       "ayah": "33:13",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-114",
+     "audioS": 218,
+     "warnings": [
+      {
+       "timeMs": 140480,
+       "ayah": "10:81",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-115",
+     "audioS": 201.6,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-116",
+     "audioS": 273.5,
+     "warnings": [
+      {
+       "timeMs": 39120,
+       "ayah": "25:45",
+       "atEnd": false
+      },
+      {
+       "timeMs": 220520,
+       "ayah": "39:6",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-117",
+     "audioS": 259.4,
+     "warnings": []
+    },
+    {
+     "id": "tlog-jump-118",
+     "audioS": 216.6,
+     "warnings": [
+      {
+       "timeMs": 96160,
+       "ayah": "8:58",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-119",
+     "audioS": 244.2,
+     "warnings": [
+      {
+       "timeMs": 168360,
+       "ayah": "9:40",
+       "atEnd": false
+      },
+      {
+       "timeMs": 204400,
+       "ayah": "9:46",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "tlog-jump-120",
+     "audioS": 249.4,
+     "warnings": [
+      {
+       "timeMs": 129520,
+       "ayah": "47:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 158440,
+       "ayah": "47:10",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-121",
+     "audioS": 460.8,
+     "warnings": [
+      {
+       "timeMs": 165680,
+       "ayah": "11:82",
+       "atEnd": false
+      },
+      {
+       "timeMs": 267160,
+       "ayah": "21:49",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-122",
+     "audioS": 178.3,
+     "warnings": [
+      {
+       "timeMs": 12400,
+       "ayah": "101:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 89040,
+       "ayah": "18:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 92200,
+       "ayah": "18:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 102160,
+       "ayah": "78:16",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-123",
+     "audioS": 168.8,
+     "warnings": [
+      {
+       "timeMs": 79280,
+       "ayah": "83:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 91280,
+       "ayah": "86:2",
+       "atEnd": false
+      },
+      {
+       "timeMs": 87240,
+       "ayah": "86:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 88160,
+       "ayah": "86:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 118360,
+       "ayah": "79:36",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-124",
+     "audioS": 207.4,
+     "warnings": []
+    },
+    {
+     "id": "help-help-125",
+     "audioS": 368.9,
+     "warnings": [
+      {
+       "timeMs": 28000,
+       "ayah": "22:72",
+       "atEnd": false
+      },
+      {
+       "timeMs": 207520,
+       "ayah": "102:7",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-126",
+     "audioS": 564.2,
+     "warnings": [
+      {
+       "timeMs": 182640,
+       "ayah": "78:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 235960,
+       "ayah": "2:64",
+       "atEnd": false
+      },
+      {
+       "timeMs": 305400,
+       "ayah": "7:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 372440,
+       "ayah": "67:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 375400,
+       "ayah": "67:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 385400,
+       "ayah": "56:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 421760,
+       "ayah": "13:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 437680,
+       "ayah": "85:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 502000,
+       "ayah": "50:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 535680,
+       "ayah": "30:3",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-127",
+     "audioS": 313.8,
+     "warnings": [
+      {
+       "timeMs": 195840,
+       "ayah": "56:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 195840,
+       "ayah": "56:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 200920,
+       "ayah": "56:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 298280,
+       "ayah": "29:60",
+       "atEnd": false
+      },
+      {
+       "timeMs": 299240,
+       "ayah": "29:60",
+       "atEnd": false
+      }
+     ]
+    },
+    {
+     "id": "help-help-128",
+     "audioS": 154.6,
+     "warnings": []
+    }
+   ]
+  }
+ ]
+}

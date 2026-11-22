@@ -1,0 +1,166 @@
+{
+ "testSet": "lab-v1.2",
+ "models": {
+  "nemotron": {
+   "id": "nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B",
+   "revision": "9d8cd6b79bfdd427b6558a5fdbf76fcaf8c75341",
+   "device": "NVIDIA H100 80GB HBM3",
+   "prompt": "Audio transcription. Language: Arabic. Wording: verbatim, including fillers and repetitions. Formatting: punctuation and capitalization. Output: transcript only.",
+   "margin": 2.0,
+   "reading": "LM log-likelihood of the text as the reply to the transcription request, plain spellings (core.plain_candidates against its own label-blind transcript), best spelling per text",
+   "transcriptsReused": 0,
+   "transcriptsNew": 1678
+  },
+  "fastconformer": {
+   "id": "nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0",
+   "revision": "7f32349d952f42a28dce979ba73270aa2bbdfa89",
+   "device": "Tesla T4",
+   "margin": 2.0,
+   "reading": "CTC forced-alignment log-likelihood, diacritised spellings (core.diacritised_candidates against its own label-blind CTC greedy text and RNNT transcript), best spelling per text"
+  }
+ },
+ "counts": {
+  "cases": 1664,
+  "outcomes": {
+   "disagree": 53,
+   "auto-accepted": 1585,
+   "unsure": 16,
+   "both-mismatch": 10
+  },
+  "byClass": {
+   "added_word": {
+    "n": 170,
+    "auto-accepted": 117,
+    "both-mismatch": 9,
+    "disagree": 33,
+    "unsure": 11
+   },
+   "clean": {
+    "n": 1273,
+    "auto-accepted": 1267,
+    "both-mismatch": 0,
+    "disagree": 4,
+    "unsure": 2
+   },
+   "mutashabihat": {
+    "n": 25,
+    "auto-accepted": 24,
+    "both-mismatch": 0,
+    "disagree": 1,
+    "unsure": 0
+   },
+   "omitted_word": {
+    "n": 30,
+    "auto-accepted": 30,
+    "both-mismatch": 0,
+    "disagree": 0,
+    "unsure": 0
+   },
+   "repeat": {
+    "n": 23,
+    "auto-accepted": 15,
+    "both-mismatch": 0,
+    "disagree": 6,
+    "unsure": 2
+   },
+   "restart": {
+    "n": 17,
+    "auto-accepted": 8,
+    "both-mismatch": 1,
+    "disagree": 8,
+    "unsure": 0
+   },
+   "skipped_passage": {
+    "n": 81,
+    "auto-accepted": 81,
+    "both-mismatch": 0,
+    "disagree": 0,
+    "unsure": 0
+   },
+   "wrong_word": {
+    "n": 45,
+    "auto-accepted": 43,
+    "both-mismatch": 0,
+    "disagree": 1,
+    "unsure": 1
+   }
+  },
+  "byGroup": {
+   "repeat": {
+    "n": 40,
+    "auto-accepted": 23,
+    "both-mismatch": 1,
+    "disagree": 14,
+    "unsure": 2
+   },
+   "clean": {
+    "n": 1273,
+    "auto-accepted": 1267,
+    "both-mismatch": 0,
+    "disagree": 4,
+    "unsure": 2
+   },
+   "edit": {
+    "n": 351,
+    "auto-accepted": 295,
+    "both-mismatch": 9,
+    "disagree": 35,
+    "unsure": 12
+   }
+  },
+  "perModel": {
+   "nemotron": {
+    "match": 1634,
+    "unsure": 8,
+    "mismatch": 22
+   },
+   "fastconformer": {
+    "mismatch": 54,
+    "match": 1601,
+    "unsure": 9
+   }
+  },
+  "queue": {
+   "items": 128,
+   "byFirstReason": {
+    "both-mismatch": 10,
+    "disagree": 53,
+    "unsure": 16,
+    "seam": 19,
+    "spot": 30
+   },
+   "byAnyReason": {
+    "both-mismatch": 10,
+    "disagree": 53,
+    "unsure": 16,
+    "seam": 20,
+    "spot": 30
+   },
+   "carriedOver": 0,
+   "maxBad": 3
+  }
+ },
+ "reviewed": {
+  "n": 0,
+  "ok": 0,
+  "outcomesOnOk": {},
+  "falseAlarms": [],
+  "items": {}
+ },
+ "carriedFromPrior": {},
+ "gpu": {
+  "nemotronTranscribeS": 2149.1,
+  "nemotronScoreS": 732.1,
+  "fastconformerS": 155.7,
+  "containers": {
+   "nemotron": 4,
+   "fastconformer": 1
+  },
+  "loadS": {
+   "nemotron": 164.3,
+   "fastconformer": 8.5
+  },
+  "wallS": 904.5
+ },
+ "queue": "lab-v1.2/review/triage.json"
+}

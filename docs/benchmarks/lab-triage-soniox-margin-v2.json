@@ -1,0 +1,1516 @@
+{
+ "version": 1,
+ "kind": "judge-margin",
+ "createdAt": "2026-10-29T19:30:53+00:00",
+ "vendor": "soniox",
+ "rules": [
+  "half",
+  "reach"
+ ],
+ "calibration": {
+  "set": {
+   "items": 147,
+   "ok": 137,
+   "bad": 10,
+   "dropped": 0,
+   "badItems": [
+    "lab-v1.1-e01-x3",
+    "lab-v1.1-p03-x1",
+    "lab-v1.1-p19-x11",
+    "lab-v1.2-e03-x3",
+    "lab-v1.2-e07-x9",
+    "lab-v1.2-e16-x17",
+    "lab-v1.2-p01-x12",
+    "lab-v1.2-p05-x3",
+    "lab-v1.2-p09-x12",
+    "lab-v1.2-p15-x1"
+   ]
+  },
+  "stats": {
+   "half": {
+    "readings": {
+     "judge": {
+      "agreement": {
+       "k": 125,
+       "n": 137,
+       "rate": 0.9124,
+       "ci95": [
+        0.8531,
+        0.9492
+       ]
+      },
+      "okDecisions": {
+       "match": 125,
+       "unsure": 11,
+       "mismatch": 1
+      },
+      "badFlagged": {
+       "k": 1,
+       "n": 10,
+       "rate": 0.1,
+       "ci95": [
+        0.0179,
+        0.4042
+       ]
+      },
+      "badMismatch": {
+       "k": 0,
+       "n": 10,
+       "rate": 0.0,
+       "ci95": [
+        0.0,
+        0.2775
+       ]
+      },
+      "badDecisions": {
+       "lab-v1.1-e01-x3": "match",
+       "lab-v1.1-p03-x1": "match",
+       "lab-v1.1-p19-x11": "unsure",
+       "lab-v1.2-e16-x17": "match",
+       "lab-v1.2-p01-x12": "match",
+       "lab-v1.2-e03-x3": "match",
+       "lab-v1.2-e07-x9": "match",
+       "lab-v1.2-p05-x3": "match",
+       "lab-v1.2-p09-x12": "match",
+       "lab-v1.2-p15-x1": "match"
+      },
+      "okRejected": [
+       "lab-v1.1-e10-x9",
+       "lab-v1.1-e11-x11",
+       "lab-v1.1-e16-x4",
+       "lab-v1.1-e19-x9",
+       "lab-v1.1-p13-x12",
+       "lab-v1.1-p14-x2",
+       "lab-v1.2-e02-x3",
+       "lab-v1.2-e15-x16",
+       "lab-v1.2-e19-x12",
+       "lab-v1.2-p14-x3",
+       "lab-v1.2-p15-x2",
+       "lab-v1.2-p19-x10"
+      ]
+     },
+     "opinion": {
+      "agreement": {
+       "k": 109,
+       "n": 137,
+       "rate": 0.7956,
+       "ci95": [
+        0.7205,
+        0.8546
+       ]
+      },
+      "okDecisions": {
+       "match": 109,
+       "unsure": 22,
+       "mismatch": 6
+      },
+      "badFlagged": {
+       "k": 2,
+       "n": 10,
+       "rate": 0.2,
+       "ci95": [
+        0.0567,
+        0.5098
+       ]
+      },
+      "badMismatch": {
+       "k": 1,
+       "n": 10,
+       "rate": 0.1,
+       "ci95": [
+        0.0179,
+        0.4042
+       ]
+      },
+      "badDecisions": {
+       "lab-v1.1-e01-x3": "match",
+       "lab-v1.1-p03-x1": "match",
+       "lab-v1.1-p19-x11": "mismatch",
+       "lab-v1.2-e16-x17": "match",
+       "lab-v1.2-p01-x12": "match",
+       "lab-v1.2-e03-x3": "unsure",
+       "lab-v1.2-e07-x9": "match",
+       "lab-v1.2-p05-x3": "match",
+       "lab-v1.2-p09-x12": "match",
+       "lab-v1.2-p15-x1": "match"
+      },
+      "okRejected": [
+       "lab-v1.1-e07-phone-293",
+       "lab-v1.1-e10-studio-5",
+       "lab-v1.1-e16-x4",
+       "lab-v1.1-p01-x4",
+       "lab-v1.1-p15-x8",
+       "lab-v1.2-e02-x3",
+       "lab-v1.2-e02-x4",
+       "lab-v1.2-e04-x1",
+       "lab-v1.2-e07-x4",
+       "lab-v1.2-e07-x8",
+       "lab-v1.2-e09-x1",
+       "lab-v1.2-e09-x4",
+       "lab-v1.2-e09-x8",
+       "lab-v1.2-e10-x2",
+       "lab-v1.2-e12-x2",
+       "lab-v1.2-e12-x3",
+       "lab-v1.2-e12-x6",
+       "lab-v1.2-e12-x7",
+       "lab-v1.2-e13-x3",
+       "lab-v1.2-e15-x12",
+       "lab-v1.2-e15-x19",
+       "lab-v1.2-e19-clean-23-1",
+       "lab-v1.2-p09-clean-7-2",
+       "lab-v1.2-p12-x6",
+       "lab-v1.2-p15-x2",
+       "lab-v1.2-p15-x3",
+       "lab-v1.2-p19-x10",
+       "lab-v1.2-p19-x14"
+      ]
+     },
+     "opinionRasm": {
+      "agreement": {
+       "k": 115,
+       "n": 137,
+       "rate": 0.8394,
+       "ci95": [
+        0.7688,
+        0.8915
+       ]
+      },
+      "okDecisions": {
+       "match": 115,
+       "unsure": 20,
+       "mismatch": 2
+      },
+      "badFlagged": {
+       "k": 3,
+       "n": 10,
+       "rate": 0.3,
+       "ci95": [
+        0.1078,
+        0.6032
+       ]
+      },
+      "badMismatch": {
+       "k": 1,
+       "n": 10,
+       "rate": 0.1,
+       "ci95": [
+        0.0179,
+        0.4042
+       ]
+      },
+      "badDecisions": {
+       "lab-v1.1-e01-x3": "match",
+       "lab-v1.1-p03-x1": "match",
+       "lab-v1.1-p19-x11": "mismatch",
+       "lab-v1.2-e16-x17": "match",
+       "lab-v1.2-p01-x12": "match",
+       "lab-v1.2-e03-x3": "unsure",
+       "lab-v1.2-e07-x9": "match",
+       "lab-v1.2-p05-x3": "match",
+       "lab-v1.2-p09-x12": "unsure",
+       "lab-v1.2-p15-x1": "match"
+      },
+      "okRejected": [
+       "lab-v1.1-e07-phone-293",
+       "lab-v1.1-e10-studio-5",
+       "lab-v1.1-e16-x4",
+       "lab-v1.1-p01-x4",
+       "lab-v1.1-p10-x6",
+       "lab-v1.1-p15-x8",
+       "lab-v1.2-e02-x3",
+       "lab-v1.2-e02-x4",
+       "lab-v1.2-e04-x1",
+       "lab-v1.2-e07-x4",
+       "lab-v1.2-e09-x5",
+       "lab-v1.2-e12-x2",
+       "lab-v1.2-e12-x3",
+       "lab-v1.2-e12-x7",
+       "lab-v1.2-e15-x12",
+       "lab-v1.2-e15-x19",
+       "lab-v1.2-e19-clean-23-1",
+       "lab-v1.2-p09-clean-7-2",
+       "lab-v1.2-p12-x6",
+       "lab-v1.2-p15-x2",
+       "lab-v1.2-p19-x10",
+       "lab-v1.2-p19-x14"
+      ]
+     }
+    },
+    "revertControls": {
+     "note": "every edited window you heard as ok, with the edit undone in the text (the audio has it): flagged = not accepted",
+     "opinion": {
+      "k": 115,
+      "n": 116,
+      "rate": 0.9914,
+      "ci95": [
+       0.9528,
+       0.9985
+      ]
+     },
+     "judge": {
+      "k": 115,
+      "n": 116,
+      "rate": 0.9914,
+      "ci95": [
+       0.9528,
+       0.9985
+      ]
+     },
+     "repeatsAndRestarts": 23,
+     "repeatMisses": {
+      "opinion": [
+       "lab-v1.2-e02-x3"
+      ],
+      "judge": [
+       "lab-v1.2-e02-x3"
+      ]
+     }
+    },
+    "controls": {
+     "judge": {
+      "oneEdit": {
+       "k": 40,
+       "n": 40,
+       "rate": 1.0,
+       "ci95": [
+        0.9124,
+        1.0
+       ]
+      },
+      "oneWord": {
+       "k": 31,
+       "n": 31,
+       "rate": 1.0,
+       "ci95": [
+        0.8897,
+        1.0
+       ]
+      },
+      "shifted": {
+       "k": 40,
+       "n": 40,
+       "rate": 1.0,
+       "ci95": [
+        0.9124,
+        1.0
+       ]
+      },
+      "oneEditMisses": [],
+      "repeatMisses": [],
+      "agreement": {
+       "k": 35,
+       "n": 40,
+       "rate": 0.875,
+       "ci95": [
+        0.7389,
+        0.9454
+       ]
+      }
+     },
+     "opinion": {
+      "oneEdit": {
+       "k": 40,
+       "n": 40,
+       "rate": 1.0,
+       "ci95": [
+        0.9124,
+        1.0
+       ]
+      },
+      "oneWord": {
+       "k": 31,
+       "n": 31,
+       "rate": 1.0,
+       "ci95": [
+        0.8897,
+        1.0
+       ]
+      },
+      "shifted": {
+       "k": 40,
+       "n": 40,
+       "rate": 1.0,
+       "ci95": [
+        0.9124,
+        1.0
+       ]
+      },
+      "oneEditMisses": [],
+      "repeatMisses": [],
+      "agreement": {
+       "k": 37,
+       "n": 40,
+       "rate": 0.925,
+       "ci95": [
+        0.8014,
+        0.9742
+       ]
+      }
+     }
+    },
+    "pairing": {
+     "judge": {
+      "okAccepted": {
+       "k": 96,
+       "n": 137,
+       "rate": 0.7007,
+       "ci95": [
+        0.6194,
+        0.7711
+       ]
+      },
+      "badAccepted": [
+       "lab-v1.2-p15-x1"
+      ],
+      "badAcceptedRate": {
+       "k": 1,
+       "n": 10,
+       "rate": 0.1,
+       "ci95": [
+        0.0179,
+        0.4042
+       ]
+      },
+      "queued": 50,
+      "items": 147,
+      "okOutcomes": {
+       "auto-accepted": 96,
+       "unsure": 19,
+       "disagree": 22
+      },
+      "badOutcomes": {
+       "lab-v1.1-e01-x3": "disagree",
+       "lab-v1.1-p03-x1": "disagree",
+       "lab-v1.1-p19-x11": "unsure",
+       "lab-v1.2-e16-x17": "disagree",
+       "lab-v1.2-p01-x12": "disagree",
+       "lab-v1.2-e03-x3": "disagree",
+       "lab-v1.2-e07-x9": "disagree",
+       "lab-v1.2-p05-x3": "unsure",
+       "lab-v1.2-p09-x12": "unsure",
+       "lab-v1.2-p15-x1": "auto-accepted"
+      },
+      "bothMismatchOk": []
+     },
+     "opinion": {
+      "okAccepted": {
+       "k": 88,
+       "n": 137,
+       "rate": 0.6423,
+       "ci95": [
+        0.5592,
+        0.7177
+       ]
+      },
+      "badAccepted": [
+       "lab-v1.2-p15-x1"
+      ],
+      "badAcceptedRate": {
+       "k": 1,
+       "n": 10,
+       "rate": 0.1,
+       "ci95": [
+        0.0179,
+        0.4042
+       ]
+      },
+      "queued": 58,
+      "items": 147,
+      "okOutcomes": {
+       "auto-accepted": 88,
+       "unsure": 30,
+       "disagree": 16,
+       "both-mismatch": 3
+      },
+      "badOutcomes": {
+       "lab-v1.1-e01-x3": "disagree",
+       "lab-v1.1-p03-x1": "disagree",
+       "lab-v1.1-p19-x11": "both-mismatch",
+       "lab-v1.2-e16-x17": "disagree",
+       "lab-v1.2-p01-x12": "disagree",
+       "lab-v1.2-e03-x3": "unsure",
+       "lab-v1.2-e07-x9": "disagree",
+       "lab-v1.2-p05-x3": "unsure",
+       "lab-v1.2-p09-x12": "unsure",
+       "lab-v1.2-p15-x1": "auto-accepted"
+      },
+      "bothMismatchOk": [
+       "lab-v1.1-e16-x4",
+       "lab-v1.2-e04-x1",
+       "lab-v1.2-p19-x14"
+      ]
+     }
+    },
+    "cost": {
+     "items": 147,
+     "errors": [],
+     "audioS": 1225.3,
+     "costUsd": 0.034,
+     "pricePerHour": 0.1,
+     "submitToDoneS": {
+      "median": 1.84,
+      "p90": 23.44,
+      "max": 34.6
+     },
+     "totalS": {
+      "median": 3.6,
+      "p90": 32.93
+     }
+    }
+   },
+   "reach": {
+    "readings": {
+     "judge": {
+      "agreement": {
+       "k": 130,
+       "n": 137,
+       "rate": 0.9489,
+       "ci95": [
+        0.8983,
+        0.975
+       ]
+      },
+      "okDecisions": {
+       "match": 130,
+       "unsure": 6,
+       "mismatch": 1
+      },
+      "badFlagged": {
+       "k": 1,
+       "n": 10,
+       "rate": 0.1,
+       "ci95": [
+        0.0179,
+        0.4042
+       ]
+      },
+      "badMismatch": {
+       "k": 0,
+       "n": 10,
+       "rate": 0.0,
+       "ci95": [
+        0.0,
+        0.2775
+       ]
+      },
+      "badDecisions": {
+       "lab-v1.1-e01-x3": "match",
+       "lab-v1.1-p03-x1": "match",
+       "lab-v1.1-p19-x11": "unsure",
+       "lab-v1.2-e16-x17": "match",
+       "lab-v1.2-p01-x12": "match",
+       "lab-v1.2-e03-x3": "match",
+       "lab-v1.2-e07-x9": "match",
+       "lab-v1.2-p05-x3": "match",
+       "lab-v1.2-p09-x12": "match",
+       "lab-v1.2-p15-x1": "match"
+      },
+      "okRejected": [
+       "lab-v1.1-e11-x11",
+       "lab-v1.1-e16-x4",
+       "lab-v1.1-e19-x9",
+       "lab-v1.2-e02-x3",
+       "lab-v1.2-e19-x12",
+       "lab-v1.2-p14-x3",
+       "lab-v1.2-p19-x10"
+      ]
+     },
+     "opinion": {
+      "agreement": {
+       "k": 109,
+       "n": 137,
+       "rate": 0.7956,
+       "ci95": [
+        0.7205,
+        0.8546
+       ]
+      },
+      "okDecisions": {
+       "match": 109,
+       "unsure": 22,
+       "mismatch": 6
+      },
+      "badFlagged": {
+       "k": 2,
+       "n": 10,
+       "rate": 0.2,
+       "ci95": [
+        0.0567,
+        0.5098
+       ]
+      },
+      "badMismatch": {
+       "k": 1,
+       "n": 10,
+       "rate": 0.1,
+       "ci95": [
+        0.0179,
+        0.4042
+       ]
+      },
+      "badDecisions": {
+       "lab-v1.1-e01-x3": "match",
+       "lab-v1.1-p03-x1": "match",
+       "lab-v1.1-p19-x11": "mismatch",
+       "lab-v1.2-e16-x17": "match",
+       "lab-v1.2-p01-x12": "match",
+       "lab-v1.2-e03-x3": "unsure",
+       "lab-v1.2-e07-x9": "match",
+       "lab-v1.2-p05-x3": "match",
+       "lab-v1.2-p09-x12": "match",
+       "lab-v1.2-p15-x1": "match"
+      },
+      "okRejected": [
+       "lab-v1.1-e07-phone-293",
+       "lab-v1.1-e10-studio-5",
+       "lab-v1.1-e16-x4",
+       "lab-v1.1-p01-x4",
+       "lab-v1.1-p15-x8",
+       "lab-v1.2-e02-x3",
+       "lab-v1.2-e02-x4",
+       "lab-v1.2-e04-x1",
+       "lab-v1.2-e07-x4",
+       "lab-v1.2-e07-x8",
+       "lab-v1.2-e09-x1",
+       "lab-v1.2-e09-x4",
+       "lab-v1.2-e09-x8",
+       "lab-v1.2-e10-x2",
+       "lab-v1.2-e12-x2",
+       "lab-v1.2-e12-x3",
+       "lab-v1.2-e12-x6",
+       "lab-v1.2-e12-x7",
+       "lab-v1.2-e13-x3",
+       "lab-v1.2-e15-x12",
+       "lab-v1.2-e15-x19",
+       "lab-v1.2-e19-clean-23-1",
+       "lab-v1.2-p09-clean-7-2",
+       "lab-v1.2-p12-x6",
+       "lab-v1.2-p15-x2",
+       "lab-v1.2-p15-x3",
+       "lab-v1.2-p19-x10",
+       "lab-v1.2-p19-x14"
+      ]
+     },
+     "opinionRasm": {
+      "agreement": {
+       "k": 115,
+       "n": 137,
+       "rate": 0.8394,
+       "ci95": [
+        0.7688,
+        0.8915
+       ]
+      },
+      "okDecisions": {
+       "match": 115,
+       "unsure": 20,
+       "mismatch": 2
+      },
+      "badFlagged": {
+       "k": 3,
+       "n": 10,
+       "rate": 0.3,
+       "ci95": [
+        0.1078,
+        0.6032
+       ]
+      },
+      "badMismatch": {
+       "k": 1,
+       "n": 10,
+       "rate": 0.1,
+       "ci95": [
+        0.0179,
+        0.4042
+       ]
+      },
+      "badDecisions": {
+       "lab-v1.1-e01-x3": "match",
+       "lab-v1.1-p03-x1": "match",
+       "lab-v1.1-p19-x11": "mismatch",
+       "lab-v1.2-e16-x17": "match",
+       "lab-v1.2-p01-x12": "match",
+       "lab-v1.2-e03-x3": "unsure",
+       "lab-v1.2-e07-x9": "match",
+       "lab-v1.2-p05-x3": "match",
+       "lab-v1.2-p09-x12": "unsure",
+       "lab-v1.2-p15-x1": "match"
+      },
+      "okRejected": [
+       "lab-v1.1-e07-phone-293",
+       "lab-v1.1-e10-studio-5",
+       "lab-v1.1-e16-x4",
+       "lab-v1.1-p01-x4",
+       "lab-v1.1-p10-x6",
+       "lab-v1.1-p15-x8",
+       "lab-v1.2-e02-x3",
+       "lab-v1.2-e02-x4",
+       "lab-v1.2-e04-x1",
+       "lab-v1.2-e07-x4",
+       "lab-v1.2-e09-x5",
+       "lab-v1.2-e12-x2",
+       "lab-v1.2-e12-x3",
+       "lab-v1.2-e12-x7",
+       "lab-v1.2-e15-x12",
+       "lab-v1.2-e15-x19",
+       "lab-v1.2-e19-clean-23-1",
+       "lab-v1.2-p09-clean-7-2",
+       "lab-v1.2-p12-x6",
+       "lab-v1.2-p15-x2",
+       "lab-v1.2-p19-x10",
+       "lab-v1.2-p19-x14"
+      ]
+     }
+    },
+    "revertControls": {
+     "note": "every edited window you heard as ok, with the edit undone in the text (the audio has it): flagged = not accepted",
+     "opinion": {
+      "k": 115,
+      "n": 116,
+      "rate": 0.9914,
+      "ci95": [
+       0.9528,
+       0.9985
+      ]
+     },
+     "judge": {
+      "k": 115,
+      "n": 116,
+      "rate": 0.9914,
+      "ci95": [
+       0.9528,
+       0.9985
+      ]
+     },
+     "repeatsAndRestarts": 23,
+     "repeatMisses": {
+      "opinion": [
+       "lab-v1.2-e02-x3"
+      ],
+      "judge": [
+       "lab-v1.2-e02-x3"
+      ]
+     }
+    },
+    "controls": {
+     "judge": {
+      "oneEdit": {
+       "k": 40,
+       "n": 40,
+       "rate": 1.0,
+       "ci95": [
+        0.9124,
+        1.0
+       ]
+      },
+      "oneWord": {
+       "k": 31,
+       "n": 31,
+       "rate": 1.0,
+       "ci95": [
+        0.8897,
+        1.0
+       ]
+      },
+      "shifted": {
+       "k": 40,
+       "n": 40,
+       "rate": 1.0,
+       "ci95": [
+        0.9124,
+        1.0
+       ]
+      },
+      "oneEditMisses": [],
+      "repeatMisses": [],
+      "agreement": {
+       "k": 38,
+       "n": 40,
+       "rate": 0.95,
+       "ci95": [
+        0.835,
+        0.9862
+       ]
+      }
+     },
+     "opinion": {
+      "oneEdit": {
+       "k": 40,
+       "n": 40,
+       "rate": 1.0,
+       "ci95": [
+        0.9124,
+        1.0
+       ]
+      },
+      "oneWord": {
+       "k": 31,
+       "n": 31,
+       "rate": 1.0,
+       "ci95": [
+        0.8897,
+        1.0
+       ]
+      },
+      "shifted": {
+       "k": 40,
+       "n": 40,
+       "rate": 1.0,
+       "ci95": [
+        0.9124,
+        1.0
+       ]
+      },
+      "oneEditMisses": [],
+      "repeatMisses": [],
+      "agreement": {
+       "k": 37,
+       "n": 40,
+       "rate": 0.925,
+       "ci95": [
+        0.8014,
+        0.9742
+       ]
+      }
+     }
+    },
+    "pairing": {
+     "judge": {
+      "okAccepted": {
+       "k": 101,
+       "n": 137,
+       "rate": 0.7372,
+       "ci95": [
+        0.6578,
+        0.8037
+       ]
+      },
+      "badAccepted": [
+       "lab-v1.2-p15-x1"
+      ],
+      "badAcceptedRate": {
+       "k": 1,
+       "n": 10,
+       "rate": 0.1,
+       "ci95": [
+        0.0179,
+        0.4042
+       ]
+      },
+      "queued": 45,
+      "items": 147,
+      "okOutcomes": {
+       "auto-accepted": 101,
+       "unsure": 14,
+       "disagree": 22
+      },
+      "badOutcomes": {
+       "lab-v1.1-e01-x3": "disagree",
+       "lab-v1.1-p03-x1": "disagree",
+       "lab-v1.1-p19-x11": "unsure",
+       "lab-v1.2-e16-x17": "disagree",
+       "lab-v1.2-p01-x12": "disagree",
+       "lab-v1.2-e03-x3": "disagree",
+       "lab-v1.2-e07-x9": "disagree",
+       "lab-v1.2-p05-x3": "unsure",
+       "lab-v1.2-p09-x12": "unsure",
+       "lab-v1.2-p15-x1": "auto-accepted"
+      },
+      "bothMismatchOk": []
+     },
+     "opinion": {
+      "okAccepted": {
+       "k": 88,
+       "n": 137,
+       "rate": 0.6423,
+       "ci95": [
+        0.5592,
+        0.7177
+       ]
+      },
+      "badAccepted": [
+       "lab-v1.2-p15-x1"
+      ],
+      "badAcceptedRate": {
+       "k": 1,
+       "n": 10,
+       "rate": 0.1,
+       "ci95": [
+        0.0179,
+        0.4042
+       ]
+      },
+      "queued": 58,
+      "items": 147,
+      "okOutcomes": {
+       "auto-accepted": 88,
+       "unsure": 30,
+       "disagree": 16,
+       "both-mismatch": 3
+      },
+      "badOutcomes": {
+       "lab-v1.1-e01-x3": "disagree",
+       "lab-v1.1-p03-x1": "disagree",
+       "lab-v1.1-p19-x11": "both-mismatch",
+       "lab-v1.2-e16-x17": "disagree",
+       "lab-v1.2-p01-x12": "disagree",
+       "lab-v1.2-e03-x3": "unsure",
+       "lab-v1.2-e07-x9": "disagree",
+       "lab-v1.2-p05-x3": "unsure",
+       "lab-v1.2-p09-x12": "unsure",
+       "lab-v1.2-p15-x1": "auto-accepted"
+      },
+      "bothMismatchOk": [
+       "lab-v1.1-e16-x4",
+       "lab-v1.2-e04-x1",
+       "lab-v1.2-p19-x14"
+      ]
+     }
+    },
+    "cost": {
+     "items": 147,
+     "errors": [],
+     "audioS": 1225.3,
+     "costUsd": 0.034,
+     "pricePerHour": 0.1,
+     "submitToDoneS": {
+      "median": 1.84,
+      "p90": 23.44,
+      "max": 34.6
+     },
+     "totalS": {
+      "median": 3.6,
+      "p90": 32.93
+     }
+    }
+   }
+  },
+  "decision": {
+   "adopt": true,
+   "checks": {
+    "safety": true,
+    "controls": true,
+    "gain": true
+   },
+   "newlyAcceptedBad": [],
+   "okAccepted": [
+    96,
+    101
+   ],
+   "badAccepted": [
+    [
+     "lab-v1.2-p15-x1"
+    ],
+    [
+     "lab-v1.2-p15-x1"
+    ]
+   ]
+  },
+  "byClass": {
+   "half": {
+    "added_word": {
+     "match": 60,
+     "unsure": 1
+    },
+    "clean": {
+     "match": 21
+    },
+    "mutashabihat": {
+     "match": 5,
+     "unsure": 3
+    },
+    "omitted_word": {
+     "match": 5,
+     "unsure": 2
+    },
+    "repeat": {
+     "match": 11,
+     "mismatch": 1
+    },
+    "restart": {
+     "match": 11
+    },
+    "skipped_passage": {
+     "unsure": 5,
+     "match": 1
+    },
+    "wrong_word": {
+     "match": 11
+    }
+   },
+   "reach": {
+    "added_word": {
+     "match": 60,
+     "unsure": 1
+    },
+    "clean": {
+     "match": 21
+    },
+    "mutashabihat": {
+     "match": 5,
+     "unsure": 3
+    },
+    "omitted_word": {
+     "match": 5,
+     "unsure": 2
+    },
+    "repeat": {
+     "match": 11,
+     "mismatch": 1
+    },
+    "restart": {
+     "match": 11
+    },
+    "skipped_passage": {
+     "match": 6
+    },
+    "wrong_word": {
+     "match": 11
+    }
+   }
+  },
+  "changed": {
+   "lab-v1.1-p13-x12": {
+    "half": "unsure",
+    "reach": "match",
+    "truth": true,
+    "class": "skipped_passage"
+   },
+   "lab-v1.1-e10-x9": {
+    "half": "unsure",
+    "reach": "match",
+    "truth": true,
+    "class": "skipped_passage"
+   },
+   "lab-v1.1-p14-x2": {
+    "half": "unsure",
+    "reach": "match",
+    "truth": true,
+    "class": "skipped_passage"
+   },
+   "lab-v1.2-e15-x16": {
+    "half": "unsure",
+    "reach": "match",
+    "truth": true,
+    "class": "skipped_passage"
+   },
+   "lab-v1.2-p15-x2": {
+    "half": "unsure",
+    "reach": "match",
+    "truth": true,
+    "class": "skipped_passage"
+   }
+  }
+ },
+ "report": {
+  "testSet": "lab-v1.3",
+  "half": {
+   "counts": {
+    "outcomes": {
+     "auto-accepted": 1559,
+     "unsure": 122,
+     "disagree": 19
+    },
+    "byClass": {
+     "added_word": {
+      "n": 94,
+      "auto-accepted": 81,
+      "both-mismatch": 0,
+      "disagree": 12,
+      "unsure": 1
+     },
+     "clean": {
+      "n": 1325,
+      "auto-accepted": 1281,
+      "both-mismatch": 0,
+      "disagree": 0,
+      "unsure": 44
+     },
+     "mutashabihat": {
+      "n": 21,
+      "auto-accepted": 16,
+      "both-mismatch": 0,
+      "disagree": 0,
+      "unsure": 5
+     },
+     "omitted_word": {
+      "n": 62,
+      "auto-accepted": 57,
+      "both-mismatch": 0,
+      "disagree": 1,
+      "unsure": 4
+     },
+     "repeat": {
+      "n": 29,
+      "auto-accepted": 27,
+      "both-mismatch": 0,
+      "disagree": 1,
+      "unsure": 1
+     },
+     "restart": {
+      "n": 11,
+      "auto-accepted": 10,
+      "both-mismatch": 0,
+      "disagree": 1,
+      "unsure": 0
+     },
+     "skipped_passage": {
+      "n": 60,
+      "auto-accepted": 4,
+      "both-mismatch": 0,
+      "disagree": 0,
+      "unsure": 56
+     },
+     "wrong_word": {
+      "n": 98,
+      "auto-accepted": 83,
+      "both-mismatch": 0,
+      "disagree": 4,
+      "unsure": 11
+     }
+    },
+    "perModel": {
+     "nemotron": {
+      "match": 1674,
+      "mismatch": 19,
+      "unsure": 7
+     },
+     "soniox": {
+      "match": 1585,
+      "unsure": 115
+     }
+    }
+   },
+   "queue": {
+    "seam10": {
+     "items": 184,
+     "byFirstReason": {
+      "both-mismatch": 0,
+      "disagree": 19,
+      "unsure": 122,
+      "seam": 14,
+      "spot": 29
+     },
+     "byAnyReason": {
+      "both-mismatch": 0,
+      "disagree": 19,
+      "unsure": 122,
+      "seam": 20,
+      "spot": 30
+     },
+     "seamByPool": {
+      "inserted": 16,
+      "other": 4
+     },
+     "carriedOver": 55,
+     "maxBad": 4
+    },
+    "seamPools": {
+     "items": 210,
+     "byFirstReason": {
+      "both-mismatch": 0,
+      "disagree": 19,
+      "unsure": 122,
+      "seam": 39,
+      "spot": 30
+     },
+     "byAnyReason": {
+      "both-mismatch": 0,
+      "disagree": 19,
+      "unsure": 122,
+      "seam": 47,
+      "spot": 30
+     },
+     "seamByPool": {
+      "inserted": 30,
+      "other": 17
+     },
+     "carriedOver": 50,
+     "maxBad": 5
+    }
+   },
+   "verdicts": {
+    "items": 117,
+    "ok": 108,
+    "bad": 9,
+    "okAccepted": 75,
+    "okOutcomes": {
+     "auto-accepted": 75,
+     "unsure": 15,
+     "disagree": 18
+    },
+    "badAccepted": [
+     "lab-v1.3-e09-x3",
+     "lab-v1.3-p01-x2",
+     "lab-v1.3-p01-x4",
+     "lab-v1.3-p06-x1",
+     "lab-v1.3-p12-x8"
+    ],
+    "badOutcomes": {
+     "lab-v1.3-e14-x19": {
+      "verdict": "bad_audio",
+      "outcome": "unsure",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 8.12,
+      "soniox": "unsure",
+      "sonioxDiff": -1,
+      "oldOutcome": "disagree",
+      "transcript": "من ضرٍّ لنجوا فيما. طغيانهم يعمهون."
+     },
+     "lab-v1.3-e14-x4": {
+      "verdict": "bad_splice",
+      "outcome": "unsure",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 11.29,
+      "soniox": "unsure",
+      "sonioxDiff": 1,
+      "oldOutcome": "disagree",
+      "transcript": "الطيبات واعملوا صالحًا، إن. بما تعملون عليم."
+     },
+     "lab-v1.3-p07-x5": {
+      "verdict": "bad_splice",
+      "outcome": "disagree",
+      "class": "added_word",
+      "nemotron": "mismatch",
+      "nemotronDiff": -18.7,
+      "soniox": "match",
+      "sonioxDiff": 2,
+      "oldOutcome": "disagree",
+      "transcript": "أذكره، واتخذ. فلا تبِي له في البحر عجبا."
+     },
+     "lab-v1.3-e14-x9": {
+      "verdict": "bad_splice",
+      "outcome": "unsure",
+      "class": "wrong_word",
+      "nemotron": "unsure",
+      "nemotronDiff": 1.81,
+      "soniox": "match",
+      "sonioxDiff": 4,
+      "oldOutcome": "unsure",
+      "transcript": "يسارعون في الخيرات وهم. وارحم. السابقون، ولا نكلف."
+     },
+     "lab-v1.3-p01-x4": {
+      "verdict": "bad_splice",
+      "outcome": "auto-accepted",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 5.76,
+      "soniox": "match",
+      "sonioxDiff": 4,
+      "oldOutcome": "unsure",
+      "transcript": "بعد الباقين إن. تعثوا. ذلك لآية، وما كان."
+     },
+     "lab-v1.3-p01-x2": {
+      "verdict": "bad_splice",
+      "outcome": "auto-accepted",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 42.4,
+      "soniox": "match",
+      "sonioxDiff": 5,
+      "oldOutcome": "auto-accepted",
+      "transcript": "المرجومين قال: رب إن. تعلمون. كذبون، فافتح بيني وبينهم."
+     },
+     "lab-v1.3-p06-x1": {
+      "verdict": "bad_splice",
+      "outcome": "auto-accepted",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 13.56,
+      "soniox": "match",
+      "sonioxDiff": 3,
+      "oldOutcome": "auto-accepted",
+      "transcript": "إذا ذُكر الله وجلت. قالوا. وإذا تُليت عليهم."
+     },
+     "lab-v1.3-p12-x8": {
+      "verdict": "bad_splice",
+      "outcome": "auto-accepted",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 48.96,
+      "soniox": "match",
+      "sonioxDiff": 5,
+      "oldOutcome": "auto-accepted",
+      "transcript": "يوم الفصل جمعناكم. تعملون، فإن كان لكم."
+     },
+     "lab-v1.3-e09-x3": {
+      "verdict": "bad_splice",
+      "outcome": "auto-accepted",
+      "class": "added_word",
+      "nemotron": "match",
+      "nemotronDiff": 24.5,
+      "soniox": "match",
+      "sonioxDiff": 3,
+      "oldOutcome": "auto-accepted",
+      "transcript": "شدادًا كذابًا، وجعلنا."
+     }
+    }
+   },
+   "oldPairingOnVerdicts": {
+    "okAccepted": 37,
+    "badAccepted": [
+     "lab-v1.3-e09-x3",
+     "lab-v1.3-p01-x2",
+     "lab-v1.3-p06-x1",
+     "lab-v1.3-p12-x8"
+    ]
+   }
+  },
+  "reach": {
+   "counts": {
+    "outcomes": {
+     "auto-accepted": 1631,
+     "unsure": 50,
+     "disagree": 19
+    },
+    "byClass": {
+     "added_word": {
+      "n": 94,
+      "auto-accepted": 81,
+      "both-mismatch": 0,
+      "disagree": 12,
+      "unsure": 1
+     },
+     "clean": {
+      "n": 1325,
+      "auto-accepted": 1296,
+      "both-mismatch": 0,
+      "disagree": 0,
+      "unsure": 29
+     },
+     "mutashabihat": {
+      "n": 21,
+      "auto-accepted": 16,
+      "both-mismatch": 0,
+      "disagree": 0,
+      "unsure": 5
+     },
+     "omitted_word": {
+      "n": 62,
+      "auto-accepted": 58,
+      "both-mismatch": 0,
+      "disagree": 1,
+      "unsure": 3
+     },
+     "repeat": {
+      "n": 29,
+      "auto-accepted": 27,
+      "both-mismatch": 0,
+      "disagree": 1,
+      "unsure": 1
+     },
+     "restart": {
+      "n": 11,
+      "auto-accepted": 10,
+      "both-mismatch": 0,
+      "disagree": 1,
+      "unsure": 0
+     },
+     "skipped_passage": {
+      "n": 60,
+      "auto-accepted": 60,
+      "both-mismatch": 0,
+      "disagree": 0,
+      "unsure": 0
+     },
+     "wrong_word": {
+      "n": 98,
+      "auto-accepted": 83,
+      "both-mismatch": 0,
+      "disagree": 4,
+      "unsure": 11
+     }
+    },
+    "perModel": {
+     "nemotron": {
+      "match": 1674,
+      "mismatch": 19,
+      "unsure": 7
+     },
+     "soniox": {
+      "match": 1657,
+      "unsure": 43
+     }
+    }
+   },
+   "queue": {
+    "seam10": {
+     "items": 114,
+     "byFirstReason": {
+      "both-mismatch": 0,
+      "disagree": 19,
+      "unsure": 50,
+      "seam": 15,
+      "spot": 30
+     },
+     "byAnyReason": {
+      "both-mismatch": 0,
+      "disagree": 19,
+      "unsure": 50,
+      "seam": 20,
+      "spot": 30
+     },
+     "seamByPool": {
+      "inserted": 16,
+      "other": 4
+     },
+     "carriedOver": 52,
+     "maxBad": 2
+    },
+    "seamPools": {
+     "items": 140,
+     "byFirstReason": {
+      "both-mismatch": 0,
+      "disagree": 19,
+      "unsure": 50,
+      "seam": 43,
+      "spot": 28
+     },
+     "byAnyReason": {
+      "both-mismatch": 0,
+      "disagree": 19,
+      "unsure": 50,
+      "seam": 47,
+      "spot": 30
+     },
+     "seamByPool": {
+      "inserted": 30,
+      "other": 17
+     },
+     "carriedOver": 45,
+     "maxBad": 3
+    }
+   },
+   "verdicts": {
+    "items": 117,
+    "ok": 108,
+    "bad": 9,
+    "okAccepted": 79,
+    "okOutcomes": {
+     "auto-accepted": 79,
+     "unsure": 11,
+     "disagree": 18
+    },
+    "badAccepted": [
+     "lab-v1.3-e09-x3",
+     "lab-v1.3-p01-x2",
+     "lab-v1.3-p01-x4",
+     "lab-v1.3-p06-x1",
+     "lab-v1.3-p12-x8"
+    ],
+    "badOutcomes": {
+     "lab-v1.3-e14-x19": {
+      "verdict": "bad_audio",
+      "outcome": "unsure",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 8.12,
+      "soniox": "unsure",
+      "sonioxDiff": -1,
+      "oldOutcome": "disagree",
+      "transcript": "من ضرٍّ لنجوا فيما. طغيانهم يعمهون."
+     },
+     "lab-v1.3-e14-x4": {
+      "verdict": "bad_splice",
+      "outcome": "unsure",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 11.29,
+      "soniox": "unsure",
+      "sonioxDiff": 1,
+      "oldOutcome": "disagree",
+      "transcript": "الطيبات واعملوا صالحًا، إن. بما تعملون عليم."
+     },
+     "lab-v1.3-p07-x5": {
+      "verdict": "bad_splice",
+      "outcome": "disagree",
+      "class": "added_word",
+      "nemotron": "mismatch",
+      "nemotronDiff": -18.7,
+      "soniox": "match",
+      "sonioxDiff": 2,
+      "oldOutcome": "disagree",
+      "transcript": "أذكره، واتخذ. فلا تبِي له في البحر عجبا."
+     },
+     "lab-v1.3-e14-x9": {
+      "verdict": "bad_splice",
+      "outcome": "unsure",
+      "class": "wrong_word",
+      "nemotron": "unsure",
+      "nemotronDiff": 1.81,
+      "soniox": "match",
+      "sonioxDiff": 4,
+      "oldOutcome": "unsure",
+      "transcript": "يسارعون في الخيرات وهم. وارحم. السابقون، ولا نكلف."
+     },
+     "lab-v1.3-p01-x4": {
+      "verdict": "bad_splice",
+      "outcome": "auto-accepted",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 5.76,
+      "soniox": "match",
+      "sonioxDiff": 4,
+      "oldOutcome": "unsure",
+      "transcript": "بعد الباقين إن. تعثوا. ذلك لآية، وما كان."
+     },
+     "lab-v1.3-p01-x2": {
+      "verdict": "bad_splice",
+      "outcome": "auto-accepted",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 42.4,
+      "soniox": "match",
+      "sonioxDiff": 5,
+      "oldOutcome": "auto-accepted",
+      "transcript": "المرجومين قال: رب إن. تعلمون. كذبون، فافتح بيني وبينهم."
+     },
+     "lab-v1.3-p06-x1": {
+      "verdict": "bad_splice",
+      "outcome": "auto-accepted",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 13.56,
+      "soniox": "match",
+      "sonioxDiff": 3,
+      "oldOutcome": "auto-accepted",
+      "transcript": "إذا ذُكر الله وجلت. قالوا. وإذا تُليت عليهم."
+     },
+     "lab-v1.3-p12-x8": {
+      "verdict": "bad_splice",
+      "outcome": "auto-accepted",
+      "class": "wrong_word",
+      "nemotron": "match",
+      "nemotronDiff": 48.96,
+      "soniox": "match",
+      "sonioxDiff": 5,
+      "oldOutcome": "auto-accepted",
+      "transcript": "يوم الفصل جمعناكم. تعملون، فإن كان لكم."
+     },
+     "lab-v1.3-e09-x3": {
+      "verdict": "bad_splice",
+      "outcome": "auto-accepted",
+      "class": "added_word",
+      "nemotron": "match",
+      "nemotronDiff": 24.5,
+      "soniox": "match",
+      "sonioxDiff": 3,
+      "oldOutcome": "auto-accepted",
+      "transcript": "شدادًا كذابًا، وجعلنا."
+     }
+    }
+   },
+   "oldPairingOnVerdicts": {
+    "okAccepted": 37,
+    "badAccepted": [
+     "lab-v1.3-e09-x3",
+     "lab-v1.3-p01-x2",
+     "lab-v1.3-p06-x1",
+     "lab-v1.3-p12-x8"
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tilawa phone test</title>
+    <style>
+      body { font: 18px/1.5 system-ui, sans-serif; margin: 0 auto; padding: 20px; max-width: 520px; color: #111; }
+      h1 { font-size: 28px; margin: 8px 0 4px; }
+      .muted { color: #666; font-size: 15px; }
+      button { font: inherit; font-weight: 700; width: 100%; padding: 18px; border: 0; border-radius: 14px; background: #111; color: #fff; margin: 16px 0 8px; }
+      button:disabled { background: #bbb; }
+      ol { padding: 0; list-style: none; }
+      li { padding: 14px 16px; border-radius: 12px; background: #f3f3f3; margin: 8px 0; display: flex; gap: 12px; align-items: baseline; }
+      li b { flex: 1; }
+      li.pass { background: #e3f6e8; } li.fail { background: #fde4e4; } li.run { background: #fff4d6; }
+      #status { font-weight: 600; min-height: 1.5em; }
+      #json { font: 11px/1.3 ui-monospace, monospace; white-space: pre-wrap; background: #f4f4f4; padding: 8px; }
+    </style>
+  </head>
+  <body>
+    <h1>Phone test</h1>
+    <p class="muted">Takes about 15 minutes. Before you start: unplug the charger, close other apps, and leave this screen open. Don't lock the phone.</p>
+    <button id="start">Start test</button>
+    <p id="status"></p>
+    <ol id="steps"></ol>
+    <button id="share" hidden>Share results</button>
+    <details><summary class="muted">Raw results</summary><div id="json"></div></details>
+    <script type="module" src="/src/device.ts"></script>
+  </body>
+</html>

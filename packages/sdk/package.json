@@ -1,0 +1,42 @@
+{
+  "name": "@tilawa/sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./node": "./dist/node.js",
+    "./web": "./dist/web.js",
+    "./react-native": "./dist/react-native.js"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "bench:help": "tsx src/bench/help-cli.ts",
+    "bench:gold": "tsx src/bench/gold-cli.ts",
+    "register": "tsx src/bench/register-cli.ts",
+    "decode": "tsx src/bench/decode-cli.ts"
+  },
+  "dependencies": {
+    "@tilawa/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "onnxruntime-node": ">=1.20",
+    "onnxruntime-react-native": ">=1.20",
+    "onnxruntime-web": ">=1.20"
+  },
+  "peerDependenciesMeta": {
+    "onnxruntime-node": { "optional": true },
+    "onnxruntime-react-native": { "optional": true },
+    "onnxruntime-web": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "onnxruntime-node": "^1.22.0",
+    "onnxruntime-web": "^1.30.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

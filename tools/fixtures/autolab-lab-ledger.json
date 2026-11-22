@@ -1,0 +1,53 @@
+{
+ "version": 1,
+ "kind": "lab-ledger",
+ "main": "main",
+ "testSet": "lab-v1.5",
+ "testSets": {},
+ "mainLine": [
+  {"sha": "975702f", "testSet": "lab-v1.4.v3", "run": "main-975702f-20261030T141325Z", "at": "2026-10-30T14:13:25+00:00", "note": "re-scored on lab-v1.4.v3",
+   "practice": {"wrongCalls": 19, "missed": 12, "falseWarnings": 7, "listener": {"wrongCalls": 8}, "tracker": {"wrongCalls": 3}, "checker": {"wrongCalls": 8}},
+   "exam": {"wrongCalls": 777101, "missed": 777102, "falseWarnings": 777103}},
+  {"sha": "b544715", "testSet": "lab-v1.4.v3", "run": "main-b544715-20261030T162551Z", "at": "2026-10-30T16:25:51+00:00", "experiment": "checker-listener-noise", "note": "fold of checker-listener-noise",
+   "practice": {"wrongCalls": 14, "missed": 9, "falseWarnings": 5, "listener": {"wrongCalls": 8}, "tracker": {"wrongCalls": 3}, "checker": {"wrongCalls": 3}}},
+  {"sha": "fe4daad", "testSet": "lab-v1.5", "run": "main-fe4daad-20261031T063632Z", "at": "2026-10-31T06:36:32+00:00", "note": "lab-v1.5 registered",
+   "practice": {"wrongCalls": 107, "missed": 60, "falseWarnings": 47, "listener": {"wrongCalls": 55}, "tracker": {"wrongCalls": 7}, "checker": {"wrongCalls": 45}},
+   "exam": {"wrongCalls": 777111, "missed": 777112, "falseWarnings": 777113, "listener": {"wrongCalls": 777114}}},
+  {"sha": "27ddced", "testSet": "lab-v1.5", "run": "main-27ddced-20261031T112149Z", "at": "2026-10-31T11:21:49+00:00", "experiment": "checker-joint-additions", "note": "fold of checker-joint-additions",
+   "practice": {"wrongCalls": 101, "missed": 57, "falseWarnings": 44, "listener": {"wrongCalls": 55}, "tracker": {"wrongCalls": 7}, "checker": {"wrongCalls": 39}}},
+  {"sha": "4001bd6", "testSet": "lab-v1.5", "run": "main-4001bd6-20261031T154028Z", "at": "2026-10-31T15:40:28+00:00", "experiment": "checker-extra-segmentation", "note": "fold of checker-extra-segmentation",
+   "practice": {"wrongCalls": 98, "missed": 56, "falseWarnings": 42, "listener": {"wrongCalls": 52}, "tracker": {"wrongCalls": 6}, "checker": {"wrongCalls": 40}},
+   "exam": {"wrongCalls": 777121, "missed": 777122, "falseWarnings": 777123}}
+ ],
+ "experiments": {
+  "checker-listener-noise": {
+   "card": {"id": "checker-listener-noise", "component": "checker", "hypothesis": "Checker word-gap alignment is brittle to listener noise", "expected": {"component": -4, "overall": -4}, "testSet": "lab-v1.4.v3", "created": "2026-10-30T15:25:09+00:00"},
+   "state": "folded", "decision": {"state": "folded", "at": "2026-10-30T16:25:51+00:00", "note": "keeps its overall gain", "testSet": "lab-v1.4.v3"},
+   "results": [{"kind": "branch", "testSet": "lab-v1.4.v3", "at": "2026-10-30T16:00:00+00:00", "practice": {"wrongCalls": 14}, "exam": {"wrongCalls": 777131}}]},
+  "checker-noise-gaps": {
+   "card": {"id": "checker-noise-gaps", "component": "checker", "hypothesis": "Ignore gaps the listener filled with noise", "expected": {"component": -3, "overall": -3}, "testSet": "lab-v1.4.v3", "created": "2026-10-30T15:33:22+00:00"},
+   "state": "discarded", "decision": {"state": "discarded", "at": "2026-10-30T17:30:26+00:00", "note": "superseded: checker-listener-noise fixes every practice case this fixed", "testSet": "lab-v1.4.v3"},
+   "results": [{"kind": "branch", "testSet": "lab-v1.4.v3", "at": "2026-10-30T16:10:00+00:00", "practice": {"wrongCalls": 14}}]},
+  "checker-joint-additions": {
+   "card": {"id": "checker-joint-additions", "component": "checker", "hypothesis": "Jointly align added speech with both neighbouring words", "expected": {"component": -6, "overall": -6}, "testSet": "lab-v1.5", "created": "2026-10-31T08:16:24+00:00"},
+   "state": "folded", "decision": {"state": "folded", "at": "2026-10-31T11:21:49+00:00", "note": "keeps its overall and checker gain", "testSet": "lab-v1.5"},
+   "results": [{"kind": "branch", "testSet": "lab-v1.5", "at": "2026-10-31T10:00:00+00:00", "practice": {"wrongCalls": 101}},
+               {"kind": "rebased", "testSet": "lab-v1.5", "at": "2026-10-31T11:20:00+00:00", "practice": {"wrongCalls": 101}, "exam": {"wrongCalls": 777141}}]},
+  "checker-skip-boundaries": {
+   "card": {"id": "checker-skip-boundaries", "component": "checker", "hypothesis": "Snap skipped passages to ayah boundaries", "expected": {"component": -3, "overall": -3}, "testSet": "lab-v1.5", "created": "2026-10-31T08:16:40+00:00"},
+   "state": "discarded", "decision": {"state": "discarded", "at": "2026-10-31T11:23:56+00:00", "note": "", "testSet": "lab-v1.5"},
+   "results": [{"kind": "branch", "testSet": "lab-v1.5", "at": "2026-10-31T10:30:00+00:00", "practice": {"wrongCalls": 110}}]},
+  "listener-phone-channel": {
+   "card": {"id": "listener-phone-channel", "component": "listener", "hypothesis": "Fine-tune the listener on phone-channel audio", "expected": {"component": -8, "overall": -8}, "testSet": "lab-v1.5", "created": "2026-10-31T12:00:42+00:00"},
+   "state": "discarded", "decision": {"state": "discarded", "at": "2026-10-31T15:22:13+00:00", "note": "User approved discard; introduces new false alarms.", "testSet": "lab-v1.5"},
+   "results": [{"kind": "branch", "testSet": "lab-v1.5", "at": "2026-10-31T14:00:00+00:00", "practice": {"wrongCalls": 95}}]},
+  "checker-extra-segmentation": {
+   "card": {"id": "checker-extra-segmentation", "component": "checker", "hypothesis": "Segment remaining oracle additions out of partial words", "expected": {"component": -3, "overall": -3}, "testSet": "lab-v1.5", "created": "2026-10-31T14:00:45+00:00"},
+   "state": "folded", "decision": {"state": "folded", "at": "2026-10-31T15:40:28+00:00", "note": "keeps its overall and checker gain", "testSet": "lab-v1.5"},
+   "results": [{"kind": "branch", "testSet": "lab-v1.5", "at": "2026-10-31T15:00:00+00:00", "practice": {"wrongCalls": 98}}]},
+  "listener-targeted-consonants": {
+   "card": {"id": "listener-targeted-consonants", "component": "listener", "hypothesis": "Train the listener on the consonant pairs it confuses", "expected": {"component": -6, "overall": -6}, "testSet": "lab-v1.5", "created": "2026-10-31T15:48:22+00:00"},
+   "state": "open", "decision": null,
+   "results": [{"kind": "branch", "testSet": "lab-v1.5", "at": "2026-10-31T17:00:00+00:00", "practice": {"wrongCalls": 92}, "exam": {"wrongCalls": 777151}}]}
+ }
+}

@@ -1,0 +1,51 @@
+{
+ "run": "extra-oracle-pairs-b2fe98d-dirty-20261031T143318Z",
+ "sessions": 100,
+ "baselineWarnings": 6,
+ "candidateWarnings": 5,
+ "newWarnings": [],
+ "removedWarnings": [
+  {
+   "session": "lab-v1.5-p09",
+   "assignment": {
+    "warningId": "37:151:1#6",
+    "eventIndex": null,
+    "confirmed": true
+   },
+   "events": [
+    {
+     "type": "checker",
+     "v": 1,
+     "id": "37:151:1#6",
+     "timeMs": 118660,
+     "state": "suspected",
+     "errorClass": "added_word",
+     "location": {
+      "surah": 37,
+      "ayah": 151,
+      "word": 1
+     },
+     "expected": "ءَلَاااا",
+     "observed": "سَلِۦۦم",
+     "confidence": 0.9900000000000001
+    },
+    {
+     "type": "checker",
+     "v": 1,
+     "id": "37:151:1#6",
+     "timeMs": 121220,
+     "state": "confirmed",
+     "errorClass": "added_word",
+     "location": {
+      "surah": 37,
+      "ayah": 151,
+      "word": 1
+     },
+     "expected": "ءَلَاااا",
+     "observed": "سَلِۦۦم",
+     "confidence": 0.9900000000000001
+    }
+   ]
+  }
+ ]
+}

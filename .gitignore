@@ -1,127 +1,80 @@
-# =====================================================================
-# offline-tarteel .gitignore
-#
-# Goal: a fresh clone in a cloud env should be able to run the streaming
-# tests and launch experiments without extra setup, while keeping
-# secrets, large training artifacts, and local tooling state out of the
-# public repo.
-#
-# The streaming-test ONNX model lives under web/frontend/public/ and is
-# tracked via Git LFS — see .gitattributes.
-# =====================================================================
-
-# ---------- OS / editor noise ----------
+# ---------- OS / editor / local tooling ----------
 .DS_Store
 *.swp
 *~
+.claude/
+.cursor/
+.beads/
+.superpowers/
+.worktrees/
 
-# ---------- Local env / secrets (NEVER commit) ----------
+# ---------- Secrets (NEVER commit) ----------
 .env
 .env.*
 !.env.example
 
-# ---------- Local tooling state ----------
-.beads/
-.claude/
-.cursor/
-.worktrees/
-
 # ---------- Python ----------
+__pycache__/
 .venv/
 .venv-web/
-__pycache__/
 .pytest_cache/
 *.pyc
 *.egg-info/
-dist/
-build/
 
-# ---------- Node ----------
-node_modules/
-
+# ---------- Node / TypeScript ----------
+node_modules
+dist
+*.tsbuildinfo
+web/frontend/dist-server/
 # ONNX Runtime WASM files (copied to public/ via vite postinstall)
 web/frontend/public/*.wasm
 web/frontend/public/*.mjs
-
-# Vite/TS build output
-web/frontend/dist/
-web/frontend/dist-server/
-
-# ---------- Personal/local notes (not for public repo) ----------
-MEETING_PREP.md
-NEXT_STEPS.md
-RESEARCH.md
-ml-intern-runs/
-tasks/lessons.md
-tasks/todo.md
-
-# ---------- Test debug artifacts ----------
 web/frontend/test/debug/
 web/frontend/test/stab-gate-*.json
+# NPL-derived lexicon of the old 0.x demo
+web/frontend/public/zipformer_quran.json
 
-# ---------- Audio (large; allow tracked test corpora) ----------
+# ---------- Audio and model weights (this repo is public; fixtures are allowed per package) ----------
 *.m4a
 *.wav
 *.mp3
-!benchmark/test_corpus/**
-!benchmark/test_corpus_v2/**
-!benchmark/test_corpus_v3/**
-
-# ---------- Model weights ----------
-# Download model weights with web/frontend/scripts/fetch-zipformer-assets.sh.
 *.onnx
 *.onnx.data
 
-# Training checkpoints / model dirs (downloaded via Modal volumes / HF)
-data/lora-adapter/
-data/lora-adapter-small/
-data/lora-checkpoints/
-data/lora-checkpoints-small/
-data/reference_audio/
-data/test_audio/
-data/train_subset/
-data/training/
-data/*.log
-
-data/ctc-base-distilled/
-data/ctc-base-finetuned/
-data/ctc-model/
-data/ctc-model-finetuned/
-data/moonshine-finetuned/
-data/nvidia-fastconformer-quran-ft-*/
-data/rabah-ctc-pruned-6/
-data/rabah-ctc-pruned-8/
-data/rabah-ctc-pruned-12/
-data/rabah-ctc-pruned-*-finetuned/
-data/rabah-ctc-source/
-data/fastconformer-phoneme-v1/
-!data/fastconformer-phoneme-v1/training_metadata.json
-data/fastconformer-phoneme-v4-tlog/
-data/fastconformer-phoneme-v7-stream-aug/
-data/v6-augmented/
-data/r7/
-data/kenlm_phoneme/
-
-# ---------- Benchmark / experiment outputs ----------
-# Timestamped benchmark results (latest.json is tracked)
-benchmark/results/2026-*.json
-
-experiments/contrastive/checkpoints/
-experiments/contrastive/logs/
-experiments/embedding-search/audio_corpus/
-experiments/embedding-search/indices/
-experiments/streaming-asr/benchmark_results_*.json
-data/fastconformer-phoneme-v1/model.nemo
-
-offline-tarteel-lab/
-offline-tarteel-sdk/
-
-# zipformer-ctc downloaded assets (auto-fetched by lab/experiments/zipformer-ctc/run.py)
-data/zipformer/
-lab/data/zipformer/
-
-# Zipformer browser demo (NPL-derived lexicon; ONNX already covered by *.onnx)
-web/frontend/public/zipformer_quran.json
-
-# SDD scratch workspaces
-.superpowers/
+# ---------- Research scratch outputs ----------
+.scratch/bookmark-tracker/review/audio/
+.scratch/v1-roadmap/review-55/audio/
+.scratch/v1-roadmap/bucket-review/audio/
+.scratch/bench/
+.scratch/e2e/
+.scratch/clips/
+.scratch/e1b/
+.scratch/help/
+.scratch/tlog/
+.scratch/student/
+.scratch/jumps/
+.scratch/models/
+.scratch/gold/
+.scratch/help-dev/
+.scratch/leadin/
+.scratch/sdk-help/
+.scratch/qasr-listener-comparison-monitor/
+.scratch/scoreboard/
+.scratch/session-bench/qud/
+.scratch/session-bench/build/
+.scratch/help-review/
+.scratch/lab/cache/
+.scratch/autolab/run/
+.autolab/
+output/
+modal/live-dist/
+packages/probe/public/models/
+packages/probe/public/clips/
+packages/probe/public/ort/
+packages/sample/public/models/
+packages/sample/public/ort/
+packages/sample/public/clips/
+# Raw /help server data and user audio: never public
+.scratch/help-v2/
+!packages/sdk/test/fixtures/tiny/model.onnx
+!packages/sdk/test/fixtures/*.wav
