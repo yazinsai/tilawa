@@ -1,3 +1,3 @@
 /** The research commit this package vendors (scripts/sync-engine.mjs) and is parity-tested against. */
 export const REPO = "github.com/yazinsai/tilawa-reborn";
-export const COMMIT = "73c6a92fe55864e369662b6e82ece3f4353af06a";
+export const COMMIT = "5629a4e326bbce053bf0a2682ac7066fb4c71763";

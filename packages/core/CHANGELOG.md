@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0-rc.1
+
+Preview bugfix release (engine re-vendored at research `5629a4e3`).
+
+- **Isti'adha acquisition fix (`tracker-istiadha-lock`).** Holding off locking through the short-madd *a'udhu billah* prefix and right after a finished phrase prevents mis-locks onto `2:67` and `16:98` in both free and declared modes (5/5 field isti'adha clips fixed).
+- **Fast-speech parallel-phrase false-warning fix (`checker-parallel-phrase-collapse`).** Collapsing held madd/ghunna runs in parallel-phrase CTC scoring and guarding zero-match clarity fixes the `22:1:3` false wrong-word alert and reduces stitched-session false warnings (`1.35 → 1.25 / 5 min`, -14 FWs) and lead-out false warnings (`1.69 → 1.50 / 5 min`, -2 FWs) with no loss in recall.
+- **Duplicate skip-alert deduplication (`checker-skip-span-dedupe`).** Confirmed `skipped_passage` spans are tracked so a broader later realignment over the same slip does not emit a second skip warning.
+- **Browser/WASM parity verified.** All 388 held-out help clips scored through `onnxruntime-web/wasm` 1.30.0 with 0/388 warning flips against `onnxruntime-node`.
+
 ## 1.0.0-rc.0
 
 A new engine. 1.0 replaces the 0.x verse matcher with the Tilawa streaming engine. It follows the reciter word by word and flags memorization mistakes as they happen. The API, events, model and assets are all new. See [Migrating from 0.4](#migrating-from-04).

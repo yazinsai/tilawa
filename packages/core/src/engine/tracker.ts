@@ -122,7 +122,6 @@ const HEARD = 64;
  * prefixes ("Allahu" of the takbir) are everyday Quran text.
  */
 const PHRASE_PREFIX = 12;
-const PHRASE_PREFIX_SHARE = 0.4;
 /** A restart in progress holds off locking once this many phonemes restate the window's start. */
 const RESTART_PREFIX = 6;
 /** Repeated blocks this long, at most this weighted cost per phoneme apart, collapse to one copy in a stream. */
@@ -808,7 +807,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const phraseInProgress = (): boolean => {
     for (const phrase of phraseList) {
       const n = phrase.p.length;
-      for (let k = Math.min(n - 2, heard.length); k >= Math.max(PHRASE_PREFIX, PHRASE_PREFIX_SHARE * n); k -= 2) {
+      for (let k = Math.min(n - 2, heard.length); k >= PHRASE_PREFIX; k--) {
         const a = alignSubstring(phrase.p, 0, n - 2, heard.slice(-k), (o) => o === 0, { strictStart: true });
         if (a && a.cost / UNIT / k <= PHRASE_MAX_COST / 2) return true;
       }
@@ -823,10 +822,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     }
     return false;
   };
-  /** Assess, but never lock while a phrase or a repeat is in progress. */
+  /** Assess, but never lock while a phrase or a repeat is in progress, or right after a phrase ended before new speech. */
   const assessOutsidePhrases = () => {
     const a = assess();
-    if (!a.lock || !phraseList.length || (!phraseInProgress() && !repeatInProgress())) return a;
+    const phraseJustEnded = phraseCut > 0 && observed.length - phraseCut < minPhonemes;
+    if (!a.lock || !phraseList.length || (!phraseJustEnded && !phraseInProgress() && !repeatInProgress())) return a;
     const event: PositionEvent = { ...a.event, state: "acquiring", expected: null };
     return { ...a, event, lock: null, top: null, trace: (from: TrackerState | null) => ({ ...a.trace(from), transition: { from, to: "acquiring" as const } }) };
   };

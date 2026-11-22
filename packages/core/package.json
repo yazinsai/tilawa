@@ -1,6 +1,6 @@
 {
   "name": "@tilawa/core",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0-rc.1",
   "description": "Offline, streaming Quran recitation engine: follows the reciter word by word and flags memorization mistakes, on-device in the browser, Node and React Native.",
   "type": "module",
   "main": "./dist/index.js",
