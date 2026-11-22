@@ -1,5 +1,12 @@
 # Tilawa
 
+> [!IMPORTANT]
+> **1.0 Preview is out (`1.0.0-rc.1`).** The same 68 MB offline model now does word-by-word tracking *and* catches memorization mistakes as you recite: wrong, missed and extra words, and skipped passages. On held-out learner audio it scores 90.3% precision and catches 87.5% of mistakes.
+>
+> It flags memorization mistakes only for now (no tajweed or pronunciation grading yet, and fast hadr or kids' voices aren't supported).
+>
+> **Help us get to 1.0:** recite 2–5 minutes the way you normally do at [tilawa.dev/help](https://tilawa.dev/help/), or try it live at [tilawa.dev](https://tilawa.dev).
+
 Offline, streaming Quran recitation engine. It follows a reciter word by word and flags memorization mistakes (wrong, omitted and added words, and skipped passages) as they happen, entirely on-device: in the browser, Node, and (soon) React Native. Audio never leaves the device.
 
 `@tilawa/core` is TypeScript with no runtime dependencies. You install the ONNX Runtime for your platform as a peer dependency.
