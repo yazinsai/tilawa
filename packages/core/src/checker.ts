@@ -528,11 +528,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const f1 = obs[Math.max(...at)].end + 1;
     if (f0 < frames.startFrame || f1 > frames.endFrame) return null;
     if (issue.phrase && issue.supportRange) {
-      const altNll = frames.nll(ids(issue.phrase.alt), f0, f1);
+      const collapse = (t: string) => collapseHeld([...t]).join("");
+      const altNll = frames.nll(ids(collapse(issue.phrase.alt)), f0, f1);
       // A written phrase the frames cannot carry at all still loses to a finite parallel. NaN (both impossible)
       // is not evidence either way.
       if (!Number.isFinite(altNll)) return requireFinite ? null : false;
-      return frames.nll(ids(issue.phrase.written), f0, f1) - altNll >= issue.phrase.need;
+      return frames.nll(ids(collapse(issue.phrase.written)), f0, f1) - altNll >= issue.phrase.need;
     }
     const span = (a: number, b: number) => (a < b ? ref.slice(words[a].start, words[b - 1].end) : "");
     const written = ref.slice(words[from].start, words[to].end);
@@ -2150,13 +2151,18 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
       return entryDiag && exitDiag && to > from ? { from, to } : null;
     };
+    const collapse = (t: string) => collapseHeld([...t]).join("");
     /** Mean decoder confidence over the heard phones that miss the written phrase and match the parallel. */
     const switchedClarity = (path: { written: string; alt: string }, span: { from: number; to: number }) => {
       const heard = obs.slice(span.from, span.to);
       const said = heard.map((p) => p.p).join("");
+      const wCol = collapse(path.written), aCol = collapse(path.alt), sCol = collapse(said);
       const off = new Set(editPath(path.written, said).flatMap((o) => (o.op === "sub" || o.op === "ins" ? [o.obsAt] : [])));
       const on = editPath(path.alt, said).flatMap((o) => (o.op === "match" && off.has(o.obsAt) ? [heard[o.obsAt].conf] : []));
-      return on.length ? on.reduce((a, c) => a + c, 0) / on.length : 1;
+      if (on.length) return on.reduce((a, c) => a + c, 0) / on.length;
+      // Pure-deletion parallel (e.g. alayhima -> alayhi) has no substituted phones; require the decode to prefer alt.
+      const edits = (a: string, b: string) => editPath(a, b).filter((o) => o.op !== "match").length;
+      return edits(aCol, sCol) < edits(wCol, sCol) ? 1 : 0;
     };
     const out: Issue[] = [];
     const taken = new Set<number>();
@@ -2170,7 +2176,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         const f0 = obs[span.from].start;
         const f1 = obs[span.to - 1].end + 1;
         if (f1 - f0 < 4 || f0 < frames.startFrame || f1 > frames.endFrame) continue;
-        const altNll = frames.nll(ids(path.alt), f0, f1);
+        const altNll = frames.nll(ids(collapse(path.alt)), f0, f1);
         if (!Number.isFinite(altNll)) continue;
         // Blank-owned frames say nothing about which phrase was said. A flat phone frame (the whole inventory
         // sharing the mass) is not a heard word either.
@@ -2186,7 +2192,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           heard++;
         }
         if (heard < 4 || speech / heard < PHRASE_PEAK) continue;
-        const margin = frames.nll(ids(path.written), f0, f1) - altNll;
+        const margin = frames.nll(ids(collapse(path.written)), f0, f1) - altNll;
         // The attested-parallel discount is for a substitute heard surely. Where the phones that leave the written
         // phrase for this one were decoded below `UNSURE` (ل heard as ن on a phone band), it is the confusable
         // sound `supportNeed` doubles for, and it takes that same bar.

@@ -116,4 +116,16 @@ describe("parallel phrase graph", () => {
     expect(run(straight.from, straight.to, straight.edits, "neutral")).toEqual([]);
     expect(run(swapped.from, swapped.to, swapped.edits, "off")).toEqual([]);
   });
+
+  it("stays quiet when a fast written phrase has shorter madd/ghunna than its uncollapsed reference", () => {
+    // 22:1:1..4 (يَا أَيُّهَا النَّاسُ اتَّقُوا رَبَّكُمْ) vs 2:21 (اعْبُدُوا): shortened madd/ghunna
+    // leaves fewer frames than the uncollapsed written sequence requires, while the interior word is clear.
+    const fast = "يَاءييهَننَاسُتتَقُۥرَببَكُمءِننننَزَلزَلَتَ";
+    const phonemes = [...fast].map((p, i) => ({ p, start: i * 2, end: i * 2, conf: 0.96 }));
+    const ev = withPosteriors(index, { inventory: index.inventoryId, frameMs: 40, phonemes });
+    const checker = createChecker(index, { passage: { from: w(22, 1, 1), to: w(22, 1, 6) }, policy: { confirm: { after: "next-word" } } });
+    checker.push(ev, []);
+    checker.end();
+    expect(checker.mistakes()).toEqual([]);
+  });
 });
