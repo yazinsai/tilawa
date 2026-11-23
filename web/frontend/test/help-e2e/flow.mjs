@@ -177,6 +177,15 @@ async function run(lang, deviceName, mode) {
   await visible(page, "#screen-send");
   await screen(page, tag, ++n, "send");
 
+  // Back reopens the last question to add a note; answering it again returns here.
+  await page.click("#send-back");
+  await visible(page, "#screen-review");
+  check(await page.locator("#moment-back").isVisible(), `${tag} back from send lands on the last question`);
+  await page.click("#moment-details summary");
+  await page.fill("#moment-note", "late note");
+  await page.click('.answer[aria-pressed="true"]');
+  await visible(page, "#screen-send");
+
   // Discard asks first; "Keep it" keeps the take.
   await page.click("#discard");
   await visible(page, "#confirm");
@@ -263,6 +272,7 @@ try {
     check(kinds.includes("stumble") && kinds.includes("warning") && kinds.includes("missed_mistake") && kinds.includes("wrong_position"), `${id} incidents ${kinds.join(",")}`);
     check(report.incidents.every((x) => x.claim.answer === null || ["yes", "no", "unsure", "skipped"].includes(x.claim.answer)), `${id} claims are answers only`);
     check(report.incidents.some((x) => x.claim.text === "بسم الله"), `${id} advanced text kept`);
+    check(report.incidents.some((x) => x.claim.note === "late note"), `${id} note added after going back is kept`);
     check(report.observations.events.some((e) => e.type === "checker"), `${id} carries the engine's observations`);
   }
   const firstReport = JSON.parse(await readFile(join(dir, sent[0], "report.json"), "utf8"));

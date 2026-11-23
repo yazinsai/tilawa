@@ -595,11 +595,17 @@ $("moment-mark").addEventListener("click", () => {
 
 $("moment-text").addEventListener("input", (e) => {
   const m = state.moments[state.index];
-  if (m) m.text = (e.target as HTMLTextAreaElement).value;
+  if (!m) return;
+  m.text = (e.target as HTMLTextAreaElement).value;
+  const a = state.answers[m.id];
+  if (a) a.text = m.text;
 });
 $("moment-note").addEventListener("input", (e) => {
   const m = state.moments[state.index];
-  if (m) m.note = (e.target as HTMLTextAreaElement).value;
+  if (!m) return;
+  m.note = (e.target as HTMLTextAreaElement).value;
+  const a = state.answers[m.id];
+  if (a) a.note = m.note;
 });
 
 $("moment-wrong-ayah").addEventListener("click", () => {
@@ -654,6 +660,7 @@ function renderSend() {
   // Once the report is built it is final: retries resend the exact same bytes.
   const canListen = !!state.recording && !state.report;
   $("listen-all").hidden = !canListen;
+  $("send-back").hidden = !canListen || !state.moments.length || state.sending;
   if (canListen && !state.takeUrl && state.recording) {
     state.takeUrl = wavUrl(state.recording.wav);
     $<HTMLAudioElement>("take-audio").src = state.takeUrl;
@@ -676,6 +683,14 @@ $("take-mark").addEventListener("click", () => {
   const at = addMarked(a.currentTime * 1000);
   if (at < 0) return;
   state.index = at;
+  show("review");
+  renderMoment();
+});
+
+$("send-back").addEventListener("click", () => {
+  if (state.report || !state.moments.length) return;
+  $<HTMLAudioElement>("take-audio").pause();
+  state.index = state.moments.length - 1;
   show("review");
   renderMoment();
 });
