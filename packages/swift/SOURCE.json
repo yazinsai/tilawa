@@ -1,0 +1,9 @@
+{
+  "referencePackage": "@tilawa/core",
+  "referenceVersion": "1.0.0-rc.1",
+  "referenceEngineCommit": "8cb52cb4af3a6697d600a6f0292c86e17956a246",
+  "portedContracts": ["runtime/fbank", "runtime/audio resampler", "runtime/listener", "engine/fuzzy alignment", "engine/reference"],
+  "customImplementations": ["native tracker and review prompts", "Swift actor lifecycle", "inference backend protocol"],
+  "modelWeightsIncluded": false,
+  "audioIncluded": false
+}

@@ -1,0 +1,24 @@
+name: Swift engine
+
+on:
+  pull_request:
+    paths:
+      - Package.swift
+      - packages/swift/**
+      - .github/workflows/swift.yml
+  push:
+    branches: [main]
+    paths:
+      - Package.swift
+      - packages/swift/**
+      - .github/workflows/swift.yml
+
+permissions:
+  contents: read
+
+jobs:
+  swift:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift test
