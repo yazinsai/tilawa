@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tilawa — Full-Page Mushaf Monitor</title>
+    <link rel="icon" href="/icon-192.png" />
+    <link rel="stylesheet" href="/src/arabic-font.css" />
+    <link rel="stylesheet" href="./src/mushaf.css" />
+  </head>
+  <body>
+    <div id="mushaf-app">
+      <!-- Top Global Bar -->
+      <header class="mushaf-topbar">
+        <div class="topbar-left">
+          <a class="logo-link" href="/" title="Back to Single-Verse View">
+            <span class="logo-brand">tilawa</span>
+            <span class="logo-ar" lang="ar">مُصْحَف</span>
+          </a>
+          <span class="badge-offline">On-Device &bull; Offline</span>
+        </div>
+
+        <div class="topbar-center">
+          <div id="status-pill" class="status-pill idle">
+            <span class="status-dot"></span>
+            <span id="status-text">Click Start to Begin</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button id="btn-start" class="btn-recite" type="button">
+            <span class="mic-icon">🎙️</span>
+            <span id="btn-start-label">Start Reciting</span>
+          </button>
+          <div id="audio-level" class="audio-level" hidden title="Microphone volume">
+            <span></span>
+          </div>
+          <a class="nav-return" href="/">Verse View ↗</a>
+        </div>
+      </header>
+
+      <!-- Navigation & Controls Header -->
+      <nav class="page-controls" aria-label="Mushaf Page Controls">
+        <div class="nav-group nav-left">
+          <button id="btn-prev-page" class="nav-btn" type="button" title="Previous Page (Alt + Left)">
+            &larr; Prev
+          </button>
+          <div class="page-input-wrap">
+            <label for="page-select">Page</label>
+            <input id="page-input" type="number" min="1" max="604" value="1" />
+            <span class="page-total">/ 604</span>
+          </div>
+          <button id="btn-next-page" class="nav-btn" type="button" title="Next Page (Alt + Right)">
+            Next &rarr;
+          </button>
+        </div>
+
+        <div class="nav-group nav-center">
+          <div class="mushaf-header-info">
+            <span id="header-juz" class="header-juz">الجزء الأول</span>
+            <span class="header-divider">&bull;</span>
+            <span id="header-surah" class="header-surah">سُورَةُ ٱلْفَاتِحَةِ</span>
+          </div>
+        </div>
+
+        <div class="nav-group nav-right">
+          <label class="toggle-wrap" title="Automatically flip to the page being recited">
+            <input id="toggle-autoflip" type="checkbox" checked />
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Auto-flip page</span>
+          </label>
+        </div>
+      </nav>
+
+      <!-- Loading / Progress Banner (when loading engine) -->
+      <div id="loading-banner" class="loading-banner" hidden>
+        <div class="loading-content">
+          <span class="loading-spinner"></span>
+          <span id="loading-msg">Preparing speech recognition engine...</span>
+          <span id="loading-pct" class="loading-pct">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div id="loading-progress" class="progress-bar-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Main Mushaf & Monitor Workspace -->
+      <main class="mushaf-workspace">
+        <!-- Mushaf Book View -->
+        <section class="mushaf-sheet-container" aria-label="Quran Page">
+          <div class="mushaf-border-outer">
+            <div class="mushaf-border-inner">
+              <!-- Top Page Corner Header -->
+              <div class="page-meta-header">
+                <span id="meta-juz-name" class="meta-item">الجُزْءُ ١</span>
+                <span id="meta-page-num" class="meta-item num">١</span>
+                <span id="meta-surah-name" class="meta-item">سُورَةُ الفَاتِحَةِ</span>
+              </div>
+
+              <!-- Page Verses Content -->
+              <div id="mushaf-page-text" class="mushaf-page-text" dir="rtl" lang="ar">
+                <!-- Dynamically populated with verses -->
+              </div>
+
+              <!-- Bottom Page Number -->
+              <div class="page-meta-footer">
+                <span id="meta-page-footer" class="meta-page-footer-num">١</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Live Recitation Monitor Sidebar -->
+        <aside class="recitation-monitor" aria-label="Live Recitation Feedback">
+          <div class="monitor-card current-position-card">
+            <h3 class="monitor-title">Live Position</h3>
+            <div class="position-display">
+              <div class="pos-item">
+                <span class="pos-label">Surah</span>
+                <span id="mon-surah" class="pos-val">-</span>
+              </div>
+              <div class="pos-item">
+                <span class="pos-label">Ayah</span>
+                <span id="mon-ayah" class="pos-val">-</span>
+              </div>
+              <div class="pos-item">
+                <span class="pos-label">Word</span>
+                <span id="mon-word" class="pos-val">-</span>
+              </div>
+            </div>
+            <div class="pos-detail">
+              <span id="mon-word-text" class="pos-word-arabic" dir="rtl" lang="ar"></span>
+              <span id="mon-confidence" class="pos-confidence">Waiting for recitation...</span>
+            </div>
+          </div>
+
+          <div class="monitor-card mistakes-card">
+            <div class="mistakes-header">
+              <h3 class="monitor-title">Self-Monitoring Notes</h3>
+              <span id="mistake-count" class="mistake-badge">0</span>
+            </div>
+            <p class="mistakes-desc">
+              Flags wrong, omitted or added words as you recite.
+            </p>
+            <ol id="monitor-mistakes" class="mistakes-list">
+              <li class="empty-state">No mistakes recorded yet. Recite smoothly.</li>
+            </ol>
+          </div>
+
+          <div class="monitor-card shortcuts-card">
+            <h4 class="shortcuts-title">Keyboard Shortcuts</h4>
+            <ul class="shortcuts-list">
+              <li><kbd>Space</kbd> Start / Stop Recitation</li>
+              <li><kbd>&larr;</kbd> Next Page &nbsp; <kbd>&rarr;</kbd> Prev Page</li>
+            </ul>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
