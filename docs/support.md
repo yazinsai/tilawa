@@ -43,7 +43,7 @@ iOS Safari only starts audio created during a user gesture. Use `prepareMicropho
 
 ### WebGPU and WASM
 
-`createTilawa` tries WebGPU first, then WASM. A backend that fails to load, or fails a warm-up run on silence, falls through to the next. `tilawa.model.backend` says which one runs (for example `onnxruntime-web/wasm`), and `tilawa.model.fallbacks` says why earlier ones were skipped. To force one, pass `providers: ["wasm"]`.
+`createTilawa` tries WebGPU first, then WASM. On iPhone and iPad (every browser there is WebKit) it uses WASM only: iOS kills a tab that goes over its memory cap, and preparing the model on WebGPU did that. A backend that fails to load, or fails a warm-up run on silence, falls through to the next. `tilawa.model.backend` says which one runs (for example `onnxruntime-web/wasm`), and `tilawa.model.fallbacks` says why earlier ones were skipped. To force one, pass `providers: ["wasm"]`.
 
 ### Threads and cross-origin isolation
 
@@ -89,7 +89,7 @@ If you install a different onnxruntime-web version, either serve its files yours
 | | Size | Notes |
 |---|---|---|
 | `full` model, `spliced-clean@1-int8` | 67,759,744 bytes (67.8 MB) | Default |
-| `lite` model, `spliced-clean-lite@1-int8` | 24,650,054 bytes (24.7 MB) | Picked by `tier: "auto"` when `navigator.deviceMemory` is under 4, on mobile browsers without WebGPU, and on React Native |
+| `lite` model, `spliced-clean-lite@1-int8` | 24,650,054 bytes (24.7 MB) | Picked by `tier: "auto"` when `navigator.deviceMemory` is under 4, on iPhone and iPad, on other mobile browsers without WebGPU, and on React Native |
 | Reference, `ref-v2.json` | 4,749,281 bytes (4.7 MB) | Downloaded on web and React Native; bundled on Node |
 | Storage budget | 200 MiB | All model tiers cached on one device together (`MODEL_BUDGET_BYTES`). Over it, loading fails with `ModelBudgetError` before downloading. |
 | Report recorder, clip mode | about 1.4 MB | Only with `createRecorder`: (10 s before + 5 s after + 30 s slack) of 16 kHz PCM16 |

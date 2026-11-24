@@ -11,6 +11,7 @@ import type { Microphone, MicrophoneOptions, Platform, PreparedMicrophone, Tilaw
 import { internals } from "./session.js";
 import type { EngineEvent, TilawaSession } from "./session.js";
 import { DEFAULTS } from "./defaults.js";
+import { autoWebTier, defaultWebProviders } from "./web-device.js";
 
 export { cacheStorage, loadWebModel };
 export type { WebModelOptions, WebProvider } from "./runtime/web.js";
@@ -30,12 +31,7 @@ const defaultStorage = (): ModelStorage =>
   typeof caches !== "undefined" ? cacheStorage(DEFAULTS.cacheName) : memoryStorage();
 
 const web: Platform<WebTilawaOptions> = {
-  autoTier(): TierName {
-    const nav = (globalThis.navigator ?? {}) as Navigator & { deviceMemory?: number; userAgentData?: { mobile?: boolean } };
-    if (typeof nav.deviceMemory === "number" && nav.deviceMemory < 4) return "lite";
-    const mobile = nav.userAgentData?.mobile ?? /Android|iPhone|iPad|iPod|Mobile/i.test(nav.userAgent ?? "");
-    return mobile && !("gpu" in nav) ? "lite" : "full";
-  },
+  autoTier: (): TierName => autoWebTier(globalThis.navigator ?? {}),
   async loadModel(o, ctx) {
     const storage = o.storage ?? defaultStorage();
     const fetched = await fetchModel({
@@ -52,7 +48,7 @@ const web: Platform<WebTilawaOptions> = {
       tier: ctx.tier,
       registry: ctx.registry,
       storage: holding(tierKey(fetched.tier), fetched.bytes),
-      providers: o.providers,
+      providers: o.providers ?? defaultWebProviders(globalThis.navigator ?? {}),
       threads: o.threads,
       wasmPaths: o.wasmPaths ?? (version ? `${ctx.assetBase}runtime/ort/${version}/` : undefined),
     });

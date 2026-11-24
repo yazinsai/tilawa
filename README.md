@@ -102,7 +102,7 @@ The event schema is versioned (`v: 1`). Every session sends three kinds of event
 | Tier | Model | Size | Picked when |
 |---|---|---|---|
 | `full` | `spliced-clean@1-int8` | 68 MB | default |
-| `lite` | `spliced-clean-lite@1-int8` | 25 MB | `tier: "auto"` on a device reporting under 4 GB of memory, or on mobile without WebGPU |
+| `lite` | `spliced-clean-lite@1-int8` | 25 MB | `tier: "auto"` on a device reporting under 4 GB of memory, on iPhone and iPad, or on other mobiles without WebGPU |
 
 By default the browser entry loads from `https://tilawa.dev/v1/`: models from `models/<id>/<version>/model.onnx`, the reference from `reference/ref-v2.json`, and the onnxruntime-web WASM files from `runtime/ort/<version>/`. These files are immutable; a new model or reference gets a new path. Downloads are checked against the sha256 in the bundled registry.
 

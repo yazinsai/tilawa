@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **iPhone and iPad load again.** iOS browsers (all WebKit) expose WebGPU from iOS 26, so `tier: "auto"` picked the full model and tried WebGPU first, and the tab was killed for memory while the model was being prepared. On iPhone and iPad, `tier: "auto"` now picks `lite` and the default providers are `["wasm"]`. Passing `tier` or `providers` still overrides this.
+
 ## 1.0.0-rc.1
 
 Preview bugfix release (engine re-vendored at research `8cb52cb4`).
