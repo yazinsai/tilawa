@@ -37,7 +37,7 @@ Exported by `/web`, `/node` and `/react-native`. It loads the model and the Qura
 | `phrases` | `PhraseAsset` | the bundled `phrases-v1` | Non-Quran phrases said around a recitation (isti'adha, takbir, amin…). |
 | `model` | `LoadedModel` | loaded from the registry | A model you loaded yourself (`loadWebModel`, `loadNodeModel`, `loadNativeModel`). You keep ownership: `tilawa.dispose()` won't release it. |
 | `storage` | `ModelStorage` | Cache API (web), `fsStorage(cacheDir)` (Node), in memory (RN) | Where downloaded model bytes (and, on web and RN, the reference) are kept. |
-| `providers` | `string[]` | web `["webgpu", "wasm"]`; RN `["cpu"]` | ONNX execution providers, tried in order on web. Ignored on Node (CPU). |
+| `providers` | `string[]` | web `["webgpu", "wasm"]` (`["wasm"]` on iPhone and iPad); RN `["cpu"]` | ONNX execution providers, tried in order on web. Ignored on Node (CPU). |
 | `threads` | `number` | `1` | ONNX intra-op threads. On web, more than 1 only takes effect when the page is cross-origin isolated. |
 | `wasmPaths` | `string` | `<assetBase>runtime/ort/<onnxruntime-web version>/` | Web only. Where onnxruntime-web's `.wasm`/`.mjs` files are served. Ignored when you pass `model`; give it to `loadWebModel` instead. |
 | `onProgress` | `(p: LoadProgress) => void` | none | Load progress, see below. |
@@ -62,7 +62,7 @@ The option types are exported as `WebTilawaOptions`, `NodeTilawaOptions` and `Na
 | Tier | Model | Download | `tier: "auto"` picks it |
 |---|---|---|---|
 | `full` | `spliced-clean@1-int8` | 67,759,744 bytes (67.8 MB) | Otherwise. Always on Node. |
-| `lite` | `spliced-clean-lite@1-int8` | 24,650,054 bytes (24.7 MB) | Web: `navigator.deviceMemory` under 4, or a mobile browser without WebGPU (`navigator.gpu`). React Native: always. |
+| `lite` | `spliced-clean-lite@1-int8` | 24,650,054 bytes (24.7 MB) | Web: `navigator.deviceMemory` under 4, iPhone and iPad, or another mobile browser without WebGPU (`navigator.gpu`). React Native: always. |
 
 Both detect the same four error classes. See the [model card](model-card.md).
 
