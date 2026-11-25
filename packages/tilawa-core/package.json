@@ -8,23 +8,28 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./web": {
       "types": "./dist/web.d.ts",
-      "import": "./dist/web.js"
+      "import": "./dist/web.js",
+      "default": "./dist/web.js"
     },
     "./node": {
       "types": "./dist/node.d.ts",
-      "import": "./dist/node.js"
+      "import": "./dist/node.js",
+      "default": "./dist/node.js"
     },
     "./react-native": {
       "types": "./dist/react-native.d.ts",
-      "import": "./dist/react-native.js"
+      "import": "./dist/react-native.js",
+      "default": "./dist/react-native.js"
     },
     "./report": {
       "types": "./dist/report/index.d.ts",
-      "import": "./dist/report/index.js"
+      "import": "./dist/report/index.js",
+      "default": "./dist/report/index.js"
     },
     "./assets/*": "./assets/*",
     "./package.json": "./package.json"

@@ -11,7 +11,7 @@ import type { Microphone, MicrophoneOptions, Platform, PreparedMicrophone, Tilaw
 import { internals } from "./session.js";
 import type { EngineEvent, TilawaSession } from "./session.js";
 import { DEFAULTS } from "./defaults.js";
-import { autoWebTier, defaultWebProviders } from "./web-device.js";
+import { autoWebTier } from "./web-device.js";
 
 export { cacheStorage, loadWebModel };
 export type { WebModelOptions, WebProvider } from "./runtime/web.js";
@@ -48,7 +48,9 @@ const web: Platform<WebTilawaOptions> = {
       tier: ctx.tier,
       registry: ctx.registry,
       storage: holding(tierKey(fetched.tier), fetched.bytes),
-      providers: o.providers ?? defaultWebProviders(globalThis.navigator ?? {}),
+      // WASM only by default: onnxruntime-web's WebGPU (JSEP) Slice kernel mishandles the models' reversed-mask Slice,
+      // so the warm-up always failed there and fell back to WASM anyway (#39).
+      providers: o.providers ?? ["wasm"],
       threads: o.threads,
       wasmPaths: o.wasmPaths ?? (version ? `${ctx.assetBase}runtime/ort/${version}/` : undefined),
     });

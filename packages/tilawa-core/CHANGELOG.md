@@ -3,6 +3,8 @@
 ## Unreleased
 
 - **iPhone and iPad load again.** iOS browsers (all WebKit) expose WebGPU from iOS 26, so `tier: "auto"` picked the full model and tried WebGPU first, and the tab was killed for memory while the model was being prepared. On iPhone and iPad, `tier: "auto"` now picks `lite` and the default providers are `["wasm"]`. Passing `tier` or `providers` still overrides this.
+- **WASM by default on the web.** onnxruntime-web's WebGPU (JSEP) `Slice` kernel drops an element of the models' reversed mask, so WebGPU failed its warm-up on every GPU and fell back to WASM (#39). The default providers are now `["wasm"]` everywhere, which skips the failed attempt. `providers: ["webgpu", "wasm"]` still tries it.
+- **`require()` resolves.** Every export has a `default` condition next to `import`, for loaders that resolve with `require` (#34).
 
 ## 1.0.0-rc.1
 
