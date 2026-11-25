@@ -1,5 +1,4 @@
 import type { TierName } from "./runtime/models.js";
-import type { WebProvider } from "./runtime/web.js";
 
 type Nav = Partial<Navigator> & { gpu?: unknown; deviceMemory?: number; userAgentData?: { mobile?: boolean } };
 
@@ -18,12 +17,4 @@ export function autoWebTier(nav: Nav): TierName {
   if (isAppleMobile(nav)) return "lite";
   const mobile = nav.userAgentData?.mobile ?? /Android|Mobile/i.test(nav.userAgent ?? "");
   return mobile && !("gpu" in nav) ? "lite" : "full";
-}
-
-/**
- * Providers to try when the caller names none. iOS WebKit exposes WebGPU (iOS 26+), but preparing the model there
- * got the tab killed for memory, so the WebGPU-then-WASM fallback never ran.
- */
-export function defaultWebProviders(nav: Nav): WebProvider[] {
-  return isAppleMobile(nav) ? ["wasm"] : ["webgpu", "wasm"];
 }

@@ -37,7 +37,7 @@ Exported by `/web`, `/node` and `/react-native`. It loads the model and the Qura
 | `phrases` | `PhraseAsset` | the bundled `phrases-v1` | Non-Quran phrases said around a recitation (isti'adha, takbir, amin…). |
 | `model` | `LoadedModel` | loaded from the registry | A model you loaded yourself (`loadWebModel`, `loadNodeModel`, `loadNativeModel`). You keep ownership: `tilawa.dispose()` won't release it. |
 | `storage` | `ModelStorage` | Cache API (web), `fsStorage(cacheDir)` (Node), in memory (RN) | Where downloaded model bytes (and, on web and RN, the reference) are kept. |
-| `providers` | `string[]` | web `["webgpu", "wasm"]` (`["wasm"]` on iPhone and iPad); RN `["cpu"]` | ONNX execution providers, tried in order on web. Ignored on Node (CPU). |
+| `providers` | `string[]` | web `["wasm"]`; RN `["cpu"]` | ONNX execution providers, tried in order on web. Ignored on Node (CPU). |
 | `threads` | `number` | `1` | ONNX intra-op threads. On web, more than 1 only takes effect when the page is cross-origin isolated. |
 | `wasmPaths` | `string` | `<assetBase>runtime/ort/<onnxruntime-web version>/` | Web only. Where onnxruntime-web's `.wasm`/`.mjs` files are served. Ignored when you pass `model`; give it to `loadWebModel` instead. |
 | `onProgress` | `(p: LoadProgress) => void` | none | Load progress, see below. |

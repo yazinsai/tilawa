@@ -26,7 +26,7 @@ The package is ESM only. Its JavaScript uses JSON import attributes (`import …
 | `BigInt64Array` | The model's int64 state | No backend can load |
 | Cache API (`caches`) | Keeping the model between visits | Falls back to memory: the model downloads on every page load |
 | WebCrypto (`crypto.subtle`) | sha256 check of downloads | Downloads are checked by length only (for example on plain-http LAN pages) |
-| WebGPU (`navigator.gpu`) | Optional, faster backend | Uses WASM |
+| WebGPU (`navigator.gpu`) | Not used by default (see below) | Uses WASM |
 
 ### Tested browsers
 
@@ -43,7 +43,7 @@ iOS Safari only starts audio created during a user gesture. Use `prepareMicropho
 
 ### WebGPU and WASM
 
-`createTilawa` tries WebGPU first, then WASM. On iPhone and iPad (every browser there is WebKit) it uses WASM only: iOS kills a tab that goes over its memory cap, and preparing the model on WebGPU did that. A backend that fails to load, or fails a warm-up run on silence, falls through to the next. `tilawa.model.backend` says which one runs (for example `onnxruntime-web/wasm`), and `tilawa.model.fallbacks` says why earlier ones were skipped. To force one, pass `providers: ["wasm"]`.
+`createTilawa` uses WASM by default. onnxruntime-web's WebGPU backend (1.30) mis-runs one `Slice` node in both models, so it fails its warm-up on every GPU. Pass `providers: ["webgpu", "wasm"]` to try it anyway. A backend that fails to load, or fails a warm-up run on silence, falls through to the next. `tilawa.model.backend` says which one runs (for example `onnxruntime-web/wasm`), and `tilawa.model.fallbacks` says why earlier ones were skipped.
 
 ### Threads and cross-origin isolation
 
