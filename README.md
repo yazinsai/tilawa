@@ -122,6 +122,10 @@ Load failures reject `createTilawa` with `TilawaLoadError` (`stage`: `model` or 
 | `@tilawa/core/report` | Opt-in problem reports (no audio is kept or sent unless the app asks) |
 | `@tilawa/core/assets/*.json` | `ref-v2.json`, `phrases-v1.json` |
 
+## Experimental Swift engine
+
+A separate native Swift package is available for evaluation: [Swift engine and iOS ONNX adapter](packages/swift/README.md). It provides DSP, streaming decoding and an experimental native tracker/checker without a web view. It is not full TypeScript checker parity and does not inherit this SDK's published accuracy figures. The existing SDK is unchanged.
+
 ## Documentation
 
 - [Quickstart](https://github.com/yazinsai/tilawa/blob/main/docs/quickstart.md): web, Node, declared passages, cleanup, errors, iOS

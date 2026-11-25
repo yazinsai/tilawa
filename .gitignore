@@ -79,3 +79,7 @@ packages/sample/public/clips/
 !packages/sdk/test/fixtures/tiny/model.onnx
 !packages/sdk/test/fixtures/*.wav
 !web/frontend/e2e/fixtures/*.wav
+
+# Swift package build state
+.build/
+.swiftpm/
