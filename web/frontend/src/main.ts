@@ -6,7 +6,7 @@ import { ayahsRecited, type CheckerEvent, type EngineEvent, type MemorizationPas
 import type { LoadProgress, Microphone, Tilawa } from "@tilawa/core/web";
 import { armCue, cue, cueEnabled, setCueEnabled } from "./lib/cue";
 import { EXPLAIN, isShown } from "./lib/explain";
-import { ayahKey, displayIndex, indexQuran, surahList, type QuranText, type QuranVerse } from "./lib/quran-words";
+import { ayahKey, changedSurah, displayIndex, indexQuran, surahList, type QuranText, type QuranVerse } from "./lib/quran-words";
 import { prepareMic } from "./lib/mic";
 import { cleanupOldClient } from "./migrate";
 
@@ -189,7 +189,8 @@ async function stop() {
   take = null;
   $<HTMLButtonElement>("btn-stop").disabled = false;
   const mistakes = t.session.mistakes().filter(isShown);
-  $("summary").textContent = summary(t.view.quran, ayahsRecited(t.events), mistakes.length);
+  $("summary").textContent =
+    summary(t.view.quran, ayahsRecited(t.events), mistakes.length) + (t.view.strays ? " Part of it was outside the passage you chose." : "");
   t.session.dispose();
   meter(-100);
   show("stopped");
@@ -264,9 +265,17 @@ class RecitationView {
   readonly quran: QuranText;
   /** Set when the take is stopping: no more sound cues. */
   quiet = false;
+  /** Times the reciter left the declared passage. */
+  strays = 0;
+  private readonly passage: MemorizationPassage | null;
+  /** The last locked word, and whether it was outside the declared passage. */
+  private at: WordRef | null = null;
+  private away = false;
 
   constructor(quran: QuranText, passage: MemorizationPassage | null) {
     this.quran = quran;
+    this.passage = passage;
+    $("place").classList.remove("away");
     this.ayah.replaceChildren();
     delete this.ayah.dataset.ref;
     delete this.ayah.dataset.word;
@@ -297,7 +306,33 @@ class RecitationView {
     // Only a locked position moves the display: ambiguous candidates would flicker between ayahs.
     if (!top || e.state !== "locked") return;
     $("hint").hidden = true;
+    this.place(top.word);
     this.showWord(top.word);
+  }
+
+  /**
+   * The engine follows a reciter who leaves the declared passage (a deliberate jump) and, in free recitation, one who
+   * carries on in another surah, without a checker event for either. Say so here.
+   */
+  private place(w: WordRef) {
+    const from = this.at;
+    this.at = w;
+    const p = this.passage;
+    const name = this.surahName(w.surah);
+    if (!p) {
+      if (from && changedSurah(this.quran, from, w))
+        this.note("moved", `Changed surah · ${w.surah}:${w.ayah}`, `It sounds like you moved from ${this.surahName(from.surah)} to ${name}.`);
+      return;
+    }
+    const away = w.surah !== p.surah || w.ayah < p.fromAyah || w.ayah > p.toAyah;
+    if (away && !this.away) {
+      this.strays++;
+      const chosen = `${this.surahName(p.surah)} ${p.surah}:${p.fromAyah}–${p.toAyah}`;
+      this.note("stray", `Outside your passage · ${w.surah}:${w.ayah}`, `This sounds like ${name} ${w.surah}:${w.ayah}, which isn't in the passage you chose (${chosen}).`);
+      if (!this.quiet) cue();
+    }
+    this.away = away;
+    $("place").classList.toggle("away", away);
   }
 
   private showWord(w: WordRef) {
@@ -363,28 +398,33 @@ class RecitationView {
 
   private addNote(e: CheckerEvent & { errorClass: keyof typeof EXPLAIN }) {
     const { surah, ayah, word } = e.location;
+    const text = this.quran.get(ayahKey(surah, ayah))?.words[displayIndex(surah, ayah, word)];
+    const li = this.note(e.errorClass, `${EXPLAIN[e.errorClass].label} · ${surah}:${ayah}`, EXPLAIN[e.errorClass].text, text);
+    li.dataset.note = e.id;
+  }
+
+  private note(cls: string, heading: string, text: string, word?: string): HTMLLIElement {
     const li = document.createElement("li");
     li.className = "note";
-    li.dataset.note = e.id;
-    li.dataset.class = e.errorClass;
+    li.dataset.class = cls;
     const head = document.createElement("span");
     head.className = "note-head";
-    head.textContent = `${EXPLAIN[e.errorClass].label} · ${surah}:${ayah}`;
-    const text = this.quran.get(ayahKey(surah, ayah))?.words[displayIndex(surah, ayah, word)];
-    if (text) {
+    head.textContent = heading;
+    if (word) {
       const ar = document.createElement("span");
       ar.className = "note-word";
       ar.lang = "ar";
       ar.dir = "rtl";
-      ar.textContent = text;
+      ar.textContent = word;
       head.append(" ", ar);
     }
     const body = document.createElement("span");
     body.className = "note-text";
-    body.textContent = EXPLAIN[e.errorClass].text;
+    body.textContent = text;
     li.append(head, body);
     $("notes").append(li);
     $("notes-wrap").hidden = false;
+    return li;
   }
 }
 

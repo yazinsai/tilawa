@@ -62,6 +62,7 @@ h3 { font-size: 23px; font-weight: 400; letter-spacing: -.04em; line-height: 31p
 .recitation { display: flex; flex-direction: column; gap: 16px; padding-top: 8px; }
 .place-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: var(--rule); padding-bottom: 12px; }
 .place { font-size: 14px; font-weight: 600; }
+.place.away { color: #9B2948; }
 .level { width: 56px; height: 4px; border-radius: 2px; background: var(--color-rule); overflow: hidden; }
 .level > span { display: block; height: 100%; background: var(--color-ink); transform: scaleX(var(--level, 0)); transform-origin: left; transition: transform 80ms linear; }
 .ayah { font: 400 34px/68px Amiri, serif; text-align: right; min-height: 136px; overflow-wrap: anywhere; }
@@ -79,6 +80,8 @@ h3 { font-size: 23px; font-weight: 400; letter-spacing: -.04em; line-height: 31p
 .notes-title { font-size: 14px; font-weight: 600; letter-spacing: 0; line-height: 20px; margin-bottom: 8px; }
 .notes { list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .note { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 8px; background: #F8EAF0; border-inline-start: 3px solid #9B2948; }
+.note[data-class="moved"] { background: var(--color-selected); border-inline-start-color: var(--color-muted); }
+.note[data-class="moved"] .note-head { color: var(--color-ink); }
 .note-head { font-size: 13px; font-weight: 600; color: #9B2948; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .note-word { font: 400 22px/32px Amiri, serif; color: var(--color-ink); }
 .note-text { font-size: 14px; line-height: 21px; }
