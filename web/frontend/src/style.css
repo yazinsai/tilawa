@@ -14,24 +14,27 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 .muted { color: var(--color-muted); }
 
 #app { max-width: 1440px; margin-inline: auto; padding-inline: 96px; }
-.nav-edge { height: 104px; display: flex; align-items: center; justify-content: space-between; border-bottom: var(--rule); }
+.nav-edge { height: 80px; display: flex; align-items: center; justify-content: space-between; border-bottom: var(--rule); }
 .wordmark { display: flex; align-items: center; gap: 12px; }
 .wordmark > :first-child { font: 800 27px/34px system-ui, sans-serif; letter-spacing: -.06em; }
 .wordmark [lang="ar"] { font: 400 24px/30px "IBM Plex Sans Arabic", sans-serif; }
 nav { display: flex; align-items: center; gap: 32px; font-size: 14px; }
 
-.page-split, .developers { display: grid; grid-template-columns: minmax(0, 600px) minmax(0, 504px); gap: clamp(48px, 7.78vw, 112px); justify-content: space-between; }
-.page-split { align-items: start; padding-block: 72px 80px; }
-.intro { display: flex; flex-direction: column; gap: 28px; min-width: 0; padding-top: 48px; }
-.preview-note { margin-top: 12px; font-size: 14px; line-height: 20px; opacity: .8; max-width: 34em; }
+.developers { display: grid; grid-template-columns: minmax(0, 600px) minmax(0, 504px); gap: clamp(48px, 7.78vw, 112px); justify-content: space-between; }
+/* The page is the tool: one centred column, the bench under a short introduction. */
+.page-split { display: flex; flex-direction: column; align-items: center; gap: 28px; padding-block: 40px 80px; }
+.intro { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; text-align: center; }
+/* Once a take starts, only the bench. */
+body:not([data-view="idle"]) :is(.intro, .developers, nav a[href="#developers"]) { display: none; }
+body:not([data-view="idle"]) .page-split { padding-top: 32px; }
+body[data-view="listening"] :is(#passage, .scope-note, #tech) { display: none; }
+.preview-note { font-size: 13px; line-height: 20px; opacity: .8; max-width: 44em; }
 .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .14em; line-height: 16px; }
-h1 { font-size: 72px; font-weight: 500; letter-spacing: -.055em; line-height: 78px; }
-.lede-copy { max-width: 470px; color: var(--color-muted); font-size: 19px; line-height: 31px; }
-.facts { display: flex; align-items: center; gap: 24px; font-size: 14px; line-height: 18px; margin-top: 8px; }
-.facts > :nth-child(2) { color: var(--color-rule); }
+h1 { font-size: 40px; font-weight: 500; letter-spacing: -.045em; line-height: 46px; }
+.lede-copy { max-width: 600px; color: var(--color-muted); font-size: 17px; line-height: 27px; }
 
 /* The demo bench */
-.bench { background: var(--color-surface); border: var(--rule); border-radius: 16px; padding: 24px; min-width: 0; width: 100%; display: flex; flex-direction: column; gap: 16px; }
+.bench { background: var(--color-surface); border: var(--rule); border-radius: 16px; padding: 24px; min-width: 0; width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 16px; }
 .bench-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .bench-heading h2 { font-size: 13px; line-height: 16px; font-weight: 700; }
 #status { font-size: 12px; line-height: 16px; font-weight: 600; background: var(--color-selected); border-radius: 6px; padding: 6px 9px; }
@@ -65,9 +68,9 @@ h3 { font-size: 23px; font-weight: 400; letter-spacing: -.04em; line-height: 31p
 .place.away { color: #9B2948; }
 .level { width: 56px; height: 4px; border-radius: 2px; background: var(--color-rule); overflow: hidden; }
 .level > span { display: block; height: 100%; background: var(--color-ink); transform: scaleX(var(--level, 0)); transform-origin: left; transition: transform 80ms linear; }
-.ayah { font: 400 34px/68px Amiri, serif; text-align: right; min-height: 136px; overflow-wrap: anywhere; }
+.ayah { font: 400 40px/80px Amiri, serif; text-align: right; min-height: 160px; overflow-wrap: anywhere; }
 .ayah:empty::before { content: "…"; color: var(--color-rule-2); }
-.ayah .word { border-radius: 5px; padding-inline: 3px; transition: background-color .15s, color .15s; }
+.ayah .word { border-radius: 5px; padding-inline: 3px; transition: background-color .15s, color .15s; scroll-margin-block: 96px 176px; }
 .ayah .word.said { color: var(--color-muted); }
 .ayah .word.current { background: var(--color-ink); color: var(--color-paper); }
 .ayah .word.mark { color: #9B2948; text-decoration: underline wavy #9B2948 1px; text-underline-offset: 10px; }
@@ -114,13 +117,13 @@ h3 { font-size: 23px; font-weight: 400; letter-spacing: -.04em; line-height: 31p
 .quickstart .c { color: #A8A8A8; }
 .colophon { border-top: var(--rule); display: flex; justify-content: space-between; gap: 16px; padding-block: 24px 32px; color: var(--color-muted); font-size: 12px; line-height: 16px; }
 
-@media (max-width: 1199px) { #app { padding-inline: 48px; } .page-split, .developers { gap: 48px; grid-template-columns: minmax(0, 1fr) minmax(0, 480px); } h1 { font-size: 60px; line-height: 66px; } }
-@media (max-width: 900px) { #app { padding-inline: 24px; } .page-split, .developers { grid-template-columns: minmax(0, 1fr); } .intro { padding-top: 0; } .bench { max-width: 560px; justify-self: center; } }
+@media (max-width: 1199px) { #app { padding-inline: 48px; } .developers { gap: 48px; grid-template-columns: minmax(0, 1fr) minmax(0, 480px); } }
+@media (max-width: 900px) { #app { padding-inline: 24px; } .developers { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 767px) {
   .nav-edge { height: 72px; } .wordmark > :first-child { font-size: 24px; line-height: 30px; } nav { gap: 16px; }
-  .page-split { padding-block: 32px 40px; gap: 28px; } .intro { gap: 16px; }
+  .page-split { padding-block: 24px 40px; gap: 20px; }
   .eyebrow { font-size: 10px; line-height: 12px; letter-spacing: .08em; }
-  h1 { font-size: 40px; line-height: 45px; letter-spacing: -.045em; }
+  h1 { font-size: 30px; line-height: 36px; }
   .lede-copy { font-size: 16px; line-height: 25px; } .footer-note { display: none; }
   .bench { padding: 18px; } .demo-intro { padding-block: 20px; gap: 12px; } .example-verse { font-size: 30px; }
   .ayah { font-size: 30px; line-height: 60px; }
@@ -128,5 +131,5 @@ h3 { font-size: 23px; font-weight: 400; letter-spacing: -.04em; line-height: 31p
   .quickstart pre { font-size: 12px; line-height: 19px; padding: 16px; }
   .state-content { padding-inline: 0; } .state-content h3 { font-size: 25px; line-height: 34px; }
 }
-@media (max-width: 359px) { #app { padding-inline: 16px; } nav { gap: 12px; } .bench { padding: 14px; } .facts { gap: 12px; font-size: 13px; } }
+@media (max-width: 359px) { #app { padding-inline: 16px; } nav { gap: 12px; } .bench { padding: 14px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }

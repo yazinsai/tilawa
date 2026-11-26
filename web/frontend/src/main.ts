@@ -162,6 +162,7 @@ async function start(passage?: MemorizationPassage) {
     }
     take = current;
     show("listening");
+    window.scrollTo({ top: 0 }); // the passage form sits lower down; the bench is now the whole page
     void holdWake();
   } catch (e) {
     prepared?.release();
