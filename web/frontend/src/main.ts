@@ -482,6 +482,24 @@ $<HTMLFormElement>("passage-form").addEventListener("submit", (ev) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Buttons
 
+// Theme: follows the system until the visitor picks one (the inline script in index.html applies the saved choice).
+const themeBtn = $("btn-theme");
+const systemDark = matchMedia("(prefers-color-scheme: dark)");
+const isDark = () => (document.documentElement.dataset.theme ?? (systemDark.matches ? "dark" : "light")) === "dark";
+const syncTheme = () => themeBtn.setAttribute("aria-pressed", String(isDark()));
+themeBtn.addEventListener("click", () => {
+  const next = isDark() ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try {
+    localStorage.setItem("theme", next);
+  } catch {
+    /* not remembered */
+  }
+  syncTheme();
+});
+systemDark.addEventListener("change", syncTheme);
+syncTheme();
+
 const cueToggle = $<HTMLInputElement>("cue-toggle");
 cueToggle.checked = cueEnabled();
 cueToggle.addEventListener("change", () => {
