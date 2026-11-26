@@ -11,6 +11,16 @@
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
+/* Before light-dark() (Chrome and Android WebView 123, Safari 17.5) the page is light only. */
+@supports not (color: light-dark(#000, #fff)) {
+  :root {
+    --color-paper: #FFFFFF; --color-ink: #171717; --color-muted: #626262; --color-rule: #DEDEDE; --color-surface: #F6F6F4;
+    --color-selected: #ECEDE8; --color-rule-2: #767676; --color-mark: #9B2948; --color-mark-bg: #F8EAF0;
+    --color-page: #F6F6F4; --color-card: #FFFFFF; --color-ok: #28643D;
+  }
+  .quickstart pre { background: #171717; border: 1px solid transparent; }
+  #btn-theme { display: none; }
+}
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
