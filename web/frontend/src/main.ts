@@ -101,7 +101,7 @@ function loadTilawa(): Promise<Tilawa> {
 
 function renderTech(t: Tilawa) {
   const backend = t.model.backend;
-  const rows: [string, string][] = [
+  const rows: [label: string, value: string, tooltip?: string][] = [
     [tr("techRunsOn"), tr(backend.includes("webgpu") ? "techGpu" : "techWasm")],
     [tr("techModel"), tr("techTier", { model: `${t.model.id}@${t.model.version}`, tier: t.model.tier ?? "custom" })],
     [tr("techEngine"), `@tilawa/core ${t.capabilities.sdkVersion ?? ""}, onnxruntime-web ${ortVersion}`],
@@ -109,14 +109,20 @@ function renderTech(t: Tilawa) {
     [tr("techIsolated"), tr(globalThis.crossOriginIsolated ? "yes" : "no")],
     [tr("techAssets"), ASSET_BASE],
   ];
-  if (t.model.fallbacks.length) rows.splice(1, 0, [tr("techSkipped"), t.model.fallbacks.join("; ")]);
+  if (t.model.fallbacks.length) {
+    // Each entry is "<provider>: <runtime error>". The raw error reads like a failure, and it isn't one: say what
+    // happened, and keep the error in the tooltip for developers.
+    const backends = t.model.fallbacks.map((f) => f.split(":")[0].replace("webgpu", "WebGPU")).join(", ");
+    rows.splice(1, 0, [tr("techSkipped"), tr("techSkippedWhy", { backends }), t.model.fallbacks.join("; ")]);
+  }
   const dl = $("tech-list");
   dl.replaceChildren(
-    ...rows.flatMap(([k, v]) => {
+    ...rows.flatMap(([k, v, tooltip]) => {
       const dt = document.createElement("dt");
       dt.textContent = k;
       const dd = document.createElement("dd");
       dd.textContent = v;
+      if (tooltip) dd.title = tooltip;
       return [dt, dd];
     }),
   );
