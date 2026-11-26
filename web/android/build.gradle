@@ -1,0 +1,27 @@
+// Android build of the web demo: one WebView over ../frontend/dist, models included, no network access.
+// Build the demo first (npm run build && npm run assets:v1, see AGENTS.md), then: ./gradlew assembleDebug
+plugins { id 'com.android.application' version '8.13.0' }
+
+android {
+    namespace 'dev.tilawa.demo'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'dev.tilawa.demo'
+        minSdk 29
+        // shortcut: 35+ draws the page under the status bar, raise it together with inset handling
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0-rc.1'
+    }
+    sourceSets.main.assets.srcDirs = ['../frontend/dist']
+    // A compressed asset is inflated into memory in one piece; the model is 68 MB.
+    androidResources { noCompress 'onnx', 'wasm' }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+preBuild.doFirst {
+    assert file('../frontend/dist/v1/manifest.json').exists() : 'web/frontend/dist/v1 is missing: run npm run build and npm run assets:v1 in web/frontend'
+}
