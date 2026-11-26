@@ -6,7 +6,8 @@ import { ayahsRecited, type CheckerEvent, type EngineEvent, type MemorizationPas
 import type { LoadProgress, Microphone, Tilawa } from "@tilawa/core/web";
 import { armCue, cue, cueEnabled, setCueEnabled } from "./lib/cue";
 import { EXPLAIN, isShown } from "./lib/explain";
-import { ayahKey, changedSurah, displayIndex, indexQuran, surahList, type QuranText, type QuranVerse } from "./lib/quran-words";
+import { applyStatic, lang, tr } from "./lib/i18n";
+import { ayahKey, changedSurah, displayIndex, indexQuran, surahList, type DisplayAyah, type QuranText, type QuranVerse } from "./lib/quran-words";
 import { prepareMic } from "./lib/mic";
 import { cleanupOldClient } from "./migrate";
 
@@ -14,6 +15,10 @@ import { cleanupOldClient } from "./migrate";
 // Setup
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+
+applyStatic();
+/** The surah's name in the interface language. */
+const nameOf = (a: DisplayAyah | undefined, surah: number) => (a ? (lang === "ar" ? a.surahName : a.surahNameEn) : tr("surahN", { n: surah }));
 
 /** Same-origin mirror of https://tilawa.dev/v1/ (served by server/assets.ts from dist/v1). */
 const ASSET_BASE = new URL(import.meta.env.VITE_TILAWA_ASSET_BASE ?? "/v1/", location.href).href;
@@ -83,10 +88,10 @@ function loadTilawa(): Promise<Tilawa> {
         $("progress-track").setAttribute("aria-valuenow", String(pct));
         $("progress-label").textContent = `${pct}%`;
         $("loading-detail").textContent = cached
-          ? "Loading from this device."
+          ? tr("loadCached")
           : p.stage === "warmup"
-            ? "Almost there."
-            : "Downloading once. Next time Tilawa starts straight away, even offline.";
+            ? tr("loadAlmost")
+            : tr("loadDownloading");
       },
     });
   });
@@ -96,16 +101,15 @@ function loadTilawa(): Promise<Tilawa> {
 
 function renderTech(t: Tilawa) {
   const backend = t.model.backend;
-  const runsOn = backend.includes("webgpu") ? "WebGPU (your graphics chip)" : "WebAssembly (WASM, your processor)";
   const rows: [string, string][] = [
-    ["Runs on", runsOn],
-    ["Model", `${t.model.id}@${t.model.version} (${t.model.tier} tier)`],
-    ["Engine", `@tilawa/core ${t.capabilities.sdkVersion ?? ""}, onnxruntime-web ${ortVersion}`],
-    ["Reference", t.capabilities.referenceVersion],
-    ["Cross-origin isolated", globalThis.crossOriginIsolated ? "yes" : "no"],
-    ["Assets", ASSET_BASE],
+    [tr("techRunsOn"), tr(backend.includes("webgpu") ? "techGpu" : "techWasm")],
+    [tr("techModel"), tr("techTier", { model: `${t.model.id}@${t.model.version}`, tier: t.model.tier ?? "custom" })],
+    [tr("techEngine"), `@tilawa/core ${t.capabilities.sdkVersion ?? ""}, onnxruntime-web ${ortVersion}`],
+    [tr("techReference"), t.capabilities.referenceVersion],
+    [tr("techIsolated"), tr(globalThis.crossOriginIsolated ? "yes" : "no")],
+    [tr("techAssets"), ASSET_BASE],
   ];
-  if (t.model.fallbacks.length) rows.splice(1, 0, ["Skipped", t.model.fallbacks.join("; ")]);
+  if (t.model.fallbacks.length) rows.splice(1, 0, [tr("techSkipped"), t.model.fallbacks.join("; ")]);
   const dl = $("tech-list");
   dl.replaceChildren(
     ...rows.flatMap(([k, v]) => {
@@ -117,7 +121,7 @@ function renderTech(t: Tilawa) {
     }),
   );
   dl.dataset.backend = backend;
-  setStatus(backend.includes("webgpu") ? "On-device · WebGPU" : "On-device");
+  setStatus(tr(backend.includes("webgpu") ? "onDeviceGpu" : "onDevice"));
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -191,15 +195,14 @@ async function stop() {
   $<HTMLButtonElement>("btn-stop").disabled = false;
   const mistakes = t.session.mistakes().filter(isShown);
   $("summary").textContent =
-    summary(t.view.quran, ayahsRecited(t.events), mistakes.length) + (t.view.strays ? " Part of it was outside the passage you chose." : "");
+    summary(t.view.quran, ayahsRecited(t.events), mistakes.length) + (t.view.strays ? ` ${tr("sumStray")}` : "");
   t.session.dispose();
   meter(-100);
   show("stopped");
 }
 
 function summary(quran: QuranText, recited: { surah: number; ayah: number }[], mistakes: number): string {
-  if (!recited.length)
-    return "Tilawa didn't find your place this time. Try a little longer, a little louder, or closer to the microphone.";
+  if (!recited.length) return tr("sumNone");
   const runs: string[] = [];
   let i = 0;
   while (i < recited.length) {
@@ -207,33 +210,24 @@ function summary(quran: QuranText, recited: { surah: number; ayah: number }[], m
     let last = first;
     while (i + 1 < recited.length && recited[i + 1].surah === first.surah && recited[i + 1].ayah === last.ayah + 1) last = recited[++i];
     i++;
-    const name = quran.get(ayahKey(first.surah, first.ayah))?.surahNameEn ?? `Surah ${first.surah}`;
+    const name = nameOf(quran.get(ayahKey(first.surah, first.ayah)), first.surah);
     runs.push(`${name} ${first.surah}:${first.ayah}${last.ayah !== first.ayah ? `–${last.ayah}` : ""}`);
   }
-  const notes = mistakes === 0 ? "Nothing to look at again." : mistakes === 1 ? "One word is worth a second look." : `${mistakes} words are worth a second look.`;
-  return `You recited ${runs.join(", ")}. ${notes}`;
+  const notes = mistakes === 0 ? tr("sumClean") : mistakes === 1 ? tr("sumOne") : tr("sumMany", { n: mistakes });
+  return `${tr("sumRecited", { runs: runs.join(tr("listSep")) })} ${notes}`;
 }
 
 const MIC_HELP = {
-  denied: [
-    "Microphone access is blocked.",
-    "Tilawa needs the microphone to hear you. Allow it from the icon beside the address bar (or in your browser's site settings), then try again. On iPhone: Settings › Safari › Microphone.",
-  ],
-  unavailable: [
-    "No microphone found.",
-    "Connect a microphone, or close other apps that might be using it, then try again.",
-  ],
-  "insecure-context": [
-    "This page can't use the microphone.",
-    "Browsers only allow the microphone on secure (https) pages. Open https://tilawa.dev directly.",
-  ],
+  denied: ["micDeniedTitle", "micDeniedBody"],
+  unavailable: ["micNoneTitle", "micNoneBody"],
+  "insecure-context": ["micInsecureTitle", "micInsecureBody"],
 } as const;
 
 function showMicError(e: unknown) {
   const reason = (e as { reason?: keyof typeof MIC_HELP }).reason;
   const [title, detail] = MIC_HELP[reason && reason in MIC_HELP ? reason : "unavailable"];
-  $("mic-error-title").textContent = title;
-  $("mic-error-detail").textContent = detail;
+  $("mic-error-title").textContent = tr(title);
+  $("mic-error-detail").textContent = tr(detail);
   show("mic-error");
 }
 
@@ -282,8 +276,8 @@ class RecitationView {
     delete this.ayah.dataset.word;
     $("notes").replaceChildren();
     $("notes-wrap").hidden = true;
-    $("place").textContent = passage ? `${this.surahName(passage.surah)} ${passage.surah}:${passage.fromAyah}–${passage.toAyah}` : "Listening";
-    $("hint").textContent = passage ? "Begin the passage when you're ready." : "Recite a few words. Tilawa will find your place.";
+    $("place").textContent = passage ? `${this.surahName(passage.surah)} ${passage.surah}:${passage.fromAyah}–${passage.toAyah}` : tr("listening");
+    $("hint").textContent = tr(passage ? "hintPassage" : "hintFree");
     $("hint").hidden = false;
   }
 
@@ -293,16 +287,16 @@ class RecitationView {
   }
 
   private surahName(surah: number) {
-    return this.quran.get(ayahKey(surah, 1))?.surahNameEn ?? `Surah ${surah}`;
+    return nameOf(this.quran.get(ayahKey(surah, 1)), surah);
   }
 
   private position(e: PositionEvent) {
     const top = e.observed[0];
-    if (e.state === "lost") $("hint").textContent = "Lost your place. Keep reciting and Tilawa will find it again.";
-    else if (e.state === "acquiring" && !this.shown) $("hint").textContent = "Finding your place…";
+    if (e.state === "lost") $("hint").textContent = tr("hintLost");
+    else if (e.state === "acquiring" && !this.shown) $("hint").textContent = tr("hintFinding");
     if (e.state === "ambiguous") {
       $("hint").hidden = false;
-      $("hint").textContent = "A few places match. Keep going.";
+      $("hint").textContent = tr("hintAmbiguous");
     }
     // Only a locked position moves the display: ambiguous candidates would flicker between ayahs.
     if (!top || e.state !== "locked") return;
@@ -320,16 +314,17 @@ class RecitationView {
     this.at = w;
     const p = this.passage;
     const name = this.surahName(w.surah);
+    const ref = `${w.surah}:${w.ayah}`;
     if (!p) {
       if (from && changedSurah(this.quran, from, w))
-        this.note("moved", `Changed surah · ${w.surah}:${w.ayah}`, `It sounds like you moved from ${this.surahName(from.surah)} to ${name}.`);
+        this.note("moved", tr("movedHead", { ref }), tr("movedBody", { from: this.surahName(from.surah), to: name }));
       return;
     }
     const away = w.surah !== p.surah || w.ayah < p.fromAyah || w.ayah > p.toAyah;
     if (away && !this.away) {
       this.strays++;
       const chosen = `${this.surahName(p.surah)} ${p.surah}:${p.fromAyah}–${p.toAyah}`;
-      this.note("stray", `Outside your passage · ${w.surah}:${w.ayah}`, `This sounds like ${name} ${w.surah}:${w.ayah}, which isn't in the passage you chose (${chosen}).`);
+      this.note("stray", tr("strayHead", { ref }), tr("strayBody", { name, ref, chosen }));
       if (!this.quiet) cue();
     }
     this.away = away;
@@ -355,7 +350,7 @@ class RecitationView {
       marker.textContent = ` ${toArabicDigits(w.ayah)}`;
       this.ayah.append(marker);
       this.ayah.dataset.ref = key;
-      $("place").textContent = `${ayah.surahNameEn} ${key}`;
+      $("place").textContent = `${nameOf(ayah, w.surah)} ${key}`;
       for (const m of this.marks.values()) this.applyMark(m);
     }
     const at = displayIndex(w.surah, w.ayah, w.word);
@@ -443,7 +438,7 @@ async function fillPassagePicker() {
       ...list.map((s) => {
         const o = document.createElement("option");
         o.value = String(s.surah);
-        o.textContent = `${s.surah}. ${s.nameEn}`;
+        o.textContent = `${s.surah}. ${lang === "ar" ? s.name : s.nameEn}`;
         o.dataset.ayahs = String(s.ayahs);
         return o;
       }),
@@ -451,7 +446,7 @@ async function fillPassagePicker() {
     select.dataset.ready = "1";
     syncRange();
   } catch {
-    select.firstElementChild!.textContent = "Couldn't load the surah list";
+    select.firstElementChild!.textContent = tr("surahListFailed");
   }
 }
 
@@ -481,6 +476,22 @@ $<HTMLFormElement>("passage-form").addEventListener("submit", (ev) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // Buttons
+
+// Language: the button offers the other one. A reload applies it (the inline script in index.html reads the choice).
+const langBtn = $("btn-lang");
+const otherLang = lang === "ar" ? "en" : "ar";
+langBtn.textContent = tr("langOther");
+langBtn.lang = otherLang;
+langBtn.addEventListener("click", () => {
+  const url = new URL(location.href);
+  url.searchParams.delete("lang");
+  try {
+    localStorage.setItem("lang", otherLang);
+  } catch {
+    url.searchParams.set("lang", otherLang); // storage blocked: carry the choice in the address
+  }
+  location.replace(url);
+});
 
 // Theme: follows the system until the visitor picks one (the inline script in index.html applies the saved choice).
 const themeBtn = $("btn-theme");

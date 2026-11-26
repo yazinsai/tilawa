@@ -31,6 +31,8 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 nav { display: flex; align-items: center; gap: 32px; font-size: 14px; }
 .nav-btn { display: inline-grid; place-items: center; min-width: 36px; height: 36px; padding-inline: 10px; border: var(--rule); border-radius: 999px; background: none; font-size: 14px; line-height: 1; }
 .nav-btn:hover { border-color: var(--color-ink); }
+/* Changing language reloads the page, which would end a take. */
+body:is([data-view="loading"], [data-view="mic-pending"], [data-view="listening"]) #btn-lang { display: none; }
 #btn-theme[aria-pressed="true"] .moon, #btn-theme[aria-pressed="false"] .sun { display: none; }
 
 .developers { display: grid; grid-template-columns: minmax(0, 600px) minmax(0, 504px); gap: clamp(48px, 7.78vw, 112px); justify-content: space-between; }
@@ -118,6 +120,11 @@ h3 { font-size: 23px; font-weight: 400; letter-spacing: -.04em; line-height: 31p
 .tech dt { color: var(--color-muted); }
 .tech dd { overflow-wrap: anywhere; }
 
+/* Arabic interface: its own face, no letter-spacing (it breaks the joins), and bars that fill from the right. */
+html[lang="ar"] body { font-family: "IBM Plex Sans Arabic", system-ui, sans-serif; }
+html[lang="ar"] body * { letter-spacing: 0; }
+[dir="rtl"] :is(#progress, .level > span) { transform-origin: right; }
+
 /* Developers */
 .developers { border-top: var(--rule); padding-block: 48px 56px; align-items: start; }
 .developer-copy { display: flex; flex-direction: column; gap: 14px; }
@@ -133,7 +140,8 @@ h3 { font-size: 23px; font-weight: 400; letter-spacing: -.04em; line-height: 31p
 @media (max-width: 1199px) { #app { padding-inline: 48px; } .developers { gap: 48px; grid-template-columns: minmax(0, 1fr) minmax(0, 480px); } }
 @media (max-width: 900px) { #app { padding-inline: 24px; } .developers { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 767px) {
-  .nav-edge { height: 72px; } .wordmark > :first-child { font-size: 24px; line-height: 30px; } nav { gap: 16px; }
+  .nav-edge { height: 72px; } .wordmark > :first-child { font-size: 24px; line-height: 30px; } nav { gap: 12px; }
+  nav a[href="#developers"] { display: none; }
   .page-split { padding-block: 24px 40px; gap: 20px; }
   .eyebrow { font-size: 10px; line-height: 12px; letter-spacing: .08em; }
   h1 { font-size: 30px; line-height: 36px; }
