@@ -4,6 +4,7 @@ import "./style.css";
 import { ayahsRecited, type CheckerEvent, type EngineEvent, type MemorizationPassage, type PositionEvent, type TilawaSession, type WordRef } from "@tilawa/core";
 // The engine (and onnxruntime-web, most of the JavaScript) loads when the user presses Start.
 import type { LoadProgress, Microphone, Tilawa } from "@tilawa/core/web";
+import { armCue, cue, cueEnabled, setCueEnabled } from "./lib/cue";
 import { EXPLAIN, isShown } from "./lib/explain";
 import { ayahKey, displayIndex, indexQuran, surahList, type QuranText, type QuranVerse } from "./lib/quran-words";
 import { prepareMic } from "./lib/mic";
@@ -137,6 +138,7 @@ async function start(passage?: MemorizationPassage) {
   starting = true;
   // Before any await: keeps the tap's user gesture for iOS audio (listen() takes ownership).
   let prepared = prepareMic();
+  armCue();
   try {
     show("loading");
     const [tilawa, quran] = await Promise.all([loadTilawa(), loadQuran()]);
@@ -160,6 +162,7 @@ async function start(passage?: MemorizationPassage) {
     }
     take = current;
     show("listening");
+    void holdWake();
   } catch (e) {
     prepared?.release();
     if (e instanceof Error && e.name === "AbortError") return show("idle");
@@ -175,6 +178,9 @@ async function stop() {
   const t = take;
   if (!t) return;
   $<HTMLButtonElement>("btn-stop").disabled = true;
+  t.view.quiet = true; // end() confirms every open flag at once: the summary reports those
+  void wake?.release().catch(() => {});
+  wake = null;
   try {
     await t.mic?.stop(); // ends the session: its final events arrive through subscribe
   } catch (e) {
@@ -229,6 +235,19 @@ function showMicError(e: unknown) {
   show("mic-error");
 }
 
+// Keeps the screen on while reciting. The browser drops the lock when the tab is hidden, so take it again on return.
+let wake: WakeLockSentinel | null = null;
+async function holdWake() {
+  try {
+    wake = (await navigator.wakeLock?.request("screen")) ?? null;
+  } catch {
+    /* unsupported, or refused (battery saver) */
+  }
+}
+document.addEventListener("visibilitychange", () => {
+  if (take && document.visibilityState === "visible") void holdWake();
+});
+
 const levelBar = $("level").firstElementChild as HTMLElement;
 function meter(db: number) {
   levelBar.style.setProperty("--level", String(Math.max(0, Math.min(1, (db + 60) / 50))));
@@ -243,6 +262,8 @@ class RecitationView {
   private readonly marks = new Map<string, CheckerEvent>();
   private readonly ayah = $("ayah");
   readonly quran: QuranText;
+  /** Set when the take is stopping: no more sound cues. */
+  quiet = false;
 
   constructor(quran: QuranText, passage: MemorizationPassage | null) {
     this.quran = quran;
@@ -307,6 +328,8 @@ class RecitationView {
       s.classList.toggle("current", i === at);
     });
     this.ayah.dataset.word = String(w.word);
+    // A long ayah runs past a phone screen: keep the word being recited in view.
+    this.spans[at]?.scrollIntoView({ block: "nearest" });
   }
 
   private checker(e: CheckerEvent) {
@@ -315,6 +338,8 @@ class RecitationView {
       this.marks.set(e.id, e);
       this.applyMark(e);
       this.addNote(e);
+      this.spanFor(e.location)?.classList.add("flagged");
+      if (!this.quiet) cue();
     } else if (e.state === "resolved" && this.marks.delete(e.id)) {
       // A self-correction: take the note back.
       document.querySelector(`[data-note="${CSS.escape(e.id)}"]`)?.remove();
@@ -415,6 +440,13 @@ $<HTMLFormElement>("passage-form").addEventListener("submit", (ev) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // Buttons
+
+const cueToggle = $<HTMLInputElement>("cue-toggle");
+cueToggle.checked = cueEnabled();
+cueToggle.addEventListener("change", () => {
+  setCueEnabled(cueToggle.checked);
+  armCue(); // switched on mid-take: this change is the gesture that unlocks audio
+});
 
 $("btn-start").addEventListener("click", () => void start());
 $("btn-again").addEventListener("click", () => void start());

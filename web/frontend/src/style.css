@@ -71,6 +71,8 @@ h3 { font-size: 23px; font-weight: 400; letter-spacing: -.04em; line-height: 31p
 .ayah .word.current { background: var(--color-ink); color: var(--color-paper); }
 .ayah .word.mark { color: #9B2948; text-decoration: underline wavy #9B2948 1px; text-underline-offset: 10px; }
 .ayah .word.mark.current { background: #9B2948; color: var(--color-paper); text-decoration: none; }
+.ayah .word.flagged { animation: flagged .7s ease-out; }
+@keyframes flagged { from { box-shadow: 0 0 0 8px #9B294840; } to { box-shadow: 0 0 0 0 #9B294800; } }
 .ayah-number { color: var(--color-muted); font-size: .7em; }
 .hint { font-size: 14px; color: var(--color-muted); text-align: center; }
 .notes-wrap { border-top: var(--rule); padding-top: 14px; }
@@ -81,6 +83,9 @@ h3 { font-size: 23px; font-weight: 400; letter-spacing: -.04em; line-height: 31p
 .note-word { font: 400 22px/32px Amiri, serif; color: var(--color-ink); }
 .note-text { font-size: 14px; line-height: 21px; }
 .summary { font-size: 15px; line-height: 24px; padding-block: 4px 8px; }
+
+.toggle { display: flex; align-items: center; gap: 10px; border-top: var(--rule); padding-top: 12px; min-height: 44px; font-size: 14px; cursor: pointer; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--color-ink); cursor: pointer; }
 
 /* Disclosures */
 .disclosure { border-top: var(--rule); padding-top: 12px; font-size: 14px; }
