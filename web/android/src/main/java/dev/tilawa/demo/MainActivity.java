@@ -4,9 +4,12 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Insets;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Window;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
@@ -15,6 +18,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -36,7 +40,18 @@ public class MainActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         WebView web = new WebView(this);
-        setContentView(web);
+        FrameLayout root = new FrameLayout(this);
+        root.addView(web);
+        setContentView(root);
+        // From Android 15 the window also covers the system bars; a WebView ignores padding of its own.
+        if (Build.VERSION.SDK_INT >= 30) {
+            root.setOnApplyWindowInsetsListener((view, insets) -> {
+                Insets bars = insets.getInsets(WindowInsets.Type.systemBars()
+                        | WindowInsets.Type.displayCutout() | WindowInsets.Type.ime());
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                return WindowInsets.CONSUMED;
+            });
+        }
         WebSettings settings = web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -55,6 +70,12 @@ public class MainActivity extends Activity {
                     return new WebResourceResponse("text/plain", "utf-8", 404, "Not Found",
                             Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
                 }
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                // The models are in the APK: hides the page's notes about downloading them.
+                view.evaluateJavascript("document.documentElement.classList.add('bundled')", null);
             }
 
             @Override
