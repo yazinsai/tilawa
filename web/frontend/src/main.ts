@@ -23,8 +23,14 @@ const nameOf = (a: DisplayAyah | undefined, surah: number) => (a ? (lang === "ar
 /** Same-origin mirror of https://tilawa.dev/v1/ (served by server/assets.ts from dist/v1). */
 const ASSET_BASE = new URL(import.meta.env.VITE_TILAWA_ASSET_BASE ?? "/v1/", location.href).href;
 const params = new URLSearchParams(location.search);
+/**
+ * ?app: the page is the Android app (web/android). A phone's main thread cannot resample the microphone, run the
+ * model and draw in real time, so the browser captures at 16 kHz and the lite model runs on WASM in onnxruntime-web's
+ * worker. The models are in the package, so the engine loads at launch instead of on Start.
+ */
+const APP = params.has("app");
 // Not in the UI: lets tests and developers pin a tier (?tier=lite).
-const TIER = params.get("tier") === "lite" || params.get("tier") === "full" ? (params.get("tier") as "lite" | "full") : "auto";
+const TIER = params.get("tier") === "lite" || params.get("tier") === "full" ? (params.get("tier") as "lite" | "full") : APP ? "lite" : "auto";
 
 void cleanupOldClient().then((r) => {
   if (r.databases.length || r.caches.length || r.serviceWorkers)
@@ -75,9 +81,12 @@ function loadTilawa(): Promise<Tilawa> {
   let cached = true;
   tilawaPromise = Promise.all([import("@tilawa/core/web"), import("onnxruntime-web/all")]).then(([web, ort]) => {
     ortVersion = ort.env.versions?.web ?? "";
+    if (APP) ort.env.wasm.proxy = true;
     return web.createTilawa({
       assetBase: ASSET_BASE,
       tier: TIER,
+      // The app reads its models from the package each launch: a second copy in Cache Storage only adds a way to fail.
+      ...(APP && { providers: ["wasm"] as const, storage: { get: async () => null, put: async () => {}, delete: async () => {}, keys: async () => [] } }),
       signal: abort.signal,
       onProgress: (p: LoadProgress) => {
         done[p.stage] = p.fraction;
@@ -147,7 +156,7 @@ async function start(passage?: MemorizationPassage) {
   if (starting || take) return;
   starting = true;
   // Before any await: keeps the tap's user gesture for iOS audio (listen() takes ownership).
-  let prepared = prepareMic();
+  let prepared = prepareMic(APP ? 16000 : undefined);
   armCue();
   try {
     show("loading");
@@ -533,3 +542,11 @@ $("btn-cancel").addEventListener("click", () => loadAbort?.abort());
 window.addEventListener("pagehide", () => void take?.mic?.stop());
 
 show("idle");
+
+if (APP) {
+  document.documentElement.classList.add("bundled");
+  // Frees the model copy that app builds before this one kept in Cache Storage.
+  void globalThis.caches?.keys().then((keys) => keys.forEach((k) => void caches.delete(k))).catch(() => {});
+  void loadTilawa().catch(() => {});
+  void loadQuran().catch(() => {});
+}

@@ -82,7 +82,7 @@ h3 { font-size: 23px; font-weight: 400; letter-spacing: -.04em; line-height: 31p
 .secondary-btn:hover:not(:disabled) { border-color: var(--color-ink); }
 .stop-icon { width: 10px; height: 10px; border-radius: 2px; background: var(--color-mark); }
 .demo-note { font-size: 13px; line-height: 21px; margin-top: 14px; text-align: center; }
-/* The Android app (web/android) carries the models, so nothing about downloading applies there. */
+/* The Android app (?app) carries the models, so nothing about downloading applies there. */
 .bundled :is(.net-only, #loading-detail) { display: none; }
 .state-content { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 40px 12px 28px; }
 .state-content h3 { font-size: 29px; letter-spacing: -.035em; line-height: 38px; }

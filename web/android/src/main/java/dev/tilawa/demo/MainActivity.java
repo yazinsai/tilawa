@@ -73,12 +73,6 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void onPageFinished(WebView view, String url) {
-                // The models are in the APK: hides the page's notes about downloading them.
-                view.evaluateJavascript("document.documentElement.classList.add('bundled')", null);
-            }
-
-            @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 if (HOST.equals(request.getUrl().getHost())) return false;
                 startActivity(new Intent(Intent.ACTION_VIEW, request.getUrl()));
@@ -102,7 +96,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        web.loadUrl("https://" + HOST + "/");
+        web.loadUrl("https://" + HOST + "/?app"); // ?app: see APP in web/frontend/src/main.ts
     }
 
     @Override
