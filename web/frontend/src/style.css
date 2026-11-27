@@ -107,6 +107,7 @@ body[data-view="listening"] .place::before { content: ""; flex: none; width: 8px
 .ayah .word { border-radius: 8px; padding-inline: 5px; transition: background-color .15s, color .15s; scroll-margin-block: 96px 176px; }
 .ayah .word.said { color: var(--color-muted); }
 .ayah .word.current { background: var(--color-ink); color: var(--color-paper); }
+.ayah .word.suspect { text-decoration: underline dotted var(--color-mark) 3px; text-underline-offset: 10px; }
 .ayah .word.mark { color: var(--color-mark); text-decoration: underline wavy var(--color-mark) 1px; text-underline-offset: 10px; }
 .ayah .word.mark.current { background: var(--color-mark); color: var(--color-paper); text-decoration: none; }
 .ayah .word.flagged { animation: flagged .7s ease-out; }

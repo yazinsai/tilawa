@@ -5,12 +5,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Insets;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -31,6 +34,7 @@ public class MainActivity extends Activity {
     private static final String[] MIC = {PermissionRequest.RESOURCE_AUDIO_CAPTURE};
 
     private PermissionRequest pending;
+    private ToneGenerator alarm;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -79,6 +83,20 @@ public class MainActivity extends Activity {
                 return true;
             }
         });
+
+        // The page's mistake alert (cue.ts). Played here on the alarm stream: loud whatever the media volume is.
+        setVolumeControlStream(AudioManager.STREAM_ALARM);
+        web.addJavascriptInterface(new Object() {
+            @JavascriptInterface
+            public void alarm() {
+                try {
+                    if (alarm == null) alarm = new ToneGenerator(AudioManager.STREAM_ALARM, ToneGenerator.MAX_VOLUME);
+                    alarm.startTone(ToneGenerator.TONE_PROP_BEEP2, 600);
+                } catch (RuntimeException e) {
+                    // No tone generator to be had: the page still vibrates.
+                }
+            }
+        }, "TilawaApp");
 
         web.setWebChromeClient(new WebChromeClient() {
             @Override

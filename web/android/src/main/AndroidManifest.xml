@@ -3,6 +3,8 @@
     <!-- No INTERNET permission: every page request is answered from the APK's assets. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- The page buzzes on a flagged word (navigator.vibrate). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:icon="@mipmap/ic_launcher"

@@ -1,7 +1,9 @@
-/** A short, quiet tone (and a buzz on phones) when a word is flagged. On by default; the choice is remembered. */
+/** A loud double beep (and a buzz on phones) when a word is flagged. On by default; the choice is remembered. */
 const KEY = "tilawa:cue";
 const GAP_MS = 400; // one cue for a burst of flags
 
+/** The Android app (web/android) sounds the alert itself on the alarm stream, so it does not depend on the media volume. */
+const app = (globalThis as { TilawaApp?: { alarm(): void } }).TilawaApp;
 let ctx: AudioContext | null = null;
 let last = -Infinity;
 let on = (() => {
@@ -33,18 +35,17 @@ export function armCue() {
 export function cue(now = performance.now()) {
   if (!on || now - last < GAP_MS) return;
   last = now;
-  navigator.vibrate?.(60);
+  navigator.vibrate?.(200);
+  if (app) return app.alarm();
   if (ctx?.state !== "running") return;
   const t = ctx.currentTime;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
-  osc.frequency.setValueAtTime(440, t);
-  osc.frequency.exponentialRampToValueAtTime(330, t + 0.16);
-  // Quiet and short: the microphone runs without echo cancellation, so the engine hears this too.
-  gain.gain.setValueAtTime(0.0001, t);
-  gain.gain.exponentialRampToValueAtTime(0.08, t + 0.02);
-  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  // Meant to be heard across a room. The microphone runs without echo cancellation, so the engine hears it too.
+  osc.type = "square";
+  osc.frequency.setValueAtTime(1000, t);
+  for (const [at, level] of [[0, 0.5], [0.15, 0], [0.22, 0.5], [0.37, 0]]) gain.gain.setValueAtTime(level, t + at);
   osc.connect(gain).connect(ctx.destination);
   osc.start(t);
-  osc.stop(t + 0.2);
+  osc.stop(t + 0.37);
 }

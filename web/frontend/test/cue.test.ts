@@ -9,7 +9,7 @@ class FakeContext {
   createOscillator() {
     tones++;
     const param = { setValueAtTime() {}, exponentialRampToValueAtTime() {} };
-    return { frequency: param, connect: (n: unknown) => n, start() {}, stop() {} };
+    return { type: "sine", frequency: param, connect: (n: unknown) => n, start() {}, stop() {} };
   }
   createGain() {
     const param = { setValueAtTime() {}, exponentialRampToValueAtTime() {} };
@@ -44,4 +44,15 @@ it("stays silent when switched off, and remembers the choice", async () => {
   expect(tones).toBe(0);
   vi.resetModules();
   expect((await import("../src/lib/cue")).cueEnabled()).toBe(false);
+});
+
+it("hands the alert to the Android app when it is there", async () => {
+  const alarm = vi.fn();
+  vi.stubGlobal("TilawaApp", { alarm });
+  const { armCue, cue } = await import("../src/lib/cue");
+  armCue();
+  cue(1000);
+  expect(alarm).toHaveBeenCalledOnce();
+  expect(tones).toBe(0);
+  vi.unstubAllGlobals();
 });

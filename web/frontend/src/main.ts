@@ -162,9 +162,9 @@ async function start(passage?: MemorizationPassage) {
     show("loading");
     const [tilawa, quran] = await Promise.all([loadTilawa(), loadQuran()]);
     show("mic-pending");
-    const session = passage
-      ? tilawa.startMemorization(passage, { confirm: { after: "next-word" } })
-      : tilawa.startFreeRecitation();
+    // A wrong word is confirmed when the next one starts, not after the default 2.5 s wait.
+    const policy = { confirm: { after: "next-word" } } as const;
+    const session = passage ? tilawa.startMemorization(passage, policy) : tilawa.startFreeRecitation(policy);
     const current: Take = { session, mic: null, events: [], view: new RecitationView(quran, passage ?? null) };
     session.subscribe((e) => {
       current.events.push(e);
@@ -380,6 +380,9 @@ class RecitationView {
 
   private checker(e: CheckerEvent) {
     if (!isShown(e)) return;
+    // A suspicion is underlined at once, about a second after the word: the engine confirms a wrong word only when
+    // the next one starts, and a missed one two ayahs later.
+    this.spanFor(e.location)?.classList.toggle("suspect", e.state === "suspected");
     if (e.state === "confirmed") {
       this.marks.set(e.id, e);
       this.applyMark(e);
