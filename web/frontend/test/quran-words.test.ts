@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
-import { displayIndex, indexQuran, splitDisplayWords, surahList, type QuranVerse } from "../src/lib/quran-words";
+import { changedSurah, displayIndex, indexQuran, splitDisplayWords, surahList, type QuranVerse } from "../src/lib/quran-words";
 
 const verses = JSON.parse(readFileSync(new URL("../public/quran.json", import.meta.url), "utf8")) as QuranVerse[];
 const quran = indexQuran(verses);
@@ -37,4 +37,14 @@ it("lists 114 surahs with their ayah counts", () => {
   expect(list).toHaveLength(114);
   expect(list[0]).toMatchObject({ surah: 1, ayahs: 7 });
   expect(list[1].ayahs).toBe(286);
+});
+
+it("tells a jump to another surah from reading on into the next one", () => {
+  const at = (surah: number, ayah: number) => ({ surah, ayah });
+  expect(changedSurah(quran, at(1, 3), at(112, 1))).toBe(true);
+  expect(changedSurah(quran, at(114, 6), at(112, 1))).toBe(true);
+  expect(changedSurah(quran, at(2, 100), at(3, 1))).toBe(true); // left Al-Baqarah in the middle
+  expect(changedSurah(quran, at(1, 7), at(2, 1))).toBe(false);
+  expect(changedSurah(quran, at(35, 45), at(36, 2))).toBe(false); // 36:1 is one short word
+  expect(changedSurah(quran, at(2, 5), at(2, 200))).toBe(false); // same surah: the checker's skipped passage
 });

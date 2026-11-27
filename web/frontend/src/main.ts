@@ -4,8 +4,10 @@ import "./style.css";
 import { ayahsRecited, type CheckerEvent, type EngineEvent, type MemorizationPassage, type PositionEvent, type TilawaSession, type WordRef } from "@tilawa/core";
 // The engine (and onnxruntime-web, most of the JavaScript) loads when the user presses Start.
 import type { LoadProgress, Microphone, Tilawa } from "@tilawa/core/web";
+import { armCue, cue, cueEnabled, setCueEnabled } from "./lib/cue";
 import { EXPLAIN, isShown } from "./lib/explain";
-import { ayahKey, displayIndex, indexQuran, surahList, type QuranText, type QuranVerse } from "./lib/quran-words";
+import { applyStatic, lang, tr } from "./lib/i18n";
+import { ayahKey, changedSurah, displayIndex, indexQuran, surahList, type DisplayAyah, type QuranText, type QuranVerse } from "./lib/quran-words";
 import { prepareMic } from "./lib/mic";
 import { cleanupOldClient } from "./migrate";
 
@@ -14,11 +16,21 @@ import { cleanupOldClient } from "./migrate";
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
+applyStatic();
+/** The surah's name in the interface language. */
+const nameOf = (a: DisplayAyah | undefined, surah: number) => (a ? (lang === "ar" ? a.surahName : a.surahNameEn) : tr("surahN", { n: surah }));
+
 /** Same-origin mirror of https://tilawa.dev/v1/ (served by server/assets.ts from dist/v1). */
 const ASSET_BASE = new URL(import.meta.env.VITE_TILAWA_ASSET_BASE ?? "/v1/", location.href).href;
 const params = new URLSearchParams(location.search);
+/**
+ * ?app: the page is the Android app (web/android). A phone's main thread cannot resample the microphone, run the
+ * model and draw in real time, so the browser captures at 16 kHz and the lite model runs on WASM in onnxruntime-web's
+ * worker. The models are in the package, so the engine loads at launch instead of on Start.
+ */
+const APP = params.has("app");
 // Not in the UI: lets tests and developers pin a tier (?tier=lite).
-const TIER = params.get("tier") === "lite" || params.get("tier") === "full" ? (params.get("tier") as "lite" | "full") : "auto";
+const TIER = params.get("tier") === "lite" || params.get("tier") === "full" ? (params.get("tier") as "lite" | "full") : APP ? "lite" : "auto";
 
 void cleanupOldClient().then((r) => {
   if (r.databases.length || r.caches.length || r.serviceWorkers)
@@ -69,9 +81,12 @@ function loadTilawa(): Promise<Tilawa> {
   let cached = true;
   tilawaPromise = Promise.all([import("@tilawa/core/web"), import("onnxruntime-web/all")]).then(([web, ort]) => {
     ortVersion = ort.env.versions?.web ?? "";
+    if (APP) ort.env.wasm.proxy = true;
     return web.createTilawa({
       assetBase: ASSET_BASE,
       tier: TIER,
+      // The app reads its models from the package each launch: a second copy in Cache Storage only adds a way to fail.
+      ...(APP && { providers: ["wasm"] as const, storage: { get: async () => null, put: async () => {}, delete: async () => {}, keys: async () => [] } }),
       signal: abort.signal,
       onProgress: (p: LoadProgress) => {
         done[p.stage] = p.fraction;
@@ -82,10 +97,10 @@ function loadTilawa(): Promise<Tilawa> {
         $("progress-track").setAttribute("aria-valuenow", String(pct));
         $("progress-label").textContent = `${pct}%`;
         $("loading-detail").textContent = cached
-          ? "Loading from this device."
+          ? tr("loadCached")
           : p.stage === "warmup"
-            ? "Almost there."
-            : "Downloading once. Next time Tilawa starts straight away, even offline.";
+            ? tr("loadAlmost")
+            : tr("loadDownloading");
       },
     });
   });
@@ -95,28 +110,33 @@ function loadTilawa(): Promise<Tilawa> {
 
 function renderTech(t: Tilawa) {
   const backend = t.model.backend;
-  const runsOn = backend.includes("webgpu") ? "WebGPU (your graphics chip)" : "WebAssembly (WASM, your processor)";
-  const rows: [string, string][] = [
-    ["Runs on", runsOn],
-    ["Model", `${t.model.id}@${t.model.version} (${t.model.tier} tier)`],
-    ["Engine", `@tilawa/core ${t.capabilities.sdkVersion ?? ""}, onnxruntime-web ${ortVersion}`],
-    ["Reference", t.capabilities.referenceVersion],
-    ["Cross-origin isolated", globalThis.crossOriginIsolated ? "yes" : "no"],
-    ["Assets", ASSET_BASE],
+  const rows: [label: string, value: string, tooltip?: string][] = [
+    [tr("techRunsOn"), tr(backend.includes("webgpu") ? "techGpu" : "techWasm")],
+    [tr("techModel"), tr("techTier", { model: `${t.model.id}@${t.model.version}`, tier: t.model.tier ?? "custom" })],
+    [tr("techEngine"), `@tilawa/core ${t.capabilities.sdkVersion ?? ""}, onnxruntime-web ${ortVersion}`],
+    [tr("techReference"), t.capabilities.referenceVersion],
+    [tr("techIsolated"), tr(globalThis.crossOriginIsolated ? "yes" : "no")],
+    [tr("techAssets"), ASSET_BASE],
   ];
-  if (t.model.fallbacks.length) rows.splice(1, 0, ["Skipped", t.model.fallbacks.join("; ")]);
+  if (t.model.fallbacks.length) {
+    // Each entry is "<provider>: <runtime error>". The raw error reads like a failure, and it isn't one: say what
+    // happened, and keep the error in the tooltip for developers.
+    const backends = t.model.fallbacks.map((f) => f.split(":")[0].replace("webgpu", "WebGPU")).join(", ");
+    rows.splice(1, 0, [tr("techSkipped"), tr("techSkippedWhy", { backends }), t.model.fallbacks.join("; ")]);
+  }
   const dl = $("tech-list");
   dl.replaceChildren(
-    ...rows.flatMap(([k, v]) => {
+    ...rows.flatMap(([k, v, tooltip]) => {
       const dt = document.createElement("dt");
       dt.textContent = k;
       const dd = document.createElement("dd");
       dd.textContent = v;
+      if (tooltip) dd.title = tooltip;
       return [dt, dd];
     }),
   );
   dl.dataset.backend = backend;
-  setStatus(backend.includes("webgpu") ? "On-device · WebGPU" : "On-device");
+  setStatus(tr(backend.includes("webgpu") ? "onDeviceGpu" : "onDevice"));
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -136,14 +156,15 @@ async function start(passage?: MemorizationPassage) {
   if (starting || take) return;
   starting = true;
   // Before any await: keeps the tap's user gesture for iOS audio (listen() takes ownership).
-  let prepared = prepareMic();
+  let prepared = prepareMic(APP ? 16000 : undefined);
+  armCue();
   try {
     show("loading");
     const [tilawa, quran] = await Promise.all([loadTilawa(), loadQuran()]);
     show("mic-pending");
-    const session = passage
-      ? tilawa.startMemorization(passage, { confirm: { after: "next-word" } })
-      : tilawa.startFreeRecitation();
+    // A wrong word is confirmed when the next one starts, not after the default 2.5 s wait.
+    const policy = { confirm: { after: "next-word" } } as const;
+    const session = passage ? tilawa.startMemorization(passage, policy) : tilawa.startFreeRecitation(policy);
     const current: Take = { session, mic: null, events: [], view: new RecitationView(quran, passage ?? null) };
     session.subscribe((e) => {
       current.events.push(e);
@@ -160,6 +181,8 @@ async function start(passage?: MemorizationPassage) {
     }
     take = current;
     show("listening");
+    window.scrollTo({ top: 0 }); // the passage form sits lower down; the bench is now the whole page
+    void holdWake();
   } catch (e) {
     prepared?.release();
     if (e instanceof Error && e.name === "AbortError") return show("idle");
@@ -175,6 +198,9 @@ async function stop() {
   const t = take;
   if (!t) return;
   $<HTMLButtonElement>("btn-stop").disabled = true;
+  t.view.quiet = true; // end() confirms every open flag at once: the summary reports those
+  void wake?.release().catch(() => {});
+  wake = null;
   try {
     await t.mic?.stop(); // ends the session: its final events arrive through subscribe
   } catch (e) {
@@ -183,15 +209,15 @@ async function stop() {
   take = null;
   $<HTMLButtonElement>("btn-stop").disabled = false;
   const mistakes = t.session.mistakes().filter(isShown);
-  $("summary").textContent = summary(t.view.quran, ayahsRecited(t.events), mistakes.length);
+  $("summary").textContent =
+    summary(t.view.quran, ayahsRecited(t.events), mistakes.length) + (t.view.strays ? ` ${tr("sumStray")}` : "");
   t.session.dispose();
   meter(-100);
   show("stopped");
 }
 
 function summary(quran: QuranText, recited: { surah: number; ayah: number }[], mistakes: number): string {
-  if (!recited.length)
-    return "Tilawa didn't find your place this time. Try a little longer, a little louder, or closer to the microphone.";
+  if (!recited.length) return tr("sumNone");
   const runs: string[] = [];
   let i = 0;
   while (i < recited.length) {
@@ -199,35 +225,39 @@ function summary(quran: QuranText, recited: { surah: number; ayah: number }[], m
     let last = first;
     while (i + 1 < recited.length && recited[i + 1].surah === first.surah && recited[i + 1].ayah === last.ayah + 1) last = recited[++i];
     i++;
-    const name = quran.get(ayahKey(first.surah, first.ayah))?.surahNameEn ?? `Surah ${first.surah}`;
+    const name = nameOf(quran.get(ayahKey(first.surah, first.ayah)), first.surah);
     runs.push(`${name} ${first.surah}:${first.ayah}${last.ayah !== first.ayah ? `–${last.ayah}` : ""}`);
   }
-  const notes = mistakes === 0 ? "Nothing to look at again." : mistakes === 1 ? "One word is worth a second look." : `${mistakes} words are worth a second look.`;
-  return `You recited ${runs.join(", ")}. ${notes}`;
+  const notes = mistakes === 0 ? tr("sumClean") : mistakes === 1 ? tr("sumOne") : tr("sumMany", { n: mistakes });
+  return `${tr("sumRecited", { runs: runs.join(tr("listSep")) })} ${notes}`;
 }
 
 const MIC_HELP = {
-  denied: [
-    "Microphone access is blocked.",
-    "Tilawa needs the microphone to hear you. Allow it from the icon beside the address bar (or in your browser's site settings), then try again. On iPhone: Settings › Safari › Microphone.",
-  ],
-  unavailable: [
-    "No microphone found.",
-    "Connect a microphone, or close other apps that might be using it, then try again.",
-  ],
-  "insecure-context": [
-    "This page can't use the microphone.",
-    "Browsers only allow the microphone on secure (https) pages. Open https://tilawa.dev directly.",
-  ],
+  denied: ["micDeniedTitle", "micDeniedBody"],
+  unavailable: ["micNoneTitle", "micNoneBody"],
+  "insecure-context": ["micInsecureTitle", "micInsecureBody"],
 } as const;
 
 function showMicError(e: unknown) {
   const reason = (e as { reason?: keyof typeof MIC_HELP }).reason;
   const [title, detail] = MIC_HELP[reason && reason in MIC_HELP ? reason : "unavailable"];
-  $("mic-error-title").textContent = title;
-  $("mic-error-detail").textContent = detail;
+  $("mic-error-title").textContent = tr(title);
+  $("mic-error-detail").textContent = tr(detail);
   show("mic-error");
 }
+
+// Keeps the screen on while reciting. The browser drops the lock when the tab is hidden, so take it again on return.
+let wake: WakeLockSentinel | null = null;
+async function holdWake() {
+  try {
+    wake = (await navigator.wakeLock?.request("screen")) ?? null;
+  } catch {
+    /* unsupported, or refused (battery saver) */
+  }
+}
+document.addEventListener("visibilitychange", () => {
+  if (take && document.visibilityState === "visible") void holdWake();
+});
 
 const levelBar = $("level").firstElementChild as HTMLElement;
 function meter(db: number) {
@@ -243,16 +273,26 @@ class RecitationView {
   private readonly marks = new Map<string, CheckerEvent>();
   private readonly ayah = $("ayah");
   readonly quran: QuranText;
+  /** Set when the take is stopping: no more sound cues. */
+  quiet = false;
+  /** Times the reciter left the declared passage. */
+  strays = 0;
+  private readonly passage: MemorizationPassage | null;
+  /** The last locked word, and whether it was outside the declared passage. */
+  private at: WordRef | null = null;
+  private away = false;
 
   constructor(quran: QuranText, passage: MemorizationPassage | null) {
     this.quran = quran;
+    this.passage = passage;
+    $("place").classList.remove("away");
     this.ayah.replaceChildren();
     delete this.ayah.dataset.ref;
     delete this.ayah.dataset.word;
     $("notes").replaceChildren();
     $("notes-wrap").hidden = true;
-    $("place").textContent = passage ? `${this.surahName(passage.surah)} ${passage.surah}:${passage.fromAyah}–${passage.toAyah}` : "Listening";
-    $("hint").textContent = passage ? "Begin the passage when you're ready." : "Recite a few words. Tilawa will find your place.";
+    $("place").textContent = passage ? `${this.surahName(passage.surah)} ${passage.surah}:${passage.fromAyah}–${passage.toAyah}` : tr("listening");
+    $("hint").textContent = tr(passage ? "hintPassage" : "hintFree");
     $("hint").hidden = false;
   }
 
@@ -262,21 +302,48 @@ class RecitationView {
   }
 
   private surahName(surah: number) {
-    return this.quran.get(ayahKey(surah, 1))?.surahNameEn ?? `Surah ${surah}`;
+    return nameOf(this.quran.get(ayahKey(surah, 1)), surah);
   }
 
   private position(e: PositionEvent) {
     const top = e.observed[0];
-    if (e.state === "lost") $("hint").textContent = "Lost your place. Keep reciting and Tilawa will find it again.";
-    else if (e.state === "acquiring" && !this.shown) $("hint").textContent = "Finding your place…";
+    if (e.state === "lost") $("hint").textContent = tr("hintLost");
+    else if (e.state === "acquiring" && !this.shown) $("hint").textContent = tr("hintFinding");
     if (e.state === "ambiguous") {
       $("hint").hidden = false;
-      $("hint").textContent = "A few places match. Keep going.";
+      $("hint").textContent = tr("hintAmbiguous");
     }
     // Only a locked position moves the display: ambiguous candidates would flicker between ayahs.
     if (!top || e.state !== "locked") return;
     $("hint").hidden = true;
+    this.place(top.word);
     this.showWord(top.word);
+  }
+
+  /**
+   * The engine follows a reciter who leaves the declared passage (a deliberate jump) and, in free recitation, one who
+   * carries on in another surah, without a checker event for either. Say so here.
+   */
+  private place(w: WordRef) {
+    const from = this.at;
+    this.at = w;
+    const p = this.passage;
+    const name = this.surahName(w.surah);
+    const ref = `${w.surah}:${w.ayah}`;
+    if (!p) {
+      if (from && changedSurah(this.quran, from, w))
+        this.note("moved", tr("movedHead", { ref }), tr("movedBody", { from: this.surahName(from.surah), to: name }));
+      return;
+    }
+    const away = w.surah !== p.surah || w.ayah < p.fromAyah || w.ayah > p.toAyah;
+    if (away && !this.away) {
+      this.strays++;
+      const chosen = `${this.surahName(p.surah)} ${p.surah}:${p.fromAyah}–${p.toAyah}`;
+      this.note("stray", tr("strayHead", { ref }), tr("strayBody", { name, ref, chosen }));
+      if (!this.quiet) cue();
+    }
+    this.away = away;
+    $("place").classList.toggle("away", away);
   }
 
   private showWord(w: WordRef) {
@@ -298,7 +365,7 @@ class RecitationView {
       marker.textContent = ` ${toArabicDigits(w.ayah)}`;
       this.ayah.append(marker);
       this.ayah.dataset.ref = key;
-      $("place").textContent = `${ayah.surahNameEn} ${key}`;
+      $("place").textContent = `${nameOf(ayah, w.surah)} ${key}`;
       for (const m of this.marks.values()) this.applyMark(m);
     }
     const at = displayIndex(w.surah, w.ayah, w.word);
@@ -307,14 +374,21 @@ class RecitationView {
       s.classList.toggle("current", i === at);
     });
     this.ayah.dataset.word = String(w.word);
+    // A long ayah runs past a phone screen: keep the word being recited in view.
+    this.spans[at]?.scrollIntoView({ block: "nearest" });
   }
 
   private checker(e: CheckerEvent) {
     if (!isShown(e)) return;
+    // A suspicion is underlined at once, about a second after the word: the engine confirms a wrong word only when
+    // the next one starts, and a missed one two ayahs later.
+    this.spanFor(e.location)?.classList.toggle("suspect", e.state === "suspected");
     if (e.state === "confirmed") {
       this.marks.set(e.id, e);
       this.applyMark(e);
       this.addNote(e);
+      this.spanFor(e.location)?.classList.add("flagged");
+      if (!this.quiet) cue();
     } else if (e.state === "resolved" && this.marks.delete(e.id)) {
       // A self-correction: take the note back.
       document.querySelector(`[data-note="${CSS.escape(e.id)}"]`)?.remove();
@@ -338,28 +412,33 @@ class RecitationView {
 
   private addNote(e: CheckerEvent & { errorClass: keyof typeof EXPLAIN }) {
     const { surah, ayah, word } = e.location;
+    const text = this.quran.get(ayahKey(surah, ayah))?.words[displayIndex(surah, ayah, word)];
+    const li = this.note(e.errorClass, `${EXPLAIN[e.errorClass].label} · ${surah}:${ayah}`, EXPLAIN[e.errorClass].text, text);
+    li.dataset.note = e.id;
+  }
+
+  private note(cls: string, heading: string, text: string, word?: string): HTMLLIElement {
     const li = document.createElement("li");
     li.className = "note";
-    li.dataset.note = e.id;
-    li.dataset.class = e.errorClass;
+    li.dataset.class = cls;
     const head = document.createElement("span");
     head.className = "note-head";
-    head.textContent = `${EXPLAIN[e.errorClass].label} · ${surah}:${ayah}`;
-    const text = this.quran.get(ayahKey(surah, ayah))?.words[displayIndex(surah, ayah, word)];
-    if (text) {
+    head.textContent = heading;
+    if (word) {
       const ar = document.createElement("span");
       ar.className = "note-word";
       ar.lang = "ar";
       ar.dir = "rtl";
-      ar.textContent = text;
+      ar.textContent = word;
       head.append(" ", ar);
     }
     const body = document.createElement("span");
     body.className = "note-text";
-    body.textContent = EXPLAIN[e.errorClass].text;
+    body.textContent = text;
     li.append(head, body);
     $("notes").append(li);
     $("notes-wrap").hidden = false;
+    return li;
   }
 }
 
@@ -377,7 +456,7 @@ async function fillPassagePicker() {
       ...list.map((s) => {
         const o = document.createElement("option");
         o.value = String(s.surah);
-        o.textContent = `${s.surah}. ${s.nameEn}`;
+        o.textContent = `${s.surah}. ${lang === "ar" ? s.name : s.nameEn}`;
         o.dataset.ayahs = String(s.ayahs);
         return o;
       }),
@@ -385,7 +464,7 @@ async function fillPassagePicker() {
     select.dataset.ready = "1";
     syncRange();
   } catch {
-    select.firstElementChild!.textContent = "Couldn't load the surah list";
+    select.firstElementChild!.textContent = tr("surahListFailed");
   }
 }
 
@@ -416,6 +495,47 @@ $<HTMLFormElement>("passage-form").addEventListener("submit", (ev) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Buttons
 
+// Language: the button offers the other one. A reload applies it (the inline script in index.html reads the choice).
+const langBtn = $("btn-lang");
+const otherLang = lang === "ar" ? "en" : "ar";
+langBtn.textContent = tr("langOther");
+langBtn.lang = otherLang;
+langBtn.addEventListener("click", () => {
+  const url = new URL(location.href);
+  url.searchParams.delete("lang");
+  try {
+    localStorage.setItem("lang", otherLang);
+  } catch {
+    url.searchParams.set("lang", otherLang); // storage blocked: carry the choice in the address
+  }
+  location.replace(url);
+});
+
+// Theme: follows the system until the visitor picks one (the inline script in index.html applies the saved choice).
+const themeBtn = $("btn-theme");
+const systemDark = matchMedia("(prefers-color-scheme: dark)");
+const isDark = () => (document.documentElement.dataset.theme ?? (systemDark.matches ? "dark" : "light")) === "dark";
+const syncTheme = () => themeBtn.setAttribute("aria-pressed", String(isDark()));
+themeBtn.addEventListener("click", () => {
+  const next = isDark() ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try {
+    localStorage.setItem("theme", next);
+  } catch {
+    /* not remembered */
+  }
+  syncTheme();
+});
+systemDark.addEventListener("change", syncTheme);
+syncTheme();
+
+const cueToggle = $<HTMLInputElement>("cue-toggle");
+cueToggle.checked = cueEnabled();
+cueToggle.addEventListener("change", () => {
+  setCueEnabled(cueToggle.checked);
+  armCue(); // switched on mid-take: this change is the gesture that unlocks audio
+});
+
 $("btn-start").addEventListener("click", () => void start());
 $("btn-again").addEventListener("click", () => void start());
 $("btn-retry-load").addEventListener("click", () => void start());
@@ -425,3 +545,11 @@ $("btn-cancel").addEventListener("click", () => loadAbort?.abort());
 window.addEventListener("pagehide", () => void take?.mic?.stop());
 
 show("idle");
+
+if (APP) {
+  document.documentElement.classList.add("bundled");
+  // Frees the model copy that app builds before this one kept in Cache Storage.
+  void globalThis.caches?.keys().then((keys) => keys.forEach((k) => void caches.delete(k))).catch(() => {});
+  void loadTilawa().catch(() => {});
+  void loadQuran().catch(() => {});
+}

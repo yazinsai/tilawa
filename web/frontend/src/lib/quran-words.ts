@@ -64,6 +64,18 @@ export function indexQuran(verses: QuranVerse[]): QuranText {
   return map;
 }
 
+type AyahRef = { surah: number; ayah: number };
+
+/**
+ * A move between two locked ayahs that lands in another surah without reading on into it. Reading on is loose by an
+ * ayah each side: the first lock in a surah is often its second ayah when the first is one short word (يسٓ).
+ */
+export function changedSurah(text: QuranText, from: AyahRef, to: AyahRef): boolean {
+  if (from.surah === to.surah) return false;
+  const readOn = to.surah === from.surah + 1 && to.ayah <= 2 && !text.has(ayahKey(from.surah, from.ayah + 2));
+  return !readOn;
+}
+
 export interface SurahInfo {
   surah: number;
   nameEn: string;

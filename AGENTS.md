@@ -29,6 +29,7 @@ packages/tilawa-core/     # @tilawa/core SDK (the shipped product, npm, own lock
   scripts/parity-golden.mjs  # regenerates test/fixtures/parity/golden.json from the pinned commit
   scripts/pack-smoke.mjs  #   npm pack -> install in a temp project -> import every subpath -> Node session
 web/frontend/             # demo + /help (Vite + node server)
+web/android/              # Android build of the demo: a WebView over web/frontend/dist (./gradlew assembleDebug)
 modal/  tools/            # lab, autolab and the Modal jobs
 docs/                     # SDK docs; docs/benchmarks (scoreboard, lab results), docs/agents
 .scratch/                 # research notes, lab cards, issues
