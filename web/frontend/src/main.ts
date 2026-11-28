@@ -3,22 +3,17 @@ import "./arabic-font.css";
 import "./style.css";
 import { ayahsRecited, type CheckerEvent, type EngineEvent, type MemorizationPassage, type PositionEvent, type TilawaSession, type WordRef } from "@tilawa/core";
 // The engine (and onnxruntime-web, most of the JavaScript) loads when the user presses Start.
-import type { LoadProgress, Microphone, Tilawa } from "@tilawa/core/web";
+import type { Microphone, Tilawa } from "@tilawa/core/web";
 import { EXPLAIN, isShown } from "./lib/explain";
-import { ayahKey, displayIndex, indexQuran, surahList, type QuranText, type QuranVerse } from "./lib/quran-words";
+import { ayahKey, displayIndex, surahList, type QuranText } from "./lib/quran-words";
 import { prepareMic } from "./lib/mic";
+import { ASSET_BASE, loadQuran, loadTilawa } from "./lib/tilawa";
 import { cleanupOldClient } from "./migrate";
 
 // ---------------------------------------------------------------------------------------------------------------
 // Setup
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
-
-/** Same-origin mirror of https://tilawa.dev/v1/ (served by server/assets.ts from dist/v1). */
-const ASSET_BASE = new URL(import.meta.env.VITE_TILAWA_ASSET_BASE ?? "/v1/", location.href).href;
-const params = new URLSearchParams(location.search);
-// Not in the UI: lets tests and developers pin a tier (?tier=lite).
-const TIER = params.get("tier") === "lite" || params.get("tier") === "full" ? (params.get("tier") as "lite" | "full") : "auto";
 
 void cleanupOldClient().then((r) => {
   if (r.databases.length || r.caches.length || r.serviceWorkers)
@@ -43,54 +38,37 @@ function setStatus(text: string) {
 // ---------------------------------------------------------------------------------------------------------------
 // Loading: the Quran display text and the engine
 
-let quranPromise: Promise<QuranText> | null = null;
-function loadQuran(): Promise<QuranText> {
-  quranPromise ??= fetch("/quran.json")
-    .then((r) => {
-      if (!r.ok) throw new Error(`${r.status} fetching the Quran text`);
-      return r.json() as Promise<QuranVerse[]>;
-    })
-    .then(indexQuran);
-  quranPromise.catch(() => (quranPromise = null));
-  return quranPromise;
-}
-
-let tilawaPromise: Promise<Tilawa> | null = null;
 let loadAbort: AbortController | null = null;
-
-const STAGE_WEIGHT = { model: 0.75, reference: 0.2, warmup: 0.05 } as const;
-
 let ortVersion = "";
+let renderedTech = false;
 
-function loadTilawa(): Promise<Tilawa> {
-  if (tilawaPromise) return tilawaPromise;
+function loadDemoTilawa(): Promise<Tilawa> {
   const abort = (loadAbort = new AbortController());
-  const done = { model: 0, reference: 0, warmup: 0 };
-  let cached = true;
-  tilawaPromise = Promise.all([import("@tilawa/core/web"), import("onnxruntime-web/all")]).then(([web, ort]) => {
-    ortVersion = ort.env.versions?.web ?? "";
-    return web.createTilawa({
-      assetBase: ASSET_BASE,
-      tier: TIER,
-      signal: abort.signal,
-      onProgress: (p: LoadProgress) => {
-        done[p.stage] = p.fraction;
-        if (!p.fromCache && p.stage !== "warmup" && p.fraction < 1) cached = false;
-        const overall = Object.entries(done).reduce((n, [k, f]) => n + f * STAGE_WEIGHT[k as keyof typeof done], 0);
-        const pct = Math.floor(overall * 100);
-        $("progress").style.setProperty("--progress", String(overall));
-        $("progress-track").setAttribute("aria-valuenow", String(pct));
-        $("progress-label").textContent = `${pct}%`;
-        $("loading-detail").textContent = cached
-          ? "Loading from this device."
-          : p.stage === "warmup"
-            ? "Almost there."
-            : "Downloading once. Next time Tilawa starts straight away, even offline.";
-      },
-    });
+  const p = loadTilawa({
+    signal: abort.signal,
+    onOrtVersion: (v) => (ortVersion = v),
+    onProgress: ({ overall, pct, cached, stage }) => {
+      $("progress").style.setProperty("--progress", String(overall));
+      $("progress-track").setAttribute("aria-valuenow", String(pct));
+      $("progress-label").textContent = `${pct}%`;
+      $("loading-detail").textContent = cached
+        ? "Loading from this device."
+        : stage === "warmup"
+          ? "Almost there."
+          : "Downloading once. Next time Tilawa starts straight away, even offline.";
+    },
   });
-  tilawaPromise.then(renderTech, () => (tilawaPromise = null));
-  return tilawaPromise;
+  if (!renderedTech) {
+    p.then(
+      (t) => {
+        if (renderedTech) return;
+        renderedTech = true;
+        renderTech(t);
+      },
+      () => {},
+    );
+  }
+  return p;
 }
 
 function renderTech(t: Tilawa) {
@@ -139,7 +117,7 @@ async function start(passage?: MemorizationPassage) {
   let prepared = prepareMic();
   try {
     show("loading");
-    const [tilawa, quran] = await Promise.all([loadTilawa(), loadQuran()]);
+    const [tilawa, quran] = await Promise.all([loadDemoTilawa(), loadQuran()]);
     show("mic-pending");
     const session = passage
       ? tilawa.startMemorization(passage, { confirm: { after: "next-word" } })

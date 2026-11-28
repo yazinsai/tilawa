@@ -61,7 +61,11 @@ export default defineConfig({
       input:
         process.env.BUILD_ONLY === "help"
           ? { help: path.join(root, "help/index.html") }
-          : { main: path.join(root, "index.html"), help: path.join(root, "help/index.html") },
+          : {
+              main: path.join(root, "index.html"),
+              help: path.join(root, "help/index.html"),
+              mushaf: path.join(root, "mushaf/index.html"),
+            },
     },
   },
 });

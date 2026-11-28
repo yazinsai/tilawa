@@ -14,6 +14,10 @@ The engine (`packages/tilawa-core/src/engine/`, `packages/tilawa-core/src/runtim
 - **Tanzil** (tanzil.net): the Uthmani Quran text the reference is derived from. Tanzil's terms ask that the text be reproduced verbatim, with Tanzil credited as its source and a link to tanzil.net.
 - **ONNX Runtime** (`microsoft/onnxruntime`, MIT): inference. It is a peer dependency, installed by the app.
 
+## Web demo (`web/frontend/`)
+
+- **Tanzil Quran Metadata** ([tanzil.net](https://tanzil.net), `quran-data.js` 1.0), licensed **CC BY 3.0**: the 604-page Madani mushaf page boundaries (`web/frontend/src/lib/madani-pages.json`, also in `packages/core/assets/madani-pages-v1.json`).
+
 ## 0.x engine and the old `lab/` harness (not part of `@tilawa/core` 1.x)
 
 The 0.x package and the Python harness in `lab/` (removed; see [`2a29b3b`](https://github.com/yazinsai/tilawa/tree/2a29b3b/lab)) used the models and data below. Nothing from them ships in `@tilawa/core` 1.x.

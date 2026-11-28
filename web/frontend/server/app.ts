@@ -67,6 +67,10 @@ export function createApp(env = process.env) {
   app.get("/help", (c) => c.redirect("/help/", 301));
   app.get("/help/", serveStatic({ root: "./dist", path: "help/index.html" }));
 
+  // Full-page Mushaf monitor
+  app.get("/mushaf", (c) => c.redirect("/mushaf/", 301));
+  app.get("/mushaf/", serveStatic({ root: "./dist", path: "mushaf/index.html" }));
+
   // Serve static files from Vite build
   app.use("/*", serveStatic({ root: "./dist" }));
 

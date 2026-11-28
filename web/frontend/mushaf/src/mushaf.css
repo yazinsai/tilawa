@@ -1,0 +1,716 @@
+@import "@fontsource/amiri/400.css";
+@import "@fontsource/amiri/700.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+
+:root {
+  --bg-page: #f5f4ef;
+  --bg-mushaf: #fdfcf7;
+  --text-main: #1c1917;
+  --border-gold: #c8a25c;
+  --border-gold-light: #e5cb9b;
+  --color-primary: #15803d;
+  --color-primary-hover: #166534;
+  --color-said: rgba(21, 128, 61, 0.12);
+  --color-current: #fef08a;
+  --color-current-border: #eab308;
+  --color-mistake: #fee2e2;
+  --color-mistake-border: #ef4444;
+  --font-arabic: "Amiri", "Amiri Quran", "IBM Plex Sans Arabic", serif;
+  --font-ui: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#mushaf-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ---------------- Top Global Bar ---------------- */
+.mushaf-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e0d8;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.topbar-left,
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--text-main);
+}
+
+.logo-brand {
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.logo-ar {
+  font-family: var(--font-arabic);
+  font-size: 22px;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.badge-offline {
+  font-size: 11px;
+  font-weight: 600;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4b5563;
+  transition: all 0.2s ease;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9ca3af;
+  transition: all 0.2s ease;
+}
+
+.status-pill.listening {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.status-pill.listening .status-dot {
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+  animation: pulse-dot 1.5s infinite;
+}
+
+.status-pill.locked {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.status-pill.locked .status-dot {
+  background: #3b82f6;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.btn-recite {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+.btn-recite:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-recite:active {
+  transform: scale(0.98);
+}
+
+.btn-recite.active {
+  background: #dc2626;
+}
+
+.btn-recite.active:hover {
+  background: #b91c1c;
+}
+
+.audio-level {
+  width: 16px;
+  height: 24px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.audio-level span {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #22c55e;
+  height: var(--level, 0%);
+  transition: height 0.08s ease;
+}
+
+.nav-return {
+  color: #64748b;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.nav-return:hover {
+  color: var(--text-main);
+}
+
+/* ---------------- Page Controls ---------------- */
+.page-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  background: #fbfbfa;
+  border-bottom: 1px solid #eae8df;
+  font-size: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.nav-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-btn {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.page-input-wrap input {
+  width: 52px;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-main);
+  outline: none;
+}
+
+.page-total {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.mushaf-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-arabic);
+  font-size: 20px;
+  font-weight: 700;
+  color: #292524;
+}
+
+.header-divider {
+  color: var(--border-gold);
+  font-size: 14px;
+}
+
+.toggle-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.toggle-wrap input {
+  cursor: pointer;
+}
+
+/* ---------------- Loading Banner ---------------- */
+.loading-banner {
+  background: #fefce8;
+  border-bottom: 1px solid #fef08a;
+  padding: 10px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #854d0e;
+}
+
+.loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ca8a04;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 4px;
+  background: #fef08a;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #ca8a04;
+  transition: width 0.2s ease;
+}
+
+/* ---------------- Main Workspace Layout ---------------- */
+.mushaf-workspace {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .mushaf-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------- Mushaf Sheet & Borders ---------------- */
+.mushaf-sheet-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.mushaf-border-outer {
+  background-color: var(--bg-mushaf);
+  width: 100%;
+  max-width: 760px;
+  border: 3px double var(--border-gold);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.mushaf-border-inner {
+  border: 1px solid var(--border-gold-light);
+  border-radius: 8px;
+  padding: 28px 36px;
+  display: flex;
+  flex-direction: column;
+  min-height: 840px;
+  position: relative;
+  background-image: radial-gradient(#faf6ea 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.page-meta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-arabic);
+  font-size: 18px;
+  color: #78716c;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ebdcb9;
+}
+
+.page-meta-header .num {
+  font-weight: 700;
+  color: var(--border-gold);
+}
+
+.page-meta-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  text-align: center;
+  border-top: 1px solid #ebdcb9;
+}
+
+.meta-page-footer-num {
+  display: inline-block;
+  font-family: var(--font-arabic);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--border-gold);
+  border: 1px solid var(--border-gold-light);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  line-height: 34px;
+  background: #fdfbf7;
+}
+
+/* ---------------- Surah & Bismillah Banners ---------------- */
+.surah-header-banner {
+  text-align: center;
+  margin: 16px 0 12px 0;
+  padding: 8px 16px;
+  background: #fbf7ec;
+  border: 2px solid var(--border-gold);
+  border-radius: 8px;
+  position: relative;
+  box-shadow: inset 0 0 0 2px #fdfbf7;
+}
+
+.surah-title-arabic {
+  font-family: var(--font-arabic);
+  font-size: 28px;
+  font-weight: 700;
+  color: #451a03;
+}
+
+.bismillah-banner {
+  text-align: center;
+  font-family: var(--font-arabic);
+  font-size: 26px;
+  color: #57534e;
+  margin: 8px 0 16px 0;
+  user-select: none;
+}
+
+/* ---------------- Mushaf Text & Words ---------------- */
+.mushaf-page-text {
+  font-family: var(--font-arabic);
+  font-size: 27px;
+  line-height: 2.2;
+  text-align: justify;
+  text-justify: inter-word;
+  color: #1c1917;
+  word-spacing: 2px;
+}
+
+.m-word {
+  display: inline-block;
+  padding: 1px 3px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  margin: 0 1px;
+}
+
+.m-word:hover {
+  background-color: rgba(200, 162, 92, 0.2);
+}
+
+/* Read / Recited Word */
+.m-word.said {
+  background-color: var(--color-said);
+  color: #14532d;
+}
+
+/* Active / Current Word being spoken */
+.m-word.current {
+  background-color: var(--color-current) !important;
+  color: #713f12 !important;
+  box-shadow: 0 0 0 2px var(--color-current-border), 0 2px 6px rgba(234, 179, 8, 0.4);
+  font-weight: 700;
+  transform: translateY(-1px);
+}
+
+/* Manual jump / inspected word */
+.m-word.manual {
+  background-color: #e0f2fe;
+  color: #0c4a6e;
+  box-shadow: 0 0 0 2px #38bdf8;
+}
+
+/* Mistake Highlighted Word */
+.m-word.mistake {
+  background-color: var(--color-mistake) !important;
+  color: #991b1b !important;
+  text-decoration: underline wavy var(--color-mistake-border) !important;
+  text-underline-offset: 6px;
+  box-shadow: 0 0 0 2px var(--color-mistake-border);
+}
+
+.ayah-end-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 4px;
+  color: var(--border-gold);
+  font-size: 24px;
+  user-select: none;
+  font-weight: 600;
+}
+
+/* ---------------- Recitation Monitor Sidebar ---------------- */
+.recitation-monitor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.monitor-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.monitor-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.position-display {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pos-item {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+}
+
+.pos-label {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.pos-val {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.pos-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.pos-word-arabic {
+  font-family: var(--font-arabic);
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  min-height: 32px;
+}
+
+.pos-confidence {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.mistakes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.mistakes-header .monitor-title {
+  margin-bottom: 0;
+}
+
+.mistake-badge {
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.mistakes-desc {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.mistakes-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.mistakes-list li.empty-state {
+  color: #9ca3af;
+  font-size: 13px;
+  text-align: center;
+  padding: 16px 8px;
+}
+
+.mistake-item {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.mistake-item-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.mistake-type {
+  font-weight: 600;
+  color: #b91c1c;
+  text-transform: capitalize;
+}
+
+.mistake-loc {
+  font-size: 12px;
+  color: #7f1d1d;
+  font-weight: 500;
+}
+
+.mistake-word {
+  font-family: var(--font-arabic);
+  font-size: 20px;
+  line-height: 1.5;
+  color: #1c1917;
+  margin-bottom: 2px;
+}
+
+.mistake-detail {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.shortcuts-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.shortcuts-list {
+  list-style: none;
+  font-size: 12px;
+  color: #4b5563;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+kbd {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  color: #374151;
+}
