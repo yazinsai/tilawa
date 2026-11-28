@@ -12,6 +12,7 @@ import type {
 import { Resampler } from "./runtime/audio.js";
 import { createEngine as createResearchEngine } from "./runtime/session.js";
 import type {
+  Refinements,
   EngineOptions as ResearchEngineOptions,
   MemorizationPassage,
   Session as ResearchSession,
@@ -22,7 +23,7 @@ import { SessionEndedError } from "./errors.js";
 import { uuid } from "./util.js";
 import { SDK_VERSION } from "./version.js";
 
-export type { MemorizationPassage, SessionPolicy };
+export type { Refinements, MemorizationPassage, SessionPolicy };
 
 /** Schema v1 `capabilities`, plus the optional fields V1 adds. */
 export interface CapabilityEvent extends ResearchCapabilityEvent {
@@ -42,6 +43,8 @@ export interface ResolvedSessionPolicy {
   confirm: { after: "delay"; ms: number } | { after: "next-word" };
   minConfidence: number;
   evidenceMs: number;
+  /** Every refinement, as the policy set it or else its default (`DEFAULTS.policy.refinements`). */
+  refinements: Required<Refinements>;
 }
 
 /** The declared passage: its first and last words, and the ayah range it was declared with. */
@@ -125,6 +128,9 @@ export function resolvePolicy(p: SessionPolicy = {}, frameMs: number): ResolvedS
     confirm: p.confirm ? { ...p.confirm } : { ...DEFAULTS.policy.confirm },
     minConfidence: p.minConfidence ?? DEFAULTS.policy.minConfidence,
     evidenceMs: p.evidenceMs ?? frameMs,
+    refinements: Object.fromEntries(
+      Object.entries(DEFAULTS.policy.refinements).map(([k, on]) => [k, p.refinements?.[k as keyof Refinements] ?? on]),
+    ) as Required<Refinements>,
   };
 }
 

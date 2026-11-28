@@ -3,7 +3,7 @@ import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
-import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
+import { CONSONANTS, UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
 import { LISTENER_CHANNEL } from "./listener-channel.js";
 import { insertionDropFit, issueDropFit } from "./tracker.js";
@@ -38,6 +38,169 @@ export interface CheckerPolicy {
    * recited right, as a declared session does. Default true.
    */
   finaliseFree?: boolean;
+  /**
+   * The checker's refinements of rc.1's rules ({@link CheckerRefinements}): each on unless set false.
+   */
+  refinements?: CheckerRefinements;
+}
+
+/**
+ * Refinements of the 1.0.0-rc.1 checker's rules. Each is on unless set `false`; off, a field keeps the rc.1 rule it
+ * replaces, so its effect can be measured alone.
+ */
+export interface CheckerRefinements {
+  /**
+   * A repeat that rejoins is not a skip. A word counts as read once a visit heard it right and the alignment went on
+   * to its next word (an ayah's last word: or went back, to repeat). An omission is not raised when every word of it
+   * was read earlier in the current pass and the reading after it rejoins: it resumes where reading on from the
+   * furthest word read before it goes (the next word; from an ayah's last two words, the next ayah's first word), or
+   * it begins an ayah's first word after the reciter broke off (a pause, or a phrase that is not the Quran's, between
+   * the speech either side of it, or no speech before it in the alignment). A pause alone excuses nothing: a
+   * resumption inside an ayah stays an omission (forget, hesitate, skip), in a first reading or a re-reading, and so
+   * does a resumption at an ayah's first word in continuous speech. Nor is an ayah's end a break: every ayah ends
+   * with a pause, so whole ayahs left out after one stay omissions, a re-reading's as a first reading's, unless the
+   * reading goes on where the reciter had read to (in the ayah that reading on from the furthest word read goes into:
+   * the next one after an ayah read to its end, or the ayah they broke off in, started again).
+   *
+   * A pass is set by the recitation, the same way in a declared passage and in free recitation. One starts at a takbir
+   * or a basmala, at a jump (off the passage, back onto it, or ahead of the window; in free recitation the passage is
+   * what was read since the place was found, from its first word) or after the place was lost, and where the reciter
+   * goes back to an earlier ayah `PASS_BACK_WORDS` words or more behind the furthest word read (or back to a surah's
+   * first ayah) and reads the ayah they went back to through to its last word: the passage read again (the memorization
+   * drill, a second rak'ah) has its own omissions, from the return on. A shorter return is a repeat inside the pass,
+   * and so is a return that leaves the ayah it went back to before its last word (a few words to find the place).
+   * Coming forward again to the furthest ayah read before going back (`reanchorBack`'s rejoin, or a jump in the window)
+   * goes on with the pass it left. Words never read in the pass stay omissions. Risks: a reciter who goes back fewer
+   * than `PASS_BACK_WORDS` words, reads an ayah again and breaks off inside it (a pause, then the next ayah's first
+   * word) is not marked for the rest of that ayah, read in the first reading; one who broke off inside an ayah, went
+   * back and starts that ayah again is not marked for the ayahs the run-up left out.
+   */
+  readNotSkipped?: boolean;
+  /**
+   * Follow a reciter who goes back further than the alignment window, and forward again. A tracker lock of
+   * `JUMP_WORDS` words or more, inside the passage and behind the window, starts the alignment over there, as a jump
+   * off the passage does, unless the window's own text holds the same words (a refrain's later copy: the window
+   * follows it). Shorter locks stay ignored, so a word that sounds like an earlier one moves nothing. In free
+   * recitation the passage is the stretch read so far (from the first lock on), so a reciter who starts again from an
+   * earlier ayah is followed there too.
+   *
+   * Once the window has followed a reciter back in a declared passage, a lock of `JUMP_WORDS` words or more inside the
+   * passage and past the window's far end starts the alignment over there in turn:
+   * - landing on the furthest ayah read before going back, up to where reading on from the furthest word goes (the
+   *   word after it, or the next ayah's first word when it was the ayah's last word or the one before), is a rejoin:
+   *   nothing is marked, and the pass left goes on (`readNotSkipped`);
+   * - landing further on, the words from there to the landing were never read: an omission, or a skipped passage
+   *   from three words;
+   * - landing short of the furthest ayah, after a return that started a new pass (`readNotSkipped`: the passage read
+   *   again), the words from where that reading stood to the landing are left out of that pass; with no new pass,
+   *   nothing is marked.
+   * Nothing is marked on the words read right before or during the excursion. A slide into a look-alike ayah that the
+   * reciter leaves on their own, coming back to where they had been, is a self-correction and marks nothing: the audio
+   * and the text cannot tell it from a deliberate revision that goes back to the same place.
+   *
+   * What the window held open when it moves ends `uncertain`, as at a jump. Risks: a lock behind the window on words
+   * the reciter did not go back to say ends the window's open suspicions `uncertain`; a slide into a look-alike ayah
+   * that the reciter corrects alone is not reported.
+   */
+  reanchorBack?: boolean;
+  /**
+   * A stutter is not a wrong word: a word heard with a block of sounds said twice in a row, which with one copy
+   * removed has the written word's consonants in order, is the written word restarted. Risk: it compares consonants,
+   * so a restarted word whose vowels were also changed (short vowels the checker does not judge) is let through.
+   */
+  stutter?: boolean;
+  /**
+   * The ayah ledger raises no whole-ayah skip for an ayah the alignment read in part: the word-level omission covers
+   * its missing words. Risk: an ayah left out whose words the alignment matched in part by chance (a phrase it shares
+   * with its neighbours) is left to the word-level omissions, which can mark a shorter skip or none.
+   */
+  ledgerPartial?: boolean;
+  /**
+   * Say an omission is due once the reciter has read on past it, ahead of its confirmation: its `suspected` event is
+   * sent again with `due: true` ({@link CheckerEvent.due}). In a declared passage, when it is sure, the confirmation
+   * delay has passed since it was suspected, the alignment ends after it, and two words after it were heard right,
+   * both begun after the suspicion. Free recitation sends none: it follows the tracker, whose place can still move to
+   * the other copy of a repeated passage. Confirmation keeps rc.1's rule (two ayahs on, or the end), so `confirmed`
+   * stays final: a reader who goes back and says the word before then corrected themselves, and it ends `resolved`.
+   * `false` sends no `due` event.
+   */
+  omissionDue?: boolean;
+  /**
+   * A commit keeps nothing its new window cannot place. When the window grows past `MAX_WINDOW`, its older part is
+   * committed at a word boundary and the latest phonemes are aligned again from there, in a window that starts an ayah
+   * before the cut word. If the path kept after the cut goes back further than that (the reciter restarted an ayah or
+   * more back, within the kept phonemes), the restart would be read against the words inside the window and charged to
+   * them as wrong words and omissions. The cut moves instead to the first word boundary after the restart's landing
+   * whose kept path stays inside its window, keeping at least `AFTER_DROP` phonemes; while there is none, the commit
+   * waits, up to twice `MAX_WINDOW`, and past that cuts as before. A restart reads again the text it lands on: when the
+   * first speech the path places from its landing does not fit that text as a lock's words fit a passage
+   * (`FITS_PASSAGE`, judged on `REREAD_MIN` phonemes or more), the path reached behind only to place speech from
+   * elsewhere (the reciter gone back further than the window, onto a refrain's earlier copy), and the cut stays. A wrong
+   * word that the restart then reads right is a self-correction, and one said wrong again after the restart is still a
+   * wrong word. Risk: while it waits, one alignment covers up to twice as many phonemes.
+   */
+  commitAfterJump?: boolean;
+  /**
+   * Memorization: starting later than the declared passage leaves its first ayahs out. While the alignment still runs
+   * from the passage's first word (before any commit, jump or return), a first reading that begins in a later ayah of
+   * the passage, with three words or more of the passage before it (a `skipped_passage`'s floor), marks those words
+   * left out, as one skip. A first reading the window cannot reach (the take's first lock inside the passage, past the
+   * two ayahs the window reads ahead) starts the window over there, as a jump does, with the passage's words before it
+   * left out, and nothing is marked on the words between. A reading that begins inside the first ayah, or two words or
+   * fewer in (a microphone that opened late, a word cut off), or outside the passage (another surah, before or after
+   * it), marks no skip. Speech before the passage that is not the Quran's stays set aside, as before. Risk: a reciter
+   * who means to start later than the passage they declared is marked for the ayahs before.
+   */
+  firstAyahOut?: boolean;
+  /**
+   * Memorization: no word mark outside the declared passage. The alignment window reaches past the passage's ends (an
+   * ayah before the anchor, two after the furthest word read), so it can raise a mark on a word that was not asked
+   * for, on a look-alike or on speech after the passage's end; such a mark is dropped. One that reaches into the
+   * passage stays. A free recitation, whose passage is what was read so far, keeps its marks. Risk: a reciter who reads
+   * on past the passage's end is not marked there; the tracker's lost-place prompt tells them they left it.
+   */
+  marksInPassage?: boolean;
+  /**
+   * A restart is not a wrong word. The alignment can charge a restart (the reciter going back a little to take a run at
+   * a word again) to words after it whose first reading a commit has taken out of the window, as one long wrong word
+   * whose heard text is the stretch read again (an ayah read whole and started again two or three times before reading
+   * on, with a commit falling inside the restarts). A wrong word heard as at least `REPEAT_MIN` phonemes and twice its
+   * own length, that fits the text before it (from two ayahs back, not before a declared passage) as a lock's words fit
+   * a passage (`FITS_PASSAGE`), charged to words read right earlier in the current pass, where the reading after them
+   * rejoins as `readNotSkipped` judges a repeat's, was that restart: nothing was said wrong and nothing left out, so it
+   * is not marked. Any other wrong word stays one: words never read, or a reading that goes on inside the ayah (earlier
+   * text said in place of a word, then reading on). It uses `readNotSkipped`'s record of the words read, so it acts
+   * only with that field on. Risk: a reciter who reads a passage, goes back fewer than `PASS_BACK_WORDS` words, says
+   * earlier text in place of words they had read right and goes on where they had read to is not marked for them.
+   */
+  repeatNotWrong?: boolean;
+  /**
+   * **Off by default.** Memorization: a mark as soon as the checker is sure of it, and none lost at the take's end. It is
+   * off because a reciter who leaves the declared passage for another surah can be marked on the word where they left,
+   * before the lost-place prompt that should be all they see: the other surah's opening read past that word, and its
+   * next word begun, pass every test a confirmation asks but the wait. A suspected wrong or
+   * added word that passes all its confirmation asks but the wait (read past, the next word begun, heard clearly, and
+   * the posteriors there and favouring what was heard over the written words by the confirmation's margin, twice
+   * `SUPPORT` for a change heard unclearly or spelling no word), with its evidence standing `STAND_MS` unchanged (the
+   * same class, words and heard text) in place of the wait, is sent `suspected` again with `due: true`
+   * ({@link CheckerEvent.due}) ahead of its confirmation, which keeps rc.1's time and confirms it on that evidence.
+   * Standing filters out suspicions the next words explain; it says nothing of how clearly a word was heard, so it
+   * replaces only the wait. When the session ends, a mark already due is decided on the evidence it was due on, and a
+   * mistake where the reading stopped (a wrong word with the word before it recited right and nothing heard after it,
+   * or an added word between two words recited right) on its evidence, `confirmed` when it passes the same test (no
+   * more speech will change it, so it need not stand), instead of always `uncertain`: a slip on the last word before a
+   * stop, with no word after it to wait for, is marked. Speech after the words recited right that the alignment could
+   * not place on the passage (other speech, a hold, several words heard wrong in a row) ends `uncertain`, as in rc.1.
+   * And a take that ends one or two words (`ENDING_LEFT`) short of the declared passage's end, inside its last ayah,
+   * by the alignment and the tracker's place both, left those words out (one `omitted_word`, decided as any
+   * omission); a take that ends further back stopped, and nothing after it is marked. Free recitation keeps rc.1's
+   * rule: it follows the tracker, whose place can still move to the other copy of a repeated passage. Risks: a `due`
+   * mark can still end `resolved` when the reading that follows explains the word after all (the next word's first
+   * sound read as the end of this one), which an app shows as a mark taken down; a slip of two words or more on the
+   * last words before a stop is not marked; a reciter who means to say a word again after a stop, or who stops a word
+   * or two before the passage's end on purpose, is marked.
+   */
+  markWhenSure?: boolean;
 }
 
 export interface SeamInsertionCandidate {
@@ -90,10 +253,10 @@ const PHRASE = 1 / 64;
 /** A word is wrong above this weighted cost per reference phoneme it covers, with at least `MIN_WRONG_EDITS` plain edits. */
 const WRONG = 0.3;
 /**
- * Memorization costs: a different word changes consonants. Vowels, madd and the marks for qalqalah and ghunna cost
- * `SOFT` to change; a sound held longer or shorter (beside the same sound) costs `HELD`. Consonant edits are hard.
+ * Memorization costs: a different word changes consonants (`CONSONANTS`). Vowels, madd and the marks for qalqalah and
+ * ghunna cost `SOFT` to change; a sound held longer or shorter (beside the same sound) costs `HELD`. Consonant edits
+ * are hard.
  */
-const CONSONANTS = new Set("ءبتثجحخدذرزسشصضطظعغفقكلمنهوي");
 const SOFT = 3;
 const HELD = 2;
 /** A wrong word needs this many hard edits, or one in a word with at most one consonant. */
@@ -117,12 +280,41 @@ const PHRASE_MAX_COST = 0.3;
 /** Consecutive words a lock off the declared passage spans before it counts as a deliberate jump. */
 const JUMP_WORDS = 4;
 /**
+ * refinements.readNotSkipped: a return to an earlier ayah this many words or more behind the furthest word read (or to
+ * a surah's first ayah), read through, is the passage read again: a new pass. A shorter one is a repeat inside the
+ * pass. Three ayahs of the reference's median length: half of its 6236 ayahs have 10 words or fewer. Counted in words,
+ * a return weighs the same where ayahs are short (Ar-Rahman's) as where they are long (Al-Baqarah's).
+ */
+const PASS_BACK_WORDS = 30;
+/**
+ * refinements.repeatNotWrong: the fewest heard phonemes a wrong word's text needs to be read as a repeat. A heard text
+ * that short, fitting the text before the word within `FITS_PASSAGE` per phoneme, is no accident: the tracker locks a
+ * place on 10 phonemes (`minPhonemes`), and this holds a margin over that. Shorter heard text is a word's own slot.
+ */
+const REPEAT_MIN = 12;
+/**
+ * refinements.commitAfterJump: the fewest phonemes of a restart's speech its fit is judged on, as `REPEAT_MIN` (the
+ * tracker locks a place on 10, and this holds a margin over that). On fewer it is taken as a restart.
+ */
+const REREAD_MIN = REPEAT_MIN;
+/**
  * Below this cost per phoneme the lock's words also fit the declared passage: a wrong word that forms another ayah
  * shares most of its words with the passage, a deliberate jump doesn't.
  */
 const FITS_PASSAGE = 0.35;
 /** Nats by which the decoded words must beat the written ones over the local window for the error to stand. */
 const SUPPORT = 10;
+/**
+ * refinements.markWhenSure: words of a declared passage's end, inside its last ayah, that a take ending short of them
+ * left out; a take that ends further back stopped.
+ */
+const ENDING_LEFT = 2;
+/**
+ * refinements.markWhenSure: how long a suspected wrong or added word's evidence (class, words, heard text) must stand
+ * unchanged, while speech goes on, before it is due. Most suspicions the reading after them explains are withdrawn
+ * within about 0.6 s.
+ */
+const STAND_MS = 800;
 /**
  * A wrong word whose changed sounds the decoder heard below this mean confidence must win by twice the margin: on
  * degraded audio a confusable sound (ن for م, ف for ك) is heard at even odds with blank, yet a few of them sum past it.
@@ -241,11 +433,38 @@ interface Open {
   id: string;
   issue: Issue;
   sinceMs: number;
+  /**
+   * refinements.omissionDue: the reciter read on past this omission; refinements.markWhenSure: its evidence stood and
+   * is sure. Its `suspected` events carry `due`.
+   */
+  due?: true;
+  /** refinements.markWhenSure: when the suspicion's evidence (class, words, heard text) was last set, ms. */
+  stableMs: number;
+  /** refinements.markWhenSure: said due on its evidence, which stood (`due` is set too). */
+  stood?: true;
 }
 
 export function createChecker(index: ReferenceIndex, options: CheckerOptions = {}): Checker {
   const policy = options.policy ?? {};
   const confirm = policy.confirm ?? { after: "delay", ms: 2500 };
+  const refine = policy.refinements ?? {};
+  const readNotSkipped = refine.readNotSkipped !== false;
+  const reanchorBack = refine.reanchorBack !== false;
+  const stutterRule = refine.stutter !== false;
+  const ledgerPartial = refine.ledgerPartial !== false;
+  const omissionDue = refine.omissionDue !== false;
+  const commitAfterJump = refine.commitAfterJump !== false;
+  const firstAyahOut = refine.firstAyahOut !== false;
+  const marksInPassage = refine.marksInPassage !== false;
+  const repeatNotWrong = refine.repeatNotWrong !== false;
+  const markWhenSure = refine.markWhenSure === true;
+  /** refinements.firstAyahOut: the alignment runs from the declared passage's first word, as the take began. */
+  let opening = false;
+  /**
+   * refinements.firstAyahOut: where the tracker's first lock of the take that it kept began (its span's first word), or
+   * -1.
+   */
+  let firstLock = -1;
   const minConfidence = policy.minConfidence ?? 0.6;
   const frames = (policy.localWindow ?? true) ? new PosteriorFrames(index.tokens.size) : null;
   const support = typeof policy.localWindow === "object" ? policy.localWindow.nats : SUPPORT;
@@ -276,6 +495,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Latest locked word. A span that the cursor has left falls back to the copy it is on. */
   let cursor = -1;
   /**
+   * refinements.reanchorBack: the furthest word the tracker has locked on. A cursor in an earlier ayah than it is the
+   * tracker following a return; one that only holds or lags stays in its ayah or comes forward.
+   */
+  let cursorFar = -1;
+  /**
    * Ayahs the alignment has actually read, and ayahs the tracker has locked, so a never-read ayah between
    * two committed locks can be judged by the closed read-versus-skip forward sum. Cleared when the lock drops.
    */
@@ -296,6 +520,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const ledgerSpans = new Map<number, number>();
   /** Obs index where the current push's phonemes start, so a new lock can own that chunk's frames. */
   let chunkFrom = 0;
+  /** The current push's phonemes while its tracker events are read, before they join `obs`. */
+  let pending: DecodedPhoneme[] = [];
   /**
    * Held slot accusations whose phones commit already trimmed. A locked step would have decided them; they wait
    * for the copy. The same-copy release confirms them, a move to the other copy drops them.
@@ -313,6 +539,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   });
   const fatiha = words.filter((w) => w.surah === 1 && w.ayah === 1);
   const phrases = [...(options.phrases?.phrases.map((p) => p.p) ?? []), ref.slice(fatiha[0].start, fatiha.at(-1)!.end)];
+  /** refinements.readNotSkipped: the phrases that open a new recitation (a takbir begins a rak'ah, a basmala a surah). */
+  const passPhrases = new Set([...(options.phrases?.phrases.filter((p) => p.name === "takbir").map((p) => p.p) ?? []), phrases.at(-1)!]);
   const nextWord = (wi: number) => {
     let k = wi + 1;
     while (k < words.length && words[k].end === words[k].start) k++;
@@ -331,11 +559,30 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    */
   const latched = !options.passage;
   let passage = options.passage && { from: wordIndex(options.passage.from), to: wordIndex(options.passage.to) };
-  /** Off the passage by more than an ayah either side. */
-  const offPassage = (wi: number) => !!passage && (ayahOf[wi] < ayahOf[passage.from] - 1 || ayahOf[wi] > ayahOf[passage.to] + 1);
+  /**
+   * refinements.readNotSkipped: in free recitation, the first word of the stretch read since the tracker latched (the
+   * passage's first word before it moves on with the window), or -1.
+   */
+  let readFrom = -1;
+  /**
+   * Off the passage by more than an ayah either side. In free recitation, with refinements.readNotSkipped, the passage
+   * reaches back to the start of the stretch read, as a declared one does: a return there is a return, not a jump.
+   */
+  const offPassage = (wi: number) => {
+    if (!passage) return false;
+    const from = latched && readNotSkipped && readFrom >= 0 ? Math.min(readFrom, passage.from) : passage.from;
+    return ayahOf[wi] < ayahOf[from] - 1 || ayahOf[wi] > ayahOf[passage.to] + 1;
+  };
   const fitsPassage = (from: number, to: number) => {
     const text = ref.slice(words[from].start, words[to].end);
     const a = alignSubstring(ref, words[passage!.from].start, words[passage!.to].end, text, (o) => wordStarts.has(o));
+    return !!a && a.cost / UNIT / text.length < FITS_PASSAGE;
+  };
+
+  /** refinements.reanchorBack: the words `from`–`to` also fit the alignment window's own text, as a passage fits its copy. */
+  const fitsWindow = (from: number, to: number) => {
+    const text = ref.slice(words[from].start, words[to].end);
+    const a = hi > lo ? alignSubstring(ref, lo, hi, text, (o) => wordStarts.has(o)) : null;
     return !!a && a.cost / UNIT / text.length < FITS_PASSAGE;
   };
 
@@ -437,18 +684,60 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   let lo = 0;
   let hi = 0;
   let furthest = -1;
+  /** The furthest word the tracker locked on since the window last started over. */
+  let lockReach = -1;
+  /** Words the window's latest alignment read right, with the frame each visit ended on. */
+  let readEnds: { word: number; end: number }[] = [];
   const open = new Map<number, Open>();
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   /** Word spans of already-confirmed skipped_passage warnings, so a broader later realignment does not duplicate them. */
   const confirmedSkips: { word: number; last: number }[] = [];
   const overlapsConfirmedSkip = (word: number, last: number) => confirmedSkips.some((s) => word <= s.last && s.word <= last);
+  /**
+   * refinements.readNotSkipped: when each word was last read right (ms), kept across commits, so a repeat that rejoins (or
+   * stops short) is not read as leaving out what the current pass already said.
+   */
+  const readRight = new Map<number, number>();
+  /**
+   * refinements.readNotSkipped: when each word was first read right in the pass it was last read in (ms), so where the
+   * reciter had read to before a given moment (`readTo`) stays put when a later reading says the word again.
+   */
+  const firstRead = new Map<number, number>();
+  /**
+   * refinements.readNotSkipped: when the current pass began (ms). A word read before it is not read in this pass: reading
+   * the passage again is a new recitation, and what it leaves out is left out.
+   */
+  let passFromMs = 0;
+  /**
+   * refinements.readNotSkipped: a return that may open a pass (`PASS_BACK_WORDS`), not yet read through: the ayah gone
+   * back to, and when (ms). It opens a pass from then once the path reaches the ayah's last word, and is dropped if the
+   * path leaves the ayah first.
+   */
+  let returning: { ayah: number; at: number } | null = null;
+  /** refinements.readNotSkipped: a new pass from `ms` on (a takbir or basmala, a re-anchor, a return read through). */
+  const newPass = (ms: number) => {
+    if (ms > passFromMs) passFromMs = ms;
+  };
+  /**
+   * The reciter went back (the path stepping back to an earlier ayah, or `reanchorBack` following a lock behind the
+   * window) and has not yet come back: the furthest word read before going back, the pass then current (ms), when
+   * they went back (ms), and the ayah gone back to. Coming back to the furthest ayah, up to where reading on from the
+   * furthest word goes (`rejoinAt`), is a rejoin: the pass then current goes on, and nothing between is left out.
+   * Reading on past the furthest word, a takbir or basmala, a jump elsewhere or a lost place ends it.
+   */
+  let wentBack: { furthest: number; pass: number; at: number; ayah: number } | null = null;
+  /**
+   * refinements.reanchorBack: words a forward follow found unread (past the furthest word, or skipped in the passage read
+   * again), by first word. The alignment, re-anchored at the landing, no longer covers them.
+   */
+  const followGaps = new Map<number, Issue>();
   const emitted: CheckerEvent[] = [];
   let seq = 0;
 
-  const event = (o: Open, state: CheckerState): CheckerEvent => {
+  const event = (o: Open, state: CheckerState, confidence?: number): CheckerEvent => {
     const { issue } = o;
-    const conf = clarity(issue);
+    const conf = confidence ?? clarity(issue);
     const e: CheckerEvent = {
       type: "checker",
       v: EVENT_SCHEMA_VERSION,
@@ -460,6 +749,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       expected: ref.slice(words[issue.word].start, words[issue.last].end),
       ...(issue.heardUnion ? { observed: issue.heardUnion.observed } : issue.observed !== undefined ? { observed: issue.observed } : {}),
       confidence: conf,
+      ...(o.due && state === "suspected" && { due: true as const }),
     };
     emitted.push(e);
     return e;
@@ -476,7 +766,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
+    // refinements.markWhenSure: a mistake said due on evidence that stood is decided on it.
+    const sure = o.stood || (((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false);
     const finalState = state ?? (sure ? "confirmed" : "uncertain");
     if (o.issue.cls === "skipped_passage" && finalState === "confirmed") {
       confirmedSkips.push({ word: o.issue.word, last: o.issue.last });
@@ -490,7 +781,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * Whether the posteriors over the error's word and a recited word either side favour what was decoded over the
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
    */
-  const supported = (issue: Issue, requireFinite = false): boolean | null => {
+  const supported = (issue: Issue, requireFinite = false, margin?: number): boolean | null => {
     // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
     if (issue.lexicon) return null;
     // The madd's length was already compared with this reciter's own. One vowel does not move the forward sum.
@@ -513,7 +804,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const a0 = obs[issue.obsFrom].start, b0 = obs[issue.obsTo - 1].end + 1;
       if (a0 < frames.startFrame || b0 > frames.endFrame) return null;
       const word = ref.slice(words[issue.word].start, words[issue.last].end);
-      const need = supportNeed(issue);
+      const need = margin ?? supportNeed(issue);
       const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
       return expectedNll - observedNll >= need;
@@ -525,7 +816,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (a0 < frames.startFrame || b0 > frames.endFrame) return null;
       const through = nextWord(issue.last);
       const writtenPair = ref.slice(words[issue.word].start, words[through].end);
-      const need = supportNeed(issue);
+      const need = margin ?? supportNeed(issue);
       const expectedNll = frames.nll(ids(writtenPair), a0, b0), observedNll = frames.nll(ids(issue.pair), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
       return expectedNll - observedNll >= need;
@@ -549,7 +840,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       issue.cls === "added_word"
         ? span(from, issue.word) + observed + span(issue.word, to + 1)
         : span(from, issue.word) + (issue.cls === "wrong_word" ? observed : "") + span(issue.last + 1, to + 1);
-    const need = supportNeed(issue);
+    const need = margin ?? supportNeed(issue);
     const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
     return expectedNll - observedNll >= need;
@@ -701,6 +992,25 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   const sureOf = (o: Open) =>
     ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
+  /** refinements.markWhenSure: the same suspicion, the same words and the same text heard. */
+  const sameEvidence = (a: Issue, b: Issue) =>
+    a.cls === b.cls && a.word === b.word && a.last === b.last && a.observed === b.observed;
+  /**
+   * refinements.markWhenSure: sure enough to show before its confirmation, or to decide at the take's end: all a
+   * confirmation asks of the same evidence (`sureOf`: heard clearly, and the posteriors favouring what was heard over
+   * the written words by `supportNeed`'s margin, twice `SUPPORT` for a change heard unclearly or spelling no word), and
+   * the posteriors there to tell (a mistake they cannot judge waits for its confirmation).
+   */
+  const standsSure = (o: Open) => sureOf(o) && supported(o.issue) === true;
+  /**
+   * refinements.markWhenSure: at the take's end, a mistake where the reading stopped: a wrong word with the word before
+   * it recited right and nothing heard after it, or an added word between two words recited right. Speech after the
+   * words recited right that the alignment could not place on the passage (other speech, a hold, several words heard
+   * wrong in a row) is not a reading that stopped there, and is not decided as wrong words.
+   */
+  const endsReading = (issue: Issue, right: Set<number>) =>
+    issue.word > 0 && right.has(prevWord(issue.word)) &&
+    (issue.cls === "wrong_word" ? issue.obsTo >= obs.length : issue.cls === "added_word" && right.has(issue.word));
 
   /** Confirm frozen slot accusations, or drop the ones that named the copy the continuation rejected. */
   const releaseFrozen = (out: CheckerEvent[], drop: boolean, from = -1, end = Infinity) => {
@@ -737,6 +1047,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const rebase = (from: number, to: number, out: CheckerEvent[]) => {
     const span = allSpans.find((s) => s.starts.includes(from) && s.starts.includes(to));
     if (!span || anchor === null) return;
+    opening = false;
     const delta = to - from;
     const end = from + span.length;
     const slotAt = new Set(span.slots.map((off) => from + off));
@@ -786,7 +1097,46 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     hi = words[ayahLast[Math.min(ayahLast.length - 1, far + AHEAD_AYAHS)]].end;
   };
 
-  const dropAnchor = (out: CheckerEvent[]) => {
+  /**
+   * The reciter went back to word `back` at `ms`, having read up to word `reach`. A return while already away is the
+   * same excursion: it keeps the pass and the furthest word from before the first.
+   */
+  const goneBack = (back: number, reach: number, ms: number) => {
+    const far = Math.max(reach, wentBack?.furthest ?? -1);
+    const ayah = ayahOf[back];
+    if (far < 0 || ayah >= ayahOf[far]) return;
+    wentBack = { furthest: far, pass: wentBack?.pass ?? passFromMs, at: ms, ayah };
+    if (readNotSkipped && ms > passFromMs && (far - back >= PASS_BACK_WORDS || words[back].ayah === 1)) {
+      if (!returning || ms > returning.at) returning = { ayah, at: ms };
+    }
+  };
+
+  /**
+   * Where the reciter had read to before the speech of the lock on words `start`–`end`, made at `atMs`, which went
+   * back. The window and the tracker both read the first words of a return as words ahead until the tracker finds it:
+   * the furthest word the alignment read right before that speech, and no further than the tracker had locked
+   * (`lockedTo`) before. The lock's speech is the phonemes heard up to the lock, this push's included, so where it
+   * begins does not depend on how the audio was chunked.
+   */
+  const readBefore = (start: number, end: number, lockedTo: number, atMs: number) => {
+    const heard = pending.length ? [...obs, ...pending] : obs;
+    let k = heard.length;
+    while (k > 0 && (heard[k - 1].end + 1) * frameMs > atMs) k--;
+    const cut = heard[Math.max(0, k - (words[end].end - words[start].start))]?.start ?? Infinity;
+    let reach = anchor ?? -1;
+    for (const r of readEnds) if (r.end < cut) reach = Math.max(reach, r.word);
+    return lockedTo < 0 ? reach : Math.min(reach, lockedTo);
+  };
+
+  /**
+   * Start over where the tracker went; `back` is the word it went back to, behind the window, the reciter having read
+   * to word `reach` (`readBefore`). A forward follow (`followForward`) keeps the pass and the return as it decided
+   * them.
+   */
+  const dropAnchor = (out: CheckerEvent[], back?: number, follow = false, reach = -1) => {
+    opening = false;
+    lockReach = -1;
+    readEnds = [];
     // A fit that already accepted a skip has its evidence. The lock leaving is the same as the passage ending.
     for (const wi of [...ledgerIssues.keys()]) {
       const o = open.get(wi);
@@ -803,8 +1153,64 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     sealAll(out);
     anchor = null;
     furthest = -1;
+    const ms = obs.length ? obs[Math.max(0, obs.length - AFTER_DROP)].start * frameMs : 0;
+    // A forward follow (`followForward`) has decided the pass and the return itself.
+    if (!follow && back !== undefined) goneBack(back, reach, ms);
+    else if (!follow) {
+      wentBack = null;
+      // A jump, or the place lost: where the tracker locks next is not a return.
+      cursorFar = -1;
+      // refinements.readNotSkipped: what the alignment reads from the new anchor on is a new pass.
+      if (readNotSkipped) newPass(ms);
+    }
     obs = obs.slice(-AFTER_DROP);
     // Ayahs already read stay read, so the next lock can still close a gap this jump opened.
+  };
+
+  /**
+   * refinements.reanchorBack: the reciter, followed back, came forward again past the window's far end, to word `landing`.
+   * The window starts over there. Landing on the furthest ayah read before going back, up to where reading on from
+   * the furthest word goes (`rejoinAt`), is a rejoin and marks nothing; a lock's first word can be a word late, so
+   * the word after that is still a rejoin. Past it, the words between were never read: an omission, or a skipped
+   * passage from three words. A landing short of the furthest ayah, after a return that opened a pass (the passage
+   * read again), skipped the words from where that reading stood: they are left out of this pass. Nothing is marked
+   * on the words read before or during the excursion.
+   */
+  const followForward = (out: CheckerEvent[], landing: number) => {
+    const back = wentBack!;
+    const reach = Math.max(furthest, anchor ?? -1);
+    let gapFrom = -1;
+    if (comesBack(landing)) {
+      const at = rejoinAt(back.furthest);
+      if (landing > nextWord(at)) gapFrom = at;
+      cameBack();
+    } else if (readNotSkipped && passFromMs > back.pass && reach >= 0) gapFrom = nextWord(reach);
+    const gapTo = prevWord(landing);
+    dropAnchor(out, undefined, true);
+    if (gapFrom >= 0 && gapFrom <= gapTo) {
+      const n = words.slice(gapFrom, gapTo + 1).filter((w) => w.end > w.start).length;
+      // A new reading of these words: what the window decided there before (while it read the excursion as the
+      // passage) does not stand for it.
+      if (n) {
+        decided.delete(gapFrom);
+        followGaps.set(gapFrom, { cls: n >= 3 ? "skipped_passage" : "omitted_word", word: gapFrom, last: gapTo, obsFrom: -1, obsTo: -1 });
+      }
+    }
+  };
+
+  /**
+   * refinements.firstAyahOut: the take's first reading began at word `start` of the declared passage, past the window's
+   * reach. The window starts over there, as after a jump, and the passage's words before it, three or more, are one
+   * skip; what the window read of that speech against the passage's opening is set aside.
+   */
+  const startLate = (out: CheckerEvent[], start: number) => {
+    const [from, to] = [passage!.from, prevWord(start)];
+    dropAnchor(out, undefined, true);
+    const n = words.slice(from, to + 1).filter((w) => w.end > w.start).length;
+    if (n >= 3) {
+      decided.delete(from);
+      followGaps.set(from, { cls: "skipped_passage", word: from, last: to, obsFrom: -1, obsTo: -1 });
+    }
   };
 
   const clearLedger = () => {
@@ -895,6 +1301,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (let i = 0; i < obs.length; i++) if (obs[i].start < boundary) at = i;
     for (let a = left + 1; a < right; a++) {
       if (ayahFinished(a) || ledgerDone.has(a)) continue;
+      // refinements.ledgerPartial: an ayah the alignment read in part was not skipped whole. Its unread words are the
+      // alignment's to judge, word by word, beside the part that was read.
+      if (ledgerPartial && readAyah.has(a)) continue;
       if (ayahText(a) === ayahText(left) || ayahText(a) === ayahText(right)) continue;
       const n = words.slice(ayahFirst[a], ayahLast[a] + 1).filter((w) => w.end > w.start).length;
       if (n < 3) continue;
@@ -977,6 +1386,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   let costHi = -1;
   let delCost = new Float64Array(0);
   const rowCosts = new Map<string, { sub: Float64Array; ins: Float64Array }>();
+  /** `align`'s table as the last call left it: the rows for its first `rows` heard phonemes (`heard`, `junk`). */
+  const dp = {
+    lo: -1, hi: -1, a0: -1, lead: -1, rows: 0,
+    d: new Float64Array(0), op: new Uint8Array(0), jumpFrom: new Int32Array(0),
+    heard: [] as Heard[], junk: [] as boolean[],
+  };
   const costsFor = (p: string) => {
     let c = rowCosts.get(p);
     if (!c) {
@@ -1006,31 +1421,78 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const n = hi - lo;
     const m = obs.length;
     const w = n + 1;
-    const d = new Float64Array((m + 1) * w).fill(INF);
-    const op = new Uint8Array((m + 1) * w);
-    const jumpFrom = new Int32Array(m + 1);
-    const starts: number[] = [];
-    for (let i = 0; i <= n; i++) if (wordStarts.has(lo + i)) starts.push(i);
+    // Row j of the table depends only on the window (lo, hi), the anchor, `lead` and the heard phonemes up to j (each
+    // phoneme's sound and junk mark, and the sound before it). The last alignment's rows are kept, and a call computes
+    // only the rows after the longest prefix that is unchanged, the same values in the same order: the window's
+    // phonemes grow by a cell at a time, so most rows are the previous call's.
+    if (dp.lo !== lo || dp.hi !== hi || dp.a0 !== a0 || dp.lead !== lead) {
+      dp.lo = lo;
+      dp.hi = hi;
+      dp.a0 = a0;
+      dp.lead = lead;
+      dp.rows = 0;
+    }
+    let kept = Math.min(dp.rows, m);
+    for (let j = 0; j < kept; j++) {
+      const h = obs[j];
+      if (dp.heard[j] !== h || dp.junk[j] !== !!h.junk) {
+        kept = j;
+        break;
+      }
+    }
+    if ((m + 1) * w > dp.d.length) {
+      const size = 2 * (m + 1) * w;
+      const d = new Float64Array(size);
+      const op = new Uint8Array(size);
+      d.set(dp.d.subarray(0, (kept + 1) * w));
+      op.set(dp.op.subarray(0, (kept + 1) * w));
+      dp.d = d;
+      dp.op = op;
+    }
+    if (m + 1 > dp.jumpFrom.length) {
+      const jumpFrom = new Int32Array(2 * (m + 1));
+      jumpFrom.set(dp.jumpFrom.subarray(0, kept + 1));
+      dp.jumpFrom = jumpFrom;
+    }
+    const { d, op, jumpFrom } = dp;
+    // Indexed loops over typed arrays, and the per-row facts read once: the app runs this in JavaScriptCore
+    // without a JIT, where every iterator, property read and call in the inner loop is paid in full.
+    let startCount = 0;
+    const starts = new Int32Array(n + 1);
+    for (let i = 0; i <= n; i++) if (wordStarts.has(lo + i)) starts[startCount++] = i;
     const jumps = (j: number) => {
       const row = j * w;
       let k = 0;
-      for (let i = 1; i <= n; i++) if (d[row + i] < d[row + k]) k = i;
+      let low = d[row];
+      for (let i = 1; i <= n; i++) {
+        const v = d[row + i];
+        if (v < low) {
+          low = v;
+          k = i;
+        }
+      }
       jumpFrom[j] = k;
-      for (const s of starts) {
-        if (d[row + k] + JUMP < d[row + s]) {
-          d[row + s] = d[row + k] + JUMP;
-          op[row + s] = OP_JUMP;
+      const via = low + JUMP;
+      for (let x = 0; x < startCount; x++) {
+        const at = row + starts[x];
+        if (via < d[at]) {
+          d[at] = via;
+          op[at] = OP_JUMP;
         }
       }
     };
-    d[a0] = 0;
-    op[a0] = OP_START;
-    for (let i = a0 + 1; i <= n; i++) {
-      d[i] = d[i - 1] + delCost[i - 1];
-      op[i] = OP_DEL;
+    if (dp.rows === 0 || kept === 0) {
+      d.fill(INF, 0, w);
+      op.fill(OP_START, 0, w);
+      d[a0] = 0;
+      op[a0] = OP_START;
+      for (let i = a0 + 1; i <= n; i++) {
+        d[i] = d[i - 1] + delCost[i - 1];
+        op[i] = OP_DEL;
+      }
+      jumps(0);
     }
-    jumps(0);
-    for (let j = 1; j <= m; j++) {
+    for (let j = kept + 1; j <= m; j++) {
       const p = obs[j - 1].p;
       const { sub, ins: insCost } = costsFor(p);
       // A repeated decoded sound can be lengthening even at a word edge, where the reference has no matching run.
@@ -1038,30 +1500,48 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const noise = p === obs[j - 2]?.p ? HELD : UNIT;
       const row = j * w;
       const prev = row - w;
-      for (let i = 0; i <= n; i++) {
-        let best = INF;
-        let o = OP_INS;
-        if (i > 0) {
-          best = d[prev + i - 1] + sub[i - 1];
-          o = OP_DIAG;
+      const junk = obs[j - 1].junk;
+      const leadAt = j <= lead ? a0 : -1;
+      // Column 0: no diagonal or deletion into it.
+      {
+        const ins = d[prev] + (junk ? PHRASE : leadAt === 0 ? LEAD : insCost[0] < noise ? insCost[0] : noise);
+        d[row] = ins < INF ? ins : INF;
+        op[row] = ins < INF && leadAt === 0 ? OP_LEAD : OP_INS;
+      }
+      let left = d[row];
+      for (let i = 1; i <= n; i++) {
+        let best = d[prev + i - 1] + sub[i - 1];
+        let o = OP_DIAG;
+        let extra: number;
+        if (junk) extra = PHRASE;
+        else if (i === leadAt) extra = LEAD;
+        else {
+          const c = insCost[i];
+          extra = c < noise ? c : noise;
         }
-        const ins = d[prev + i] + (obs[j - 1].junk ? PHRASE : j <= lead && i === a0 ? LEAD : Math.min(insCost[i], noise));
+        const ins = d[prev + i] + extra;
         if (ins < best) {
           best = ins;
-          o = j <= lead && i === a0 ? OP_LEAD : OP_INS;
+          o = i === leadAt ? OP_LEAD : OP_INS;
         }
-        if (i > 0) {
-          const del = d[row + i - 1] + delCost[i - 1];
-          if (del < best) {
-            best = del;
-            o = OP_DEL;
-          }
+        const del = left + delCost[i - 1];
+        if (del < best) {
+          best = del;
+          o = OP_DEL;
         }
         d[row + i] = best;
         op[row + i] = o;
+        left = best;
       }
       jumps(j);
     }
+    dp.heard.length = m;
+    dp.junk.length = m;
+    for (let j = kept; j < m; j++) {
+      dp.heard[j] = obs[j];
+      dp.junk[j] = !!obs[j].junk;
+    }
+    dp.rows = m;
 
     let i = 0;
     for (let k = 1; k <= n; k++) if (d[m * w + k] < d[m * w + i]) i = k;
@@ -1098,6 +1578,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           if (text && text.cost <= a.cost) continue;
         }
         for (let k = start + a.start; k < end; k++) obs[k].junk = true;
+        // refinements.readNotSkipped: what is read after a takbir or a basmala is a new pass; a return before it is over.
+        if (passPhrases.has(p)) {
+          if (readNotSkipped) newPass(obs[start + a.start].start * frameMs);
+          wentBack = null;
+        }
       }
     }
   };
@@ -1296,22 +1781,47 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const width = m + 1;
     const d = new Float64Array((n + 1) * width);
     const op = new Uint8Array(d.length);
-    const ins = (at: number, j: number) => Math.min(
-      insertionCost(reference, at, obs[from + j - 1].p, n),
-      obs[from + j - 1].p === obs[from + j - 2]?.p ? HELD : UNIT,
-    );
+    // The heard phonemes' facts, read once: their sounds, the held-sound charge, and the insertion charge away from a
+    // reference run of the same sound (where `insertionCost` is the plain charge: `insertionCost("", 0, p, 0)`). Each
+    // cell reads the same costs as `Math.min(insertionCost(reference, at, p, n), noise)` and `subCost`, from tables:
+    // the app runs this in JavaScriptCore without a JIT, where a call and a string key per cell are paid in full.
+    const ps: string[] = new Array(m + 1);
+    const noise = new Float64Array(m + 1);
+    const plain = new Float64Array(m + 1);
+    for (let j = 1; j <= m; j++) {
+      const p = obs[from + j - 1].p;
+      ps[j] = p;
+      noise[j] = p === obs[from + j - 2]?.p ? HELD : UNIT;
+      const c = insertionCost("", 0, p, 0);
+      plain[j] = c < noise[j] ? c : noise[j];
+    }
+    const ins = (at: number, j: number) => {
+      const p = ps[j];
+      if (!((at > 0 && reference[at - 1] === p) || (at < n && reference[at] === p))) return plain[j];
+      return Math.min(insertionCost(reference, at, p, n), noise[j]);
+    };
     const del = (at: number) => reference[at] === reference[at - 1] || reference[at] === reference[at + 1] ? HELD : deletionCost(reference, at);
+    const subRows = new Map<string, Float64Array>();
     for (let j = 1; j <= m; j++) { d[j] = d[j - 1] + ins(0, j); op[j] = OP_INS; }
     for (let i = 1; i <= n; i++) {
       const row = i * width, prev = row - width, at = i - 1;
-      d[row] = d[prev] + del(at); op[row] = OP_DEL;
+      const r = reference[at];
+      let sub = subRows.get(r);
+      if (!sub) {
+        sub = new Float64Array(m + 1);
+        for (let j = 1; j <= m; j++) sub[j] = subCost(r, ps[j]);
+        subRows.set(r, sub);
+      }
+      const removal = del(at);
+      d[row] = d[prev] + removal; op[row] = OP_DEL;
       for (let j = 1; j <= m; j++) {
-        const p = obs[from + j - 1].p;
-        d[row + j] = d[prev + j - 1] + subCost(reference[at], p); op[row + j] = OP_DIAG;
-        const deletion = d[prev + j] + del(at);
-        if (deletion < d[row + j]) { d[row + j] = deletion; op[row + j] = OP_DEL; }
+        let best = d[prev + j - 1] + sub[j];
+        let o = OP_DIAG;
+        const deletion = d[prev + j] + removal;
+        if (deletion < best) { best = deletion; o = OP_DEL; }
         const insertion = d[row + j - 1] + ins(at + 1, j);
-        if (insertion < d[row + j]) { d[row + j] = insertion; op[row + j] = OP_INS; }
+        if (insertion < best) { best = insertion; o = OP_INS; }
+        d[row + j] = best; op[row + j] = o;
       }
     }
     const matches: { refAt: number; obs: number }[] = [];
@@ -1517,7 +2027,14 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const issues = new Map<number, Issue>();
     if (!seen.length) return null;
     // The lock span's first word can be a cut-off tail or leading junk: span edges are only good to a word.
-    const first = Math.min(...seen) + (fromLock ? 1 : 0);
+    let first = Math.min(...seen) + (fromLock ? 1 : 0);
+    // refinements.firstAyahOut: aligning from the declared passage's first word, a first reading that begins in a later
+    // ayah, three words or more in, left those words out: the gap scan starts at the passage's first word.
+    // A first lock outside the passage (another surah, before or after it) is no later start of it.
+    if (firstAyahOut && opening && declared && passage && anchor === passage.from && !fromLock && (firstLock < 0 || (firstLock >= passage.from && firstLock <= passage.to))) {
+      const begun = Math.min(...seen);
+      if (ayahOf[begun] > ayahOf[passage.from] && begun <= passage.to && words.slice(passage.from, begun).filter((w) => w.end > w.start).length >= 3) first = passage.from;
+    }
     // A wrong visit far ahead can be junk aligned to a short word; only correct visits show how far the reciter got.
     const reached = Math.max(...seen.filter((wi) => right.has(wi)), first);
     let gap: Issue | null = null;
@@ -2118,6 +2635,169 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /**
+   * After going back, a jump forward that lands on word `landing` came back if it lands on the furthest ayah read
+   * before going back or later. Up to where reading on from the furthest word goes (`rejoinAt`) it is a rejoin: the
+   * reciter went on from where they had been, and nothing between is left out. Past it, the words between were never
+   * read. Either way the pass then current goes on: a revision read through does not make the words read before it
+   * unread.
+   */
+  const comesBack = (landing: number) => !!wentBack && landing >= ayahFirst[ayahOf[wentBack.furthest]];
+  /**
+   * Where reading on from word `far` goes: the word after it, or the next ayah's first word when `far` is within a
+   * word of its ayah's end (the last word's lock or visit can lag behind the reciter).
+   */
+  const rejoinAt = (far: number) => {
+    const last = ayahLast[ayahOf[far]];
+    return far >= prevWord(last) && last + 1 < words.length ? nextWord(last) : nextWord(far);
+  };
+  const cameBack = () => {
+    if (!wentBack) return;
+    if (readNotSkipped && passFromMs > wentBack.pass) passFromMs = wentBack.pass;
+    returning = null;
+    wentBack = null;
+  };
+  /**
+   * refinements.readNotSkipped: the words this alignment read, and where the reciter went back and came forward again.
+   * A visit that heard its word right reads it when the path goes on to the next word, and an ayah's last word also
+   * when the path goes back from it (a repeat). A right visit followed by anything else is the alignment's edge before
+   * a jump, not reading. A word now accused of being said wrong was not read right. A path that steps back to an
+   * earlier ayah is a return (`goneBack`); one `PASS_BACK_WORDS` words or more behind the furthest word read, or to a
+   * surah's first ayah, read through (its last word read, as above), starts a new pass where it went back. A jump
+   * forward after a return comes back (`cameBack`); reading on past the furthest word ends the return. Visits are
+   * scanned again as the alignment grows: each step is taken in the order heard, and the state it leaves is the same on
+   * a second scan.
+   */
+  const noteRead = (visits: Visit[], issues: Map<number, Issue>) => {
+    const heardAt = (v: Visit) => (v.obsFrom >= 0 && v.obsFrom < obs.length ? obs[v.obsFrom].start * frameMs : -1);
+    /** Visit `k` read its word: heard right, and the path went on to the next word (or back, from an ayah's last). */
+    const reads = (k: number) => {
+      const [v, n] = [visits[k], visits[k + 1]];
+      if (!n || wrong(v) || issues.get(v.word)?.cls === "wrong_word") return false;
+      return n.word === nextWord(v.word) || (v.word === ayahLast[ayahOf[v.word]] && n.word <= v.word);
+    };
+    let reach = -1;
+    for (let k = 1; k < visits.length; k++) {
+      const [b, v] = [visits[k - 1], visits[k]];
+      if (!wrong(b)) reach = Math.max(reach, b.word);
+      const at = heardAt(v);
+      if (at < 0) continue;
+      if (ayahOf[b.word] > ayahOf[v.word] && words[b.word].surah === words[v.word].surah) {
+        if (at > (wentBack?.at ?? passFromMs)) goneBack(v.word, reach, at);
+      } else if (wentBack && at > wentBack.at) {
+        if (v.word > nextWord(b.word) && comesBack(v.word)) cameBack();
+        else if (v.word > wentBack.furthest) wentBack = null;
+      }
+      if (at <= passFromMs) continue;
+      if (returning && at >= returning.at && ayahOf[v.word] !== returning.ayah) returning = null;
+      if (returning && at >= returning.at && v.word === ayahLast[returning.ayah] && reads(k)) {
+        newPass(returning.at);
+        returning = null;
+      }
+    }
+    for (let k = 0; k + 1 < visits.length; k++) {
+      const v = visits[k];
+      if (heardAt(v) < passFromMs || !reads(k)) continue;
+      const at = heardAt(v);
+      readRight.set(v.word, at);
+      const first = firstRead.get(v.word);
+      if (first === undefined || first < passFromMs || at < first) firstRead.set(v.word, at);
+    }
+  };
+  /**
+   * refinements.readNotSkipped: the furthest word read right in the current pass before `ms`. A word whose first
+   * reading in the pass was noted before the pass moved on counts by its latest reading.
+   */
+  const readTo = (ms: number) => {
+    let far = -1;
+    for (const [w, first] of firstRead) {
+      const at = first >= passFromMs ? first : readRight.get(w)!;
+      if (w > far && at >= passFromMs && at < ms) far = w;
+    }
+    return far;
+  };
+  /** refinements.readNotSkipped: every spoken word of `[from, to]` was read in the current pass. */
+  const allRead = (from: number, to: number) => {
+    for (let w = from; w <= to; w++) if (words[w].end > words[w].start && (readRight.get(w) ?? -1) < passFromMs) return false;
+    return true;
+  };
+  /**
+   * refinements.readNotSkipped: the reading after omission `issue` rejoins. It resumes where reading on from the
+   * furthest word read before it in the pass goes (`rejoinAt`), so the words between were read already; or it begins an
+   * ayah's first word after the reciter broke off at the omission: a pause or a phrase that is not the Quran's between
+   * the speech either side of it, or no speech before it in the window. A resumption inside an ayah, after a pause or
+   * not, does not rejoin (a hesitation, then a word left out), nor one at an ayah's first word in continuous speech.
+   * Nor does one that leaves whole ayahs out short of where the reciter had read to: an omission that begins at an
+   * ayah's first word follows an ayah read to its end and the pause every ayah ends with, not a reciter breaking off, so
+   * going on at an ayah's first word before the ayah that reading on from the furthest word goes into (that ayah again
+   * when it was read to its end) leaves the ayahs between out of the re-reading.
+   */
+  const rejoins = (issue: Issue, visits: Visit[]) => {
+    const from = Math.max(0, issue.obsFrom);
+    const right = visits.find((v) => v.word > issue.last && v.obsFrom >= from && v.obsFrom < obs.length);
+    if (!right || frameMs <= 0) return false;
+    const far = readTo(obs[right.obsFrom].start * frameMs);
+    if (far >= issue.last && right.word === rejoinAt(far)) return true;
+    if (right.word !== ayahFirst[ayahOf[right.word]]) return false;
+    if (issue.word === ayahFirst[ayahOf[issue.word]]) {
+      if (far < 0) return false;
+      // The ayah that reading on from the furthest word goes into (past the Quran's last word, the one after it).
+      const on = rejoinAt(far);
+      if (ayahOf[right.word] < (on < words.length ? ayahOf[on] : ayahOf[far] + 1)) return false;
+    }
+    if (issue.obsFrom <= 0) return true;
+    for (let k = issue.obsFrom - 1; k < right.obsFrom && k + 1 < obs.length; k++) {
+      if (obs[k].junk || obs[k + 1].junk || obs[k + 1].start - obs[k].end - 1 >= minGapFrames(frameMs)) return true;
+    }
+    return false;
+  };
+
+  /** refinements.stutter: consonants in order, a doubled one once, a ghunna mark as its nasal. */
+  const consonantSkeleton = (phones: string) => {
+    let s = "";
+    for (const p of phones) {
+      const c = p === "ں" ? "ن" : p === "۾" ? "م" : p;
+      if (CONSONANTS.has(c) && s.at(-1) !== c) s += c;
+    }
+    return s;
+  };
+  /**
+   * refinements.stutter: `heard` is `written` with one block of two or more sounds, a consonant among them, said twice in
+   * a row (a restart inside the word): without one copy it has the written word's consonants exactly, in order. A
+   * different word changes those consonants, so this cannot pass one off as the written word. A block said twice
+   * makes the word at most twice as long as written; anything longer is not a restart of it, and is not scanned (the
+   * scan is cubic in the heard length).
+   */
+  const stutterOf = (heard: string, written: string): boolean => {
+    const target = consonantSkeleton(written);
+    if (!target || heard.length > 2 * written.length) return false;
+    for (let k = 2; 2 * k <= heard.length; k++) {
+      for (let i = 0; i + 2 * k <= heard.length; i++) {
+        const block = heard.slice(i, i + k);
+        if (block !== heard.slice(i + k, i + 2 * k) || ![...block].some((p) => CONSONANTS.has(p))) continue;
+        if (consonantSkeleton(heard.slice(0, i) + heard.slice(i + k)) === target) return true;
+      }
+    }
+    return false;
+  };
+
+  /**
+   * refinements.omissionDue: the reciter has read on past a suspected omission. The confirmation delay has passed since it
+   * was suspected, the alignment ends after the gap, two words after it were heard right and both began after the
+   * suspicion (a pause at the gap can still end in going back to say what was left out), and the omission is sure.
+   */
+  const readOnPast = (o: Open, visits: Visit[]): boolean => {
+    if (confirm.after === "delay" && nowMs - o.sinceMs < confirm.ms) return false;
+    const tail = visits.at(-1);
+    if (!tail || tail.word <= o.issue.last) return false;
+    const after = new Set<number>();
+    for (const v of visits) {
+      if (v.word <= o.issue.last || v.obsFrom < 0 || obs[v.obsFrom].start * frameMs < o.sinceMs || wrong(v)) continue;
+      after.add(v.word);
+    }
+    return after.size >= 2 && sureOf(o);
+  };
+
+  /**
    * Parallel phrases the alignment has entered and left: the written phonemes against each attested substitute,
    * over the frames from the shared entry word to the shared exit word. Suffix frames sit in that one span, so
    * they cannot be lent to a neighbour and counted again. The best path that clears `PHRASE_SWITCH` is a wrong word.
@@ -2245,6 +2925,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     if (pendingGap) closeGap(out, issues, pendingGap.left, pendingGap.right, final);
     keepLedger(issues);
+    for (const [wi, issue] of [...followGaps]) {
+      if (decided.has(wi)) followGaps.delete(wi);
+      else if (!issues.has(wi)) issues.set(wi, issue);
+    }
     // One unread run, two emitters. The seam starts after the ledger ayah and the words between them are bound
     // refrain or shared duplicate-span text (or there are none). The ledger key is the earlier one, so the seam
     // is dropped. A unique word between them keeps both. The span is the one the fit already accepted, including
@@ -2303,7 +2987,56 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // An addition after the Quran's last word (past the end of An-Nas) has no following word to sit before, so it
     // cannot be located or reported; without this its index is out of range and the session dies.
     for (const wi of [...issues.keys()]) if (wi >= words.length) issues.delete(wi);
+    // refinements.stutter: the written word restarted inside itself is the written word, not a wrong one.
+    if (stutterRule) for (const [wi, issue] of [...issues]) {
+      if (issue.cls !== "wrong_word" || !issue.stringPath || issue.word !== issue.last) continue;
+      if (stutterOf(heardSpan(issue), ref.slice(words[wi].start, words[wi].end))) issues.delete(wi);
+    }
+    // refinements.readNotSkipped: words the reciter already read right in this pass, where the reading after them
+    // rejoins, were not left out: a repeat rejoined after them.
+    if (readNotSkipped) {
+      if (judged) noteRead(judged.visits, issues);
+      // refinements.repeatNotWrong: a long wrong word whose heard text reads the text just before it again, charged to
+      // words read right earlier in this pass where the reading after them rejoins, was a restart: nothing was said
+      // wrong and nothing left out. Any other stays a wrong word.
+      if (repeatNotWrong) for (const [wi, issue] of [...issues]) {
+        if (issue.cls !== "wrong_word" || decided.has(wi) || followGaps.has(wi) || !allRead(issue.word, issue.last)) continue;
+        const heard = heardSpan(issue);
+        if (heard.length < Math.max(REPEAT_MIN, 2 * (words[issue.last].end - words[issue.word].start))) continue;
+        const back = words[ayahFirst[Math.max(0, ayahOf[issue.word] - 2)]].start;
+        const from = declared && passage && !latched ? Math.max(back, words[passage.from].start) : back;
+        const to = words[issue.word].start;
+        if (to <= from) continue;
+        const fit = alignSubstring(ref, from, to, heard, (o) => wordStarts.has(o));
+        if (!fit || fit.cost / UNIT / heard.length >= FITS_PASSAGE) continue;
+        // Read as words left out (the heard text is the restart's, before them): they rejoin as a repeat's would.
+        if (rejoins({ ...issue, cls: "omitted_word", obsFrom: issue.obsTo }, judged?.visits ?? [])) issues.delete(wi);
+      }
+      for (const [wi, issue] of [...issues]) {
+        if ((issue.cls === "omitted_word" || issue.cls === "skipped_passage") && !followGaps.has(wi) && allRead(issue.word, issue.last) &&
+          rejoins(issue, judged?.visits ?? [])) issues.delete(wi);
+      }
+    }
+    // refinements.marksInPassage: a mark wholly outside the declared passage is on a word that was not asked for.
+    if (marksInPassage && declared && passage && !latched) {
+      for (const [wi, issue] of [...issues]) if (issue.word > passage.to || issue.last < passage.from) issues.delete(wi);
+    }
+    // refinements.markWhenSure: the take ended a word or two short of the declared passage's end, inside its last ayah,
+    // by the alignment and the tracker's place both: those words were left out (a stop further back is a stop, and
+    // what follows it is not marked).
+    if (final && markWhenSure && declared && passage && !latched && judged?.visits.length && cursor >= 0) {
+      const said = Math.max(cursor, ...judged.visits.map((v) => v.word), ...[...issues.values()].map((x) => x.last));
+      const left: number[] = [];
+      for (let k = said + 1; k <= passage.to; k++) if (words[k].end > words[k].start) left.push(k);
+      if (said >= passage.from && left.length >= 1 && left.length <= ENDING_LEFT && ayahOf[said] === ayahOf[passage.to] &&
+        !left.some((k) => open.has(k) || decided.has(k) || issues.has(k))) {
+        issues.set(left[0], { cls: "omitted_word", word: left[0], last: left.at(-1)!, obsFrom: obs.length, obsTo: obs.length });
+      }
+    }
     furthest = Math.max(furthest, reached);
+    readEnds = (judged?.visits ?? []).filter((v) => !wrong(v) && v.obsTo > v.obsFrom && v.obsFrom >= 0).map((v) => ({ word: v.word, end: obs[v.obsTo - 1].end }));
+    // Read on past where the reciter had been before going back: the return is over.
+    if (wentBack && reached > wentBack.furthest) wentBack = null;
     for (const [wi, o] of [...open]) {
       const now = issues.get(wi);
       if (!now) {
@@ -2316,15 +3049,17 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         open.delete(wi);
         out.push(event(o, "resolved"));
         ledgerSpans.delete(wi);
-      } else if (now.cls !== o.issue.cls) {
+      } else {
+        if (!sameEvidence(o.issue, now)) [o.stableMs, o.stood] = [nowMs, undefined];
+        const moved = now.cls !== o.issue.cls;
         o.issue = now;
-        out.push(event(o, "suspected"));
-      } else o.issue = now;
+        if (moved) out.push(event(o, "suspected"));
+      }
     }
     for (const [wi, issue] of issues) {
       if (open.has(wi) || decided.has(wi)) continue;
       if (issue.cls === "skipped_passage" && overlapsConfirmedSkip(issue.word, issue.last)) continue;
-      const o: Open = { id: `${words[wi].surah}:${words[wi].ayah}:${words[wi].word}#${++seq}`, issue, sinceMs: nowMs };
+      const o: Open = { id: `${words[wi].surah}:${words[wi].ayah}:${words[wi].word}#${++seq}`, issue, sinceMs: nowMs, stableMs: nowMs };
       open.set(wi, o);
       out.push(event(o, "suspected"));
     }
@@ -2335,8 +3070,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       // the passage end so earlier audio can still resolve the suspicion.
       const followed = issue.pairOnset || onset(steps, issue);
       const past = head !== issue.word || (issue.pairOnset === true && final);
+      // refinements.reanchorBack: not while the tracker, gone back to an earlier ayah, is still before the omission.
+      // Until the window follows a return, it can read the return's first words as words two ayahs ahead. A tracker
+      // that only holds or lags behind a skip does not wait it.
+      const trackerBack = cursor >= 0 && cursor < issue.word && ayahOf[cursor] < ayahOf[cursorFar];
       const due = omission
-        ? final || ayahOf[reached] >= ayahOf[issue.last] + 2
+        ? final || (ayahOf[reached] >= ayahOf[issue.last] + 2 && !(reanchorBack && trackerBack))
         : past &&
           followed &&
           (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms || (final && declared && (!latched || (policy.finaliseFree ?? true)) && [...right].some((wi) => wi > issue.last)));
@@ -2344,8 +3083,23 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (heldSlot(issue.word)) continue;
       if (due) decide(o, out);
       // The session ended first. A declared passage (or a latched free one, with `finaliseFree`) confirms once a later
-      // word was recited right; otherwise it ends uncertain.
+      // word was recited right; otherwise it ends uncertain. refinements.markWhenSure: in a declared passage, a mark
+      // already due is decided on the evidence it was due on, and a mistake where the reading stopped (`endsReading`)
+      // on its evidence: no more speech will change it, so it need not stand, but it must be sure (`standsSure`).
+      else if (final && markWhenSure && declared && !latched && (o.stood || (endsReading(issue, right) && standsSure(o)))) decide(o, out);
       else if (final) decide(o, out, "uncertain");
+      // refinements.omissionDue: the reciter has read on past it; say so now, ahead of the two-ayah confirmation.
+      else if (omission && omissionDue && !o.due && declared && !latched && judged && readOnPast(o, judged.visits)) {
+        o.due = true;
+        out.push(event(o, "suspected"));
+      }
+      // refinements.markWhenSure: all its confirmation asks but the wait (read past, its next word begun, sure), with its
+      // evidence standing `STAND_MS` in place of the wait; say so now, ahead of the confirmation.
+      else if (!omission && markWhenSure && !o.due && declared && !latched && past && followed && nowMs - o.stableMs >= STAND_MS && standsSure(o)) {
+        o.due = true;
+        o.stood = true;
+        out.push(event(o, "suspected"));
+      }
     }
     if (latched && passage) {
       passage.from = Math.max(passage.from, ayahFirst[Math.max(0, ayahOf[anchor] - 1)]);
@@ -2361,16 +3115,62 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const limit = obs.length - KEEP;
     let cut = -1;
     let at = -1;
+    let cutStep = -1;
+    const boundary = (k: number) => {
+      const [s, next] = [steps[k], steps[k + 1]];
+      return s.op === "diag" && wordStarts.has(s.ref + 1) && next?.op === "diag" && next.ref === s.ref + 1;
+    };
     for (let k = 0; k < steps.length; k++) {
       const s = steps[k];
       if (s.op !== "diag" || s.obs >= limit) continue;
-      const next = steps[k + 1];
-      if (wordStarts.has(s.ref + 1) && next?.op === "diag" && next.ref === s.ref + 1) {
+      if (boundary(k)) {
         cut = s.obs + 1;
         at = s.ref + 1;
+        cutStep = k;
       }
     }
     if (cut < 0) return;
+    // refinements.commitAfterJump: the kept path, aligned again from the cut word, must stay inside the window that
+    // starts an ayah before it. One that goes back behind it (a restart) moves the cut past the restart's landing.
+    if (commitAfterJump) {
+      const windowFrom = (offset: number) => words[ayahFirst[Math.max(0, ayahOf[index.wordAt(offset)] - 1)]].start;
+      // The lowest reference phoneme the path reads from each step on.
+      const keptFrom = new Array<number>(steps.length + 1).fill(Infinity);
+      for (let k = steps.length - 1; k >= 0; k--) {
+        const s = steps[k];
+        keptFrom[k] = s.op === "diag" || s.op === "del" ? Math.min(s.ref, keptFrom[k + 1]) : keptFrom[k + 1];
+      }
+      if (keptFrom[cutStep + 1] < windowFrom(at)) {
+        // The restart's landing: the first step after the cut that reads behind the new window.
+        const behind = windowFrom(at);
+        let landing = cutStep + 1;
+        for (; landing < steps.length; landing++) {
+          const s = steps[landing];
+          if ((s.op === "diag" || s.op === "del") && s.ref < behind) break;
+        }
+        // A restart reads again the text it lands on: the first speech the path places from its landing on fits that
+        // text, as a lock's words fit a passage. A path that reaches behind only to place speech from elsewhere (the
+        // reciter gone back further than the window, onto a refrain's earlier copy) is no restart, and the cut stays
+        // where it was. Too little speech to tell is taken as a restart.
+        const restart = (() => {
+          const land = (steps[landing] as { ref: number } | undefined)?.ref;
+          const from = steps.slice(landing).find((s): s is Extract<Step, { obs: number }> => s.op === "diag" || s.op === "ins")?.obs;
+          if (land === undefined || from === undefined || obs.length - from < REREAD_MIN) return true;
+          const heard = obs.slice(from, from + 2 * REREAD_MIN).map((p) => p.p).join("");
+          const fit = alignSubstring(ref, land, Math.min(ref.length, land + 2 * heard.length), heard, (o) => o === land);
+          return !!fit && fit.cost / UNIT / heard.length < FITS_PASSAGE;
+        })();
+        let moved = false;
+        for (let k = cutStep + 1; restart && k < steps.length && !moved; k++) {
+          const s = steps[k];
+          if (s.op !== "diag") continue;
+          if (obs.length - (s.obs + 1) < AFTER_DROP) break;
+          if (!boundary(k) || keptFrom[k + 1] < windowFrom(s.ref + 1)) continue;
+          [cut, at, moved] = [s.obs + 1, s.ref + 1, true];
+        }
+        if (!moved && restart && obs.length < 2 * MAX_WINDOW) return;
+      }
+    }
     const floor = obs[cut]!.start;
     for (const b of maddNow(steps).baseline) if (b.frame < floor && !pastMadd.some((p) => p.frame === b.frame)) pastMadd.push(b);
     const word = index.wordAt(at);
@@ -2387,6 +3187,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     anchor = word;
     lead = 0;
     fromLock = false;
+    opening = false;
   };
 
   const track = (events: EngineEvent[], out: CheckerEvent[]): number | null => {
@@ -2406,6 +3207,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
       if (p.state === "locked" && p.observed[0]) {
         cursor = wordIndex(p.observed[0].word);
+        if (reanchorBack) cursorFar = Math.max(cursorFar, cursor);
         // Only the first lock, before it has heard a location-unique word, holds differing slots.
         if (p.spanHold) {
           noteSpan(cursor);
@@ -2422,9 +3224,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
       if (p.state !== "locked") {
         trackerLocked = false;
+        // refinements.firstAyahOut: a lock the tracker let go (a look-alike opening's) is not where the take began.
+        firstLock = -1;
         // Lost, it latches again on the next lock.
         if (latched && passage) {
           passage = undefined;
+          readFrom = -1;
           declared = false;
         }
         if (declared) continue;
@@ -2435,15 +3240,43 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       trackerLocked = true;
       const start = wordIndex(p.observed[0].span.start);
       const end = wordIndex(p.observed[0].word);
+      if (firstLock < 0) firstLock = start;
+      const lockedTo = lockReach;
+      lockReach = Math.max(lockReach, end);
       if (latched && !passage) {
         passage = { from: start, to: end };
+        readFrom = start;
         declared = true;
         next = start;
         continue;
       }
       if (declared) {
-        if (end - start + 1 < JUMP_WORDS || !offPassage(start) || !offPassage(end) || fitsPassage(start, end)) continue;
-        if (latched) passage = { from: start, to: end };
+        // refinements.firstAyahOut: the take's first lock, inside the passage past the window's reach while the
+        // alignment still runs from the passage's first word, is a first reading that began there.
+        if (firstAyahOut && lockedTo < 0 && opening && passage && anchor === passage.from && !fromLock && start > passage.from &&
+          start <= passage.to && words[start].start >= hi) {
+          startLate(out, start);
+          next = start;
+          continue;
+        }
+        if (end - start + 1 < JUMP_WORDS || !offPassage(start) || !offPassage(end) || fitsPassage(start, end)) {
+          // refinements.reanchorBack: a lock of `JUMP_WORDS` words inside the passage and behind the window is the reciter
+          // going back (restarting the passage, revising an earlier ayah). The window can't follow it there, and what
+          // it holds ahead would read as left out: start over where the tracker went, as after a jump off the passage.
+          // Words the window also holds (a refrain's later copy) are the window's to follow.
+          // Once followed back, a lock past the window's far end is the reciter coming forward again (`followForward`).
+          if (reanchorBack && anchor !== null && end - start + 1 >= JUMP_WORDS && !offPassage(start) && !offPassage(end)) {
+            if (words[end].start < lo && !fitsWindow(start, end)) {
+              dropAnchor(out, start, false, readBefore(start, end, lockedTo, p.timeMs));
+              next = start;
+            } else if (wentBack && words[start].start >= hi && !fitsWindow(start, end)) {
+              followForward(out, start);
+              next = start;
+            }
+          }
+          continue;
+        }
+        if (latched) [passage, readFrom] = [{ from: start, to: end }, start];
         else declared = false;
         if (anchor !== null) dropAnchor(out);
         next = start;
@@ -2458,8 +3291,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
       if (anchor === null) next ??= start;
       else if (words[end].start < lo || words[end].start >= hi) {
-        // A jump the window can't follow: start over where the tracker went.
-        dropAnchor(out);
+        // A jump the window can't follow: start over where the tracker went. Behind the window, with
+        // refinements.readNotSkipped or reanchorBack, it is the reciter going back (`goneBack`).
+        const back = (readNotSkipped || reanchorBack) && words[end].start < lo;
+        dropAnchor(out, back ? start : undefined, false, back ? readBefore(start, end, lockedTo, p.timeMs) : -1);
         next = start;
       }
     }
@@ -2473,6 +3308,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       lead = obs.length;
       fromLock = false;
       furthest = -1;
+      opening = true;
     } else if (anchor === null && next !== null) {
       anchor = next;
       const end = events.filter((e): e is PositionEvent => e.type === "position").at(-1)!.observed[0].word;
@@ -2480,6 +3316,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       lead = Math.max(0, obs.length - span - 4);
       fromLock = true;
       furthest = -1;
+      // refinements.reanchorBack: a gap a forward follow found sits where the speech after it begins.
+      for (const issue of followGaps.values()) if (issue.obsFrom < 0) issue.obsFrom = issue.obsTo = Math.min(lead, obs.length - 1);
     }
   };
 
@@ -2495,7 +3333,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const out: CheckerEvent[] = [];
       frameMs = evidence.frameMs;
       if (frames && evidence.posteriors) frames.append(evidence.posteriors);
+      pending = evidence.phonemes;
       const next = track(events, out);
+      pending = [];
       const before = obs.length;
       obs.push(...evidence.phonemes.map((p) => ({ ...p })));
       chunkFrom = before;
@@ -2514,7 +3354,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     },
     end(events = []) {
       const out: CheckerEvent[] = [];
-      anchorOn(track(events, out), events);
+      const next = track(events, out);
+      anchorOn(next, events);
       evaluate(out, true);
       return out;
     },

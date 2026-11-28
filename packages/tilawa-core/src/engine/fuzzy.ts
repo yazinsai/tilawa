@@ -10,6 +10,11 @@ const MADD_LETTERS = new Set(["ا", "ۦ", "ۥ"]);
 const SHORT_VOWELS = new Set(["َ", "ُ", "ِ"]);
 const CONFUSABLE_PAIRS = ["هح", "عء", "صس", "ضد", "طت", "قك", "ذز", "ثس"];
 const confusable = new Set(CONFUSABLE_PAIRS.flatMap(([a, b]) => [a + b, b + a]));
+/** The plain consonants: no vowel, madd, ghunna or qalqalah mark. */
+export const CONSONANTS: ReadonlySet<string> = new Set("ءبتثجحخدذرزسشصضطظعغفقكلمنهوي");
+
+/** Consonant `obs` heard for written `ref` is the engine's near-equal: one of `CONFUSABLE_PAIRS`. */
+export const isConfusable = (ref: string, obs: string) => confusable.has(ref + obs);
 
 export function subCost(ref: string, obs: string): number {
   if (ref === obs) return 0;
@@ -127,6 +132,129 @@ export interface AlignOptions {
   conf?: ArrayLike<number>;
   /** Only allow starts where this holds. Other starts cost `MID_WORD_START`. */
   strictStart?: boolean;
+}
+
+/**
+ * The cost `alignSubstring(ref, lo, hi, obs, (o) => o === lo, { strictStart: true })` finds for `obs`, kept as `obs`
+ * grows a phoneme at a time: one DP column per phoneme instead of the whole table per call. `cost()` is null where
+ * that alignment is null.
+ */
+export function growingFit(ref: string, lo: number, hi: number) {
+  const n = hi - lo;
+  const del = new Float64Array(n + 1);
+  for (let i = 1; i <= n; i++) del[i] = deletionCost(ref, lo + i - 1) + EDIT;
+  let col = new Float64Array(n + 1).fill(INF);
+  col[0] = 0;
+  let cost = 0;
+  let heard = 0;
+  return {
+    /** Phonemes pushed so far. */
+    get heard() {
+      return heard;
+    },
+    push(p: string) {
+      const next = new Float64Array(n + 1);
+      let min = (next[0] = col[0] + (insertionCost(ref, lo, p, hi) + EDIT));
+      for (let i = 1; i <= n; i++) {
+        const r = ref[lo + i - 1];
+        let v = col[i] + (insertionCost(ref, lo + i, p, hi) + EDIT);
+        const sub = col[i - 1] + (r === p ? 0 : subCost(r, p) + EDIT);
+        if (sub < v) v = sub;
+        const gap = next[i - 1] + del[i];
+        if (gap < v) v = gap;
+        next[i] = v;
+        if (v < min) min = v;
+      }
+      col = next;
+      cost = min;
+      heard++;
+    },
+    // As `alignSubstring` reports it: the weighted cost, without the edit count that only breaks ties.
+    cost: (): number | null => (cost < INF ? Math.floor(cost) : null),
+  };
+}
+
+/** The least that inserting or dropping `p` costs anywhere: a held sound's lengthening, where `p` can be one. */
+const indelFloor = (p: string) => indelCost(p, isLengthening(p, Infinity));
+
+/**
+ * The fits `growingFit(ref, start, end(start))` may find for `obs` below `bar`, for many starts at once: each start
+ * whose fit may cost less than `bar`, with the least a fit of `obs` to the part of its reference walked may cost (a fit
+ * that reads further may cost less), cheapest first. A start left out costs `bar` or more. `starts` are sorted by the
+ * reference text from each start to its `end`, so starts that share their first phonemes sit together and are walked as
+ * one branch of a trie: they share its DP rows, and since a row's cheapest cell bounds every row below it, a branch
+ * whose row reaches `bar` is dropped whole. While a branch holds several starts, an insertion or deletion is priced at
+ * the least it costs beside any neighbour (`indelFloor`); once it holds one, the reference prices them as `growingFit`
+ * does.
+ */
+export function fitBounds(
+  ref: string,
+  starts: ArrayLike<number>,
+  end: (start: number) => number,
+  obs: string,
+  bar: number,
+): { start: number; bound: number }[] {
+  const m = obs.length;
+  const found: { start: number; bound: number }[] = [];
+  // Per heard phoneme: the least an insertion of it costs anywhere, and what it costs beside no run of it.
+  const floor = new Float64Array(m);
+  const plain = new Float64Array(m);
+  for (let j = 0; j < m; j++) [floor[j], plain[j]] = [indelFloor(obs[j]), indelCost(obs[j], false)];
+  // Per reference phoneme, what substituting it for each heard phoneme costs.
+  const subs = new Map<string, Float64Array>();
+  const subRow = (r: string) => {
+    let row = subs.get(r);
+    if (!row) {
+      row = new Float64Array(m);
+      for (let j = 0; j < m; j++) row[j] = subCost(r, obs[j]);
+      subs.set(r, row);
+    }
+    return row;
+  };
+  const rows: Float64Array[] = [new Float64Array(m + 1)];
+  for (let j = 1; j <= m; j++) rows[0][j] = rows[0][j - 1] + floor[j - 1];
+  // Starts [a, b) share their first `depth` phonemes, which `rows[depth]` aligns against each prefix of `obs`; `best`
+  // is the cheapest fit of all of `obs` to some prefix of them (a fit's reference end is free).
+  const walk = (a: number, b: number, depth: number, best: number) => {
+    if (best < bar) {
+      for (let k = a; k < b; k++) found.push({ start: starts[k], bound: best });
+      return;
+    }
+    const row = rows[depth];
+    const next = (rows[depth + 1] ??= new Float64Array(m + 1));
+    for (let k = a; k < b; ) {
+      const s = starts[k];
+      const e = end(s);
+      if (s + depth >= e) {
+        k++;
+        continue;
+      }
+      const r = ref[s + depth];
+      let l = k + 1;
+      while (l < b && starts[l] + depth < end(starts[l]) && ref[starts[l] + depth] === r) l++;
+      const one = l - k === 1;
+      const del = one ? deletionCost(ref, s + depth) : indelFloor(r);
+      const sub = subRow(r);
+      // With one start, an insertion beside a run of its sound (before or after it) is priced as `insertionCost` does.
+      const at = s + depth + 1;
+      const [before, after] = [ref[at - 1], at < e ? ref[at] : ""];
+      let min = (next[0] = row[0] + del);
+      for (let j = 1; j <= m; j++) {
+        const p = obs[j - 1];
+        let v = row[j] + del;
+        const d = row[j - 1] + sub[j - 1];
+        if (d < v) v = d;
+        const ins = next[j - 1] + (!one ? floor[j - 1] : p === before || p === after ? insertionCost(ref, at, p, e) : plain[j - 1]);
+        if (ins < v) v = ins;
+        next[j] = v;
+        if (v < min) min = v;
+      }
+      if (min < bar) walk(k, l, depth + 1, Math.min(best, next[m]));
+      k = l;
+    }
+  };
+  walk(0, starts.length, 0, rows[0][m]);
+  return found.sort((x, y) => x.bound - y.bound);
 }
 
 /**
