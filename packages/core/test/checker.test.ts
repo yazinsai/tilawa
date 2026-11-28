@@ -1,7 +1,9 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createChecker, createTracker, loadReferenceIndex } from "../src/index.js";
-import type { CheckerEvent, CheckerOptions, DecodedPhoneme, PhonemeEvidence, PhraseAsset, ReferenceAsset, WordRef } from "../src/index.js";
+import type {
+  CheckerEvent, CheckerOptions, DecodedPhoneme, PhonemeEvidence, PhraseAsset, ReferenceAsset, TrackerRefinements, WordRef,
+} from "../src/index.js";
 import { isAssertable, replayChecked, syntheticFixture, withPosteriors } from "../src/fixtures/index.js";
 import type { Edit, Fixture } from "../src/fixtures/index.js";
 import { alignSubstring } from "../src/fuzzy.js";
@@ -437,6 +439,24 @@ describe("tlog fixtures", () => {
   });
 });
 
+/** The 1.0.0-rc.1 tracker: every refinement off. */
+const RC1_TRACKER: Required<TrackerRefinements> = {
+  confirmAdvance: false,
+  onsetRun: false,
+  declaredStart: false,
+  declaredLeadIn: false,
+  declaredMove: false,
+  noLostBeforeLock: false,
+  consonantConfirm: false,
+  rivalHold: false,
+  passageWindow: false,
+  restartNoEntry: false,
+  withdrawBegun: false,
+  leftOnNewAudio: false,
+  begunByConsonants: false,
+  showSaid: false,
+};
+
 /**
  * Real teacher evidence with one word corrupted: the clip's phonemes are aligned to its reviewed span to find the word,
  * which is then replaced, dropped, or preceded by an alien word.
@@ -480,9 +500,14 @@ describe("corrupted teacher evidence", () => {
     expect(cases.length).toBeGreaterThanOrEqual(8);
   });
 
-  /** Where the tracker first locked, if it then stayed locked: the checker judges only words while locked. */
+  /**
+   * Where the tracker first locked, if it then stayed locked: the checker judges only words while locked. The clips are
+   * picked with the 1.0.0-rc.1 tracker (every refinement off), so the set this test scores stays the same: with
+   * `rivalHold` one clip (tlog-clean-00000-of-00411-140) locks a word earlier, just before the corrupted word, and joins
+   * the set, a wrong and an added word the checker missed there under rc.1's rules as well.
+   */
   const firstLock = (evidence: PhonemeEvidence[]) => {
-    const t = createTracker(index, { phrases });
+    const t = createTracker(index, { phrases, refinements: RC1_TRACKER });
     const states = [...evidence.flatMap((c) => t.push(c)), ...t.end()].filter((e) => e.type === "position");
     const at = states.findIndex((e) => e.state === "locked");
     if (at === -1 || states.slice(at).some((e) => e.state !== "locked")) return null;

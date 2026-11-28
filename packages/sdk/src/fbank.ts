@@ -43,22 +43,66 @@ const reversed = Uint16Array.from({ length: NFFT }, (_, i) => {
   return r;
 });
 
+/**
+ * In-place radix-2 FFT. Only bins 0 to NFFT / 2 - 1 are read afterwards (the mel bank's), so the last stage leaves
+ * the upper half as it was. Every value read is computed exactly as the textbook loop computes it, butterfly for
+ * butterfly; only the loop order (each twiddle read once a stage) and the twiddle 1 + 0i (k = 0, a plain sum and
+ * difference: the same numbers, a zero's sign aside, which the power spectrum squares away) and the real input's zero
+ * imaginary parts in the first two stages are cheaper. The app runs
+ * this in JavaScriptCore without a JIT, where each array read and multiplication in the inner loop is paid in full.
+ */
+/** `im` must be all +0 on the way in (a real input). */
 function fft(re: Float64Array, im: Float64Array) {
   for (let i = 0; i < NFFT; i++) {
     const j = reversed[i];
     if (i < j) {
-      [re[i], re[j]] = [re[j], re[i]];
-      [im[i], im[j]] = [im[j], im[i]];
+      // Plain temporaries: a destructuring swap allocates two arrays a call in an interpreter without a JIT.
+      // The imaginary parts are all +0 here: nothing to swap.
+      const r = re[i];
+      re[i] = re[j];
+      re[j] = r;
     }
   }
-  for (let len = 2; len <= NFFT; len <<= 1) {
+  // The input is real: the imaginary parts are +0 and stay +0 through the first stage (sums and differences of +0),
+  // and the second stage's odd twiddle (k = 1) multiplies a real value.
+  for (let a = 0; a < NFFT; a += 2) {
+    const xr = re[a + 1];
+    re[a + 1] = re[a] - xr;
+    re[a] += xr;
+  }
+  {
+    const wr = cos[NFFT / 4];
+    const wi = sin[NFFT / 4];
+    for (let a = 0; a < NFFT; a += 4) {
+      const b = a + 2;
+      const xr = re[b];
+      re[b] = re[a] - xr;
+      re[a] += xr;
+      const c = a + 1, e = a + 3;
+      const yr = re[e] * wr;
+      const yi = re[e] * wi;
+      re[e] = re[c] - yr;
+      im[e] = -yi;
+      re[c] += yr;
+      im[c] = yi;
+    }
+  }
+  for (let len = 8; len < NFFT; len <<= 1) {
     const half = len >> 1;
     const stride = NFFT / len;
-    for (let i = 0; i < NFFT; i += len) {
-      for (let k = 0; k < half; k++) {
-        const wr = cos[k * stride];
-        const wi = sin[k * stride];
-        const a = i + k;
+    for (let a = 0; a < NFFT; a += len) {
+      const b = a + half;
+      const xr = re[b];
+      const xi = im[b];
+      re[b] = re[a] - xr;
+      im[b] = im[a] - xi;
+      re[a] += xr;
+      im[a] += xi;
+    }
+    for (let k = 1; k < half; k++) {
+      const wr = cos[k * stride];
+      const wi = sin[k * stride];
+      for (let a = k; a < NFFT; a += len) {
         const b = a + half;
         const xr = re[b] * wr - im[b] * wi;
         const xi = re[b] * wi + im[b] * wr;
@@ -69,12 +113,34 @@ function fft(re: Float64Array, im: Float64Array) {
       }
     }
   }
+  // The last stage (len = NFFT): one butterfly per bin, whose lower output alone is read.
+  const half = NFFT >> 1;
+  re[0] += re[half];
+  im[0] += im[half];
+  for (let a = 1; a < half; a++) {
+    const b = a + half;
+    const wr = cos[a];
+    const wi = sin[a];
+    re[a] += re[b] * wr - im[b] * wi;
+    im[a] += re[b] * wi + im[b] * wr;
+  }
 }
 
 export class Fbank {
   private readonly bank: typeof melBank;
+  /** The bank's weights end to end, and each filter's first and last-plus-one bin: one array read a weight. */
+  private readonly flat: { starts: Int32Array; ends: Int32Array; weights: Float64Array };
   constructor(options: { highFrequency?: number } = {}) {
     this.bank = options.highFrequency === undefined ? melBank : makeMelBank(options.highFrequency);
+    const starts = Int32Array.from(this.bank, (b) => b.start);
+    const ends = Int32Array.from(this.bank, (b) => b.start + b.weights.length);
+    const weights = new Float64Array(this.bank.reduce((n, b) => n + b.weights.length, 0));
+    let at = 0;
+    for (const b of this.bank) {
+      weights.set(b.weights, at);
+      at += b.weights.length;
+    }
+    this.flat = { starts, ends, weights };
   }
   private pending = new Float32Array(0);
   private readonly re = new Float64Array(NFFT);
@@ -89,25 +155,25 @@ export class Fbank {
     const out: Float32Array[] = [];
     let off = 0;
     for (; off + WIN <= buf.length; off += HOP) {
-      re.fill(0);
+      // Samples 0 to WIN - 1 are written below; the rest of the FFT's input is zero.
+      re.fill(0, WIN);
       im.fill(0);
       let mean = 0;
       for (let i = 0; i < WIN; i++) mean += buf[off + i];
       mean /= WIN;
-      for (let i = WIN - 1; i >= 0; i--) {
+      // Each centred sample once, as the one before the next (the first is its own).
+      let prev = buf[off] - mean;
+      for (let i = 0; i < WIN; i++) {
         const x = buf[off + i] - mean;
-        const prev = i > 0 ? buf[off + i - 1] - mean : x;
         re[i] = (x - 0.97 * prev) * povey[i];
+        prev = x;
       }
       fft(re, im);
       const frame = new Float32Array(MELS);
-      for (let m = 0; m < MELS; m++) {
-        const { start, weights } = this.bank[m];
+      const { starts, ends, weights } = this.flat;
+      for (let m = 0, w = 0; m < MELS; m++) {
         let e = 0;
-        for (let j = 0; j < weights.length; j++) {
-          const k = start + j;
-          e += weights[j] * (re[k] * re[k] + im[k] * im[k]);
-        }
+        for (let k = starts[m], end = ends[m]; k < end; k++, w++) e += weights[w] * (re[k] * re[k] + im[k] * im[k]);
         frame[m] = Math.log(Math.max(e, EPS));
       }
       out.push(frame);

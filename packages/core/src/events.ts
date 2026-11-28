@@ -74,6 +74,14 @@ export interface PositionEvent {
    * for the continuation. Absent once that word arrives, and on every later lock.
    */
   spanHold?: true;
+  /**
+   * Words shown earlier that the reader only began and then left (`TrackerRefinements.withdrawBegun`), or said as
+   * another place, when a take's start moves from the declared opening to the ayah the reader started at
+   * (`TrackerRefinements.declaredMove`): show them dark again. Set on the locked event that first shows the run the
+   * reader moved to, which never covers them. The positions to show (`Tracker.shown`) name only words they showed, each
+   * once. A later locked event whose run covers one of them (from its span's start to its word) shows it again.
+   */
+  withdrawn?: WordRef[];
   /** Present only when the tracker was created with `trace: true`. */
   trace?: TrackerTrace;
 }
@@ -95,6 +103,16 @@ export type PronunciationErrorClass =
 
 export type ErrorClass = MemorizationErrorClass | PronunciationErrorClass;
 
+/**
+ * A mistake is `suspected` first, then ends in one of the other three, which are final: `confirmed`, `resolved` (the
+ * reader corrected themselves, or a skip was recovered) or `uncertain` (too unclear to judge). A suspected mistake can
+ * be sent `suspected` again with {@link CheckerEvent.due} before it ends.
+ *
+ * `suspected` is not for display. It is the checker's working state: raised as soon as the alignment sees a possible
+ * mistake and withdrawn (`resolved`, `uncertain`) as often as not, while the reciter reads on, corrects themselves or
+ * moves, and the alignment window can raise one outside the passage. Show a mistake once it is `confirmed`, or once it
+ * is `due` (an omission as a word still owed), taken down if it then ends `resolved` or `uncertain`.
+ */
 export type CheckerState = "suspected" | "confirmed" | "resolved" | "uncertain";
 
 export interface CheckerEvent {
@@ -108,6 +126,16 @@ export interface CheckerEvent {
   expected?: string;
   observed?: string;
   confidence: number;
+  /**
+   * Set on a `suspected` mistake in a declared passage that is likely to be confirmed: an omission (`omitted_word`,
+   * `skipped_passage`) once the reciter has read on past it (two words after it heard right, both begun after the
+   * suspicion; `refinements.omissionDue`), a wrong or added word once its evidence has stood unchanged and is sure
+   * (`refinements.markWhenSure`). The same id was sent `suspected` before; confirmation still waits for the usual rule
+   * and the mistake can still end `resolved` (the reciter goes back and says it, or the reading that follows explains
+   * it). Provisional: an app may show it (an omission as a word still owed) and must take it down when the same id ends
+   * `resolved` or `uncertain`. Absent on every other event.
+   */
+  due?: true;
 }
 
 export interface CapabilityEvent {

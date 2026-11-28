@@ -8,7 +8,7 @@ vi.mock("../src/listener.js", () => ({ createListener: () => ({
 }) }));
 vi.mock("@tilawa/core", async original => ({
   ...await original<typeof import("@tilawa/core")>(),
-  createTracker: () => ({ push: () => [{ type: "test-position" }], end: () => [] }),
+  createTracker: () => ({ push: () => [{ type: "test-position" }], shown: () => [], silence: () => [], end: () => [] }),
   createChecker: () => {
     const found: CheckerEvent[] = [];
     return { push(e: PhonemeEvidence) {
