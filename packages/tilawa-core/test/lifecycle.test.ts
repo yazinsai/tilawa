@@ -68,6 +68,13 @@ describe("session lifecycle (contract §3)", () => {
   it("resolves the policy with every default filled in", () => {
     expect(tilawa.startFreeRecitation().policy).toEqual({
       countSelfCorrections: false, confirm: { after: "delay", ms: 2500 }, minConfidence: 0.6, evidenceMs: 40,
+      refinements: {
+        readNotSkipped: true, reanchorBack: true, stutter: true, ledgerPartial: true, omissionDue: true,
+        commitAfterJump: true, firstAyahOut: true, marksInPassage: true, repeatNotWrong: true, markWhenSure: false,
+        confirmAdvance: true, onsetRun: true, declaredStart: true, declaredLeadIn: true, declaredMove: true, noLostBeforeLock: true,
+        consonantConfirm: true, rivalHold: true, passageWindow: true, restartNoEntry: true, withdrawBegun: true, leftOnNewAudio: true,
+        begunByConsonants: true, showSaid: true, pace: true,
+      },
     });
     const s = tilawa.startMemorization({ surah: 18, fromAyah: 60, toAyah: 70 }, { confirm: { after: "next-word" } });
     expect(s.policy.confirm).toEqual({ after: "next-word" });

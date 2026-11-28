@@ -14,6 +14,12 @@ export class PosteriorFrames {
   private k = 0;
   private start = -1;
   private readonly cache = new Map<number, Float64Array>();
+  /**
+   * `nll` of a plain chain (no repeats, no cut) by labels and frame range. A row never changes once appended, so the
+   * same question has the same answer while its first frame is kept; the checker asks the same ones at every cell
+   * while a phrase stays in its window.
+   */
+  private readonly chains = new Map<string, { from: number; nll: number }>();
 
   constructor(private readonly size: number) {}
 
@@ -54,6 +60,7 @@ export class PosteriorFrames {
     this.probs.splice(0, drop * this.k);
     this.start += drop;
     for (const f of this.cache.keys()) if (f < this.start) this.cache.delete(f);
+    for (const [key, chain] of this.chains) if (chain.from < this.start) this.chains.delete(key);
   }
 
   /** Whether token `id` is among the listed top-k at `frame`. */
@@ -98,33 +105,52 @@ export class PosteriorFrames {
    * recurrence; it does not replace them with blank or modify stored evidence.
    */
   nll(labels: ArrayLike<number>, from: number, to: number, repeats?: ReadonlyArray<readonly [number, number]>, cut?: readonly [number, number]): number {
+    if (repeats || cut || from < this.start) return this.forward(labels, from, to, repeats, cut);
+    const key = `${from} ${to} ${Array.prototype.join.call(labels, ",")}`;
+    const known = this.chains.get(key);
+    if (known) return known.nll;
+    const nll = this.forward(labels, from, to);
+    // A bound on what is kept, far above a window's questions; forgetting only means asking again.
+    if (this.chains.size >= 4096) this.chains.clear();
+    this.chains.set(key, { from, nll });
+    return nll;
+  }
+
+  private forward(labels: ArrayLike<number>, from: number, to: number, repeats?: ReadonlyArray<readonly [number, number]>, cut?: readonly [number, number]): number {
     const L = labels.length;
     // Excise frames, rather than forcing them to blank. The state distribution carries directly
     // across the cut, exactly as it would on the concatenated remaining rows.
     if (cut && from >= cut[0] && from < cut[1]) from = cut[1];
     if (to <= from) return L ? Infinity : 0;
     const S = 2 * L + 1;
-    const label = (s: number) => (s % 2 === 0 ? 0 : labels[(s - 1) >> 1]);
+    // Each state's token and whether it may skip the blank before it, once: the app runs this in
+    // JavaScriptCore without a JIT, where a call per cell costs more than the cell's arithmetic.
+    const token = new Int32Array(S);
+    const skips = new Uint8Array(S);
+    for (let s = 1; s < S; s += 2) token[s] = labels[(s - 1) >> 1];
+    for (let s = 3; s < S; s += 2) skips[s] = token[s] !== token[s - 2] ? 1 : 0;
     const back = repeatBack(repeats, L);
     let prev = new Float64Array(S).fill(-Infinity);
     let next = new Float64Array(S);
     const r0 = this.row(from);
     prev[0] = r0[0];
-    if (L) prev[1] = r0[label(1)];
+    if (L) prev[1] = r0[token[1]];
     for (let f = from + 1; f < to; f++) {
       if (cut && f >= cut[0] && f < cut[1]) continue;
       const row = this.row(f);
-      for (let s = 0; s < S; s++) {
-        let a = prev[s];
-        if (s > 0) a = logAdd(a, prev[s - 1]);
-        if (s > 1 && s % 2 === 1 && label(s) !== label(s - 2)) a = logAdd(a, prev[s - 2]);
-        if (back && s % 2 === 1) {
+      next[0] = prev[0] + row[0];
+      for (let s = 1; s < S; s++) {
+        let a = logAdd(prev[s], prev[s - 1]);
+        if (skips[s] === 1) a = logAdd(a, prev[s - 2]);
+        if (back && (s & 1) === 1) {
           const extra = back[(s - 1) >> 1];
           for (let k = 0; k < extra.length; k++) a = logAdd(a, prev[extra[k]]);
         }
-        next[s] = a + row[label(s)];
+        next[s] = a + row[token[s]];
       }
-      [prev, next] = [next, prev];
+      const swap = prev;
+      prev = next;
+      next = swap;
     }
     const end = L ? logAdd(prev[S - 1], prev[S - 2]) : prev[0];
     return -end;

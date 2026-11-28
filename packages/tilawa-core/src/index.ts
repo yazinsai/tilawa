@@ -8,6 +8,7 @@ export { createEngine } from "./session.js";
 export type {
   AudioTap,
   CapabilityEvent,
+  Refinements,
   DeclaredPassage,
   Engine,
   EngineEvent,

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createTracker, loadReferenceIndex } from "../../src/engine/index.js";
-import type { EngineEvent, PhonemeEvidence, PositionEvent, ReferenceAsset, WordRef } from "../../src/engine/index.js";
+import type { EngineEvent, PhonemeEvidence, PositionEvent, ReferenceAsset, TrackerRefinements, WordRef } from "../../src/engine/index.js";
 import { syntheticFixture } from "../fixtures/synthetic.js";
 import type { Edit } from "../fixtures/synthetic.js";
 
@@ -32,10 +32,19 @@ const followedBy = (words: string[], prev: string, next: string[]) => {
   return i !== -1 && [1, 2].some((d) => JSON.stringify(words.slice(i + d, i + d + next.length)) === JSON.stringify(next));
 };
 
-/** Words reported while locked, in order, with consecutive duplicates removed. */
-const lockedWords = (events: PositionEvent[]) => {
+/**
+ * Words reported while locked, in order, with consecutive duplicates removed; with `runs`, a new run on the same word
+ * (a repeated word) counts as a new entry.
+ */
+const lockedWords = (events: PositionEvent[], runs = false) => {
   const out: string[] = [];
-  for (const e of events) if (e.state === "locked" && key(e.observed[0].word) !== out.at(-1)) out.push(key(e.observed[0].word));
+  let last = "";
+  for (const e of events) {
+    if (e.state !== "locked") continue;
+    const at = runs ? `${key(e.observed[0].word)}<${key(e.observed[0].span.start)}` : key(e.observed[0].word);
+    if (at !== last) out.push(key(e.observed[0].word));
+    last = at;
+  }
   return out;
 };
 
@@ -89,7 +98,9 @@ describe("repeat", () => {
 
   it("keeps the position on a single repeated word", () => {
     const events = stream(from, to, [{ kind: "repeat", from: at(from, w(2, 255, 11)), to: at(from, w(2, 255, 12)) }]);
-    const words = lockedWords(events);
+    // With refinements.confirmAdvance no transient 12 shows on the repeat's first sound (a sound not heard as written for 12),
+    // so the repeat is told by its run.
+    const words = lockedWords(events, true);
     expect(followedBy(words, "2:255:11", ["2:255:11", "2:255:12"])).toBe(true);
     // The second 11 is a new run starting at the repeated word, not a jump elsewhere.
     const again = events.filter((e) => e.state === "locked" && key(e.observed[0].word) === "2:255:11").at(-1)!;
@@ -177,9 +188,9 @@ describe("streaming equivalence", () => {
     const phonemes = syntheticFixture(index, { id: "e", from, to, edits }).evidence[0].phonemes;
     const total = phonemes.length;
     /** State after each boundary a chunking reaches: the last event emitted so far. */
-    const run = (size: number) => {
+    const run = (size: number, refinements?: TrackerRefinements) => {
       const f = syntheticFixture(index, { id: "e", from, to, edits, chunkSize: size });
-      const t = createTracker(index);
+      const t = createTracker(index, { refinements });
       const after = new Map<number, PositionEvent>();
       let last: PositionEvent | undefined;
       let seen = 0;
@@ -191,16 +202,19 @@ describe("streaming equivalence", () => {
       return after;
     };
     const summary = (e: PositionEvent) => ({ state: e.state, word: e.observed[0]?.word });
-    const reference = run(1);
-    for (const size of [2, 3, 5, 8, 13, 21, 64, total]) {
-      const got = run(size);
-      for (const [boundary, e] of got) {
-        const want = reference.get(boundary)!;
-        // Both locked, or both still acquiring on identical evidence: either way they must agree on the word.
-        if (want.state === "locked" && e.state === "locked") expect(summary(e), `size ${size} at ${boundary}`).toEqual(summary(want));
-        else if (e.state !== "locked") expect(summary(e), `size ${size} at ${boundary}`).toEqual(summary(want));
+    // The defaults (`confirmAdvance` and `onsetRun` on) and rc.1's rules alike: a lock shows the word a run would show.
+    for (const refinements of [undefined, { confirmAdvance: false, onsetRun: false }]) {
+      const reference = run(1, refinements);
+      for (const size of [2, 3, 5, 8, 13, 21, 64, total]) {
+        const got = run(size, refinements);
+        for (const [boundary, e] of got) {
+          const want = reference.get(boundary)!;
+          // Both locked, or both still acquiring on identical evidence: either way they must agree on the word.
+          if (want.state === "locked" && e.state === "locked") expect(summary(e), `size ${size} at ${boundary}`).toEqual(summary(want));
+          else if (e.state !== "locked") expect(summary(e), `size ${size} at ${boundary}`).toEqual(summary(want));
+        }
+        expect(summary(got.get(total)!)).toEqual(summary(reference.get(total)!));
       }
-      expect(summary(got.get(total)!)).toEqual(summary(reference.get(total)!));
     }
   });
 });
