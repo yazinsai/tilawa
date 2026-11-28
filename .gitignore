@@ -26,7 +26,6 @@ node_modules
 dist
 *.tsbuildinfo
 web/frontend/dist-server/
-web/frontend/.v1_cache/
 # ONNX Runtime WASM files (copied to public/ via vite postinstall)
 web/frontend/public/*.wasm
 web/frontend/public/*.mjs

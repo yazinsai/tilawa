@@ -3,23 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "setup": "pnpm install && npm --prefix packages/tilawa-core install && npm --prefix web/frontend install && npm run build:core && npm run ensure:assets",
-    "assets:download": "cd web/frontend && node scripts/prepare-v1-assets.mjs --models-url https://tilawa.dev/v1/ && mkdir -p .v1_cache && cp -r dist/v1/* .v1_cache/",
-    "assets:restore": "[ -d web/frontend/.v1_cache ] && mkdir -p web/frontend/dist/v1 && cp -r web/frontend/.v1_cache/* web/frontend/dist/v1/ || true",
-    "ensure:assets": "[ -f web/frontend/dist/v1/manifest.json ] || ([ -f web/frontend/.v1_cache/manifest.json ] && npm run assets:restore) || npm run assets:download",
     "build": "pnpm -r build",
-    "build:core": "npm --prefix packages/tilawa-core run build",
-    "build:front": "npm --prefix web/frontend run build && npm run ensure:assets",
-    "build:server": "npm --prefix web/frontend run build:server",
-    "build:all": "npm run build:core && pnpm -r build && npm run build:front && npm run build:server",
-    "start": "npm run start:front",
-    "start:front": "[ -d packages/tilawa-core/dist ] || npm run build:core; npm run ensure:assets; npm --prefix web/frontend run dev",
-    "start:server": "npm run ensure:assets; npm --prefix web/frontend run start",
-    "start:all": "npm run build:core && npm run build:front && npm run build:server && npm run start:server",
-    "start:sample": "pnpm --filter @tilawa/sample run dev",
     "typecheck": "tsc -b",
-    "test": "pnpm -r test",
-    "test:core": "npm --prefix packages/tilawa-core test"
+    "test": "pnpm -r test"
   },
   "devDependencies": {
     "typescript": "^5.9.0"

@@ -1,51 +1,51 @@
 import {
+  ayahKey,
   displayIndex,
-  indexQuran,
   type QuranText,
-  type QuranVerse,
-} from "../../src/lib/quran-words.js";
+} from "../../src/lib/quran-words";
 import {
   getAyahsForPage,
   getJuzForPage,
   getPageForVerse,
   toArabicDigits,
   TOTAL_PAGES,
-} from "../../src/lib/mushaf.js";
+} from "../../src/lib/mushaf";
+import { EXPLAIN, isShown } from "../../src/lib/explain";
+import { prepareMic } from "../../src/lib/mic";
+import { loadQuran, loadTilawa } from "../../src/lib/tilawa";
 import type {
   CheckerEvent,
   EngineEvent,
+  MemorizationErrorClass,
   PositionEvent,
   TilawaSession,
-  WordRef,
 } from "@tilawa/core";
-import type {
-  Tilawa,
-  Microphone,
-} from "@tilawa/core/web";
+import type { Microphone } from "@tilawa/core/web";
+
+type ShownCheckerEvent = CheckerEvent & { errorClass: MemorizationErrorClass };
+type PositionSource = { kind: "recognized"; confidence: number } | { kind: "manual" };
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 
-const ASSET_BASE = new URL(
-  import.meta.env.VITE_TILAWA_ASSET_BASE ?? "/v1/",
-  location.href
-).href;
-
 // ---------------- State ----------------
 let quran: QuranText | null = null;
 let currentPage = 1;
-let tilawa: Tilawa | null = null;
+let tilawaLoaded = false;
+let starting = false;
 let activeSession: TilawaSession | null = null;
 let activeMic: Microphone | null = null;
 let isReciting = false;
 let currentHighlightedWordEl: HTMLElement | null = null;
+let manualWordEl: HTMLElement | null = null;
 
-const mistakeList: Array<{
-  id: string;
-  errorClass: string;
-  location: WordRef;
-  timeMs: number;
-}> = [];
+const activeMistakes = new Map<string, ShownCheckerEvent>();
+
+const levelBar = $("audio-level").firstElementChild as HTMLElement;
+function meter(db: number) {
+  const pct = Math.max(0, Math.min(100, ((db + 60) / 50) * 100));
+  levelBar.style.setProperty("--level", `${pct.toFixed(0)}%`);
+}
 
 // ---------------- Init ----------------
 async function init() {
@@ -59,10 +59,7 @@ async function init() {
   updatePageControls();
 
   try {
-    const res = await fetch("/quran.json");
-    if (!res.ok) throw new Error("Failed to load Quran text");
-    const verses: QuranVerse[] = await res.json();
-    quran = indexQuran(verses);
+    quran = await loadQuran();
     renderPage(currentPage);
   } catch (err) {
     console.error("Quran text load error:", err);
@@ -74,6 +71,8 @@ async function init() {
 function renderPage(pageNum: number) {
   if (!quran) return;
   currentPage = Math.max(1, Math.min(TOTAL_PAGES, pageNum));
+  currentHighlightedWordEl = null;
+  manualWordEl = null;
 
   // Update URL without reload
   const url = new URL(window.location.href);
@@ -129,9 +128,14 @@ function renderPage(pageNum: number) {
       wordSpan.dataset.word = String(wordIdx);
       wordSpan.textContent = wordText;
 
-      // Click word to view info
+      // Manual jump / inspection on click
       wordSpan.addEventListener("click", () => {
-        setMonitorPosition(ayah.surah, ayah.ayah, wordIdx + 1, wordText, 1.0);
+        if (manualWordEl && manualWordEl !== wordSpan) {
+          manualWordEl.classList.remove("manual");
+        }
+        wordSpan.classList.add("manual");
+        manualWordEl = wordSpan;
+        setMonitorPosition(ayah.surah, ayah.ayah, wordIdx + 1, wordText, { kind: "manual" });
       });
 
       container.appendChild(wordSpan);
@@ -146,7 +150,7 @@ function renderPage(pageNum: number) {
   });
 
   // Re-apply mistake markers for words on this page
-  applyMistakeMarkersOnCurrentPage();
+  syncMistakeMarkersOnCurrentPage();
 }
 
 function updatePageControls() {
@@ -155,51 +159,87 @@ function updatePageControls() {
   $<HTMLButtonElement>("btn-next-page").disabled = currentPage >= TOTAL_PAGES;
 }
 
+function resetSessionView() {
+  activeMistakes.clear();
+  renderMistakes();
+
+  currentHighlightedWordEl = null;
+  manualWordEl = null;
+  for (const el of $("mushaf-page-text").querySelectorAll<HTMLElement>(".m-word")) {
+    el.classList.remove("current", "said", "mistake", "manual");
+    el.removeAttribute("title");
+  }
+
+  $("mon-surah").textContent = "-";
+  $("mon-ayah").textContent = "-";
+  $("mon-word").textContent = "-";
+  $("mon-word-text").textContent = "";
+  $("mon-confidence").textContent = "Waiting for recitation...";
+}
+
 // ---------------- Engine & Recitation ----------------
-async function toggleRecitation() {
+function toggleRecitation() {
   if (isReciting) {
-    await stopRecitation();
+    void stopRecitation();
   } else {
-    await startRecitation();
+    void startRecitation();
   }
 }
 
 async function startRecitation() {
+  if (starting || isReciting) return;
+  starting = true;
+  // Before any await: keeps the tap's user gesture for iOS audio (listen() takes ownership).
+  let prepared = prepareMic();
+
   const btn = $<HTMLButtonElement>("btn-start");
   const btnLabel = $("btn-start-label");
 
   btn.disabled = true;
   setStatus("loading", "Initializing engine...");
+  resetSessionView();
 
   try {
-    if (!tilawa) {
-      showLoadingBanner(true, "Downloading & warming up model...");
-      const [web] = await Promise.all([
-        import("@tilawa/core/web"),
-        import("onnxruntime-web/all"),
-      ]);
-
-      tilawa = await web.createTilawa({
-        assetBase: ASSET_BASE,
-        tier: "auto",
-        onProgress: (p) => {
-          const pct = Math.floor(p.fraction * 100);
+    if (!tilawaLoaded) {
+      showLoadingBanner(true, "Preparing speech recognition engine...");
+    }
+    const [tilawa, loadedQuran] = await Promise.all([
+      loadTilawa({
+        onProgress: ({ pct, cached, stage }) => {
           $<HTMLDivElement>("loading-progress").style.width = `${pct}%`;
           $("loading-pct").textContent = `${pct}%`;
-          if (p.stage === "model") {
-            $("loading-msg").textContent = `Loading acoustic model (${pct}%)...`;
-          } else if (p.stage === "warmup") {
-            $("loading-msg").textContent = "Warming up engine...";
-          }
+          $("loading-msg").textContent = cached
+            ? "Loading from this device..."
+            : stage === "warmup"
+              ? "Warming up engine..."
+              : `Downloading model (${pct}%)...`;
         },
-      });
-      showLoadingBanner(false);
+      }),
+      loadQuran(),
+    ]);
+    tilawaLoaded = true;
+    showLoadingBanner(false);
+
+    if (!quran) {
+      quran = loadedQuran;
+      renderPage(currentPage);
     }
 
-    activeSession = tilawa.startFreeRecitation();
-    activeSession.subscribe(handleEngineEvent);
+    const session = tilawa.startFreeRecitation();
+    session.subscribe(handleEngineEvent);
 
-    activeMic = await tilawa.listen(activeSession);
+    let mic: Microphone;
+    try {
+      const micOpts = prepared ? { onLevel: meter, prepared } : { onLevel: meter };
+      prepared = null;
+      mic = await tilawa.listen(session, micOpts);
+    } catch (err) {
+      session.dispose();
+      throw err;
+    }
+
+    activeSession = session;
+    activeMic = mic;
     isReciting = true;
 
     btn.classList.add("active");
@@ -208,38 +248,38 @@ async function startRecitation() {
     $("audio-level").hidden = false;
     setStatus("listening", "Listening... Start reciting anywhere");
   } catch (err: unknown) {
+    prepared?.release();
     showLoadingBanner(false);
     btn.disabled = false;
     isReciting = false;
     const msg = err instanceof Error ? err.message : String(err);
     console.error("Recitation start failed:", err);
     setStatus("idle", `Failed to start: ${msg}`);
+  } finally {
+    starting = false;
   }
 }
 
 async function stopRecitation() {
+  const mic = activeMic;
+  const session = activeSession;
+  if (!mic && !session) return;
+
   const btn = $<HTMLButtonElement>("btn-start");
   btn.disabled = true;
 
-  if (activeMic) {
-    try {
-      await activeMic.stop();
-    } catch {
-      // ignore
-    }
-    activeMic = null;
-  }
+  activeMic = null;
+  activeSession = null;
 
-  if (activeSession) {
-    try {
-      await activeSession.end();
-    } catch {
-      // ignore
-    }
-    activeSession = null;
+  try {
+    await mic?.stop(); // ends the session: its final events arrive through subscribe
+  } catch (err) {
+    console.error("Recitation stop failed:", err);
   }
+  session?.dispose();
 
   isReciting = false;
+  meter(-100);
   btn.classList.remove("active");
   $("btn-start-label").textContent = "Start Reciting";
   btn.disabled = false;
@@ -282,6 +322,11 @@ function handlePosition(e: PositionEvent) {
     renderPage(targetPage);
   }
 
+  if (manualWordEl) {
+    manualWordEl.classList.remove("manual");
+    manualWordEl = null;
+  }
+
   // Highlight word on page
   const wordEl = document.getElementById(`w-${surah}-${ayah}-${wordDisplayIdx}`);
   if (wordEl) {
@@ -295,24 +340,27 @@ function handlePosition(e: PositionEvent) {
     // Smooth scroll into view if out of page bounds
     wordEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
-    setMonitorPosition(surah, ayah, word, wordEl.textContent ?? "", top.confidence);
+    setMonitorPosition(surah, ayah, word, wordEl.textContent ?? "", {
+      kind: "recognized",
+      confidence: top.confidence,
+    });
   }
 
   setStatus("locked", `Following: Surah ${surah}:${ayah} (Page ${targetPage})`);
 }
 
 function handleChecker(e: CheckerEvent) {
-  if (e.state !== "confirmed") return;
+  if (!isShown(e)) return;
 
-  mistakeList.push({
-    id: e.id,
-    errorClass: e.errorClass,
-    location: e.location,
-    timeMs: e.timeMs,
-  });
-
-  renderMistakes();
-  applyMistakeMarkersOnCurrentPage();
+  if (e.state === "confirmed") {
+    activeMistakes.set(e.id, e);
+    renderMistakes();
+    syncMistakeMarkersOnCurrentPage();
+  } else if (e.state === "resolved" && activeMistakes.delete(e.id)) {
+    // A self-correction: clear the mark and take the note back.
+    renderMistakes();
+    syncMistakeMarkersOnCurrentPage();
+  }
 }
 
 function setMonitorPosition(
@@ -320,51 +368,86 @@ function setMonitorPosition(
   ayah: number,
   word: number,
   text: string,
-  confidence: number
+  source: PositionSource,
 ) {
   $("mon-surah").textContent = String(surah);
   $("mon-ayah").textContent = String(ayah);
   $("mon-word").textContent = String(word);
   $("mon-word-text").textContent = text;
-  $("mon-confidence").textContent = `Confidence: ${(confidence * 100).toFixed(0)}%`;
+  $("mon-confidence").textContent =
+    source.kind === "manual"
+      ? "Manual jump"
+      : `Confidence: ${(source.confidence * 100).toFixed(0)}%`;
 }
 
 function renderMistakes() {
   const listEl = $("monitor-mistakes");
-  $("mistake-count").textContent = String(mistakeList.length);
+  const mistakes = [...activeMistakes.values()].reverse();
+  $("mistake-count").textContent = String(mistakes.length);
 
-  if (!mistakeList.length) {
-    listEl.innerHTML = `<li class="empty-state">No mistakes recorded yet. Recite smoothly.</li>`;
+  if (!mistakes.length) {
+    const empty = document.createElement("li");
+    empty.className = "empty-state";
+    empty.textContent = "No mistakes recorded yet. Recite smoothly.";
+    listEl.replaceChildren(empty);
     return;
   }
 
-  listEl.innerHTML = mistakeList
-    .slice()
-    .reverse()
-    .map((m) => {
-      const typeLabel = m.errorClass.replace(/_/g, " ");
-      return `
-        <li class="mistake-item">
-          <div class="mistake-item-header">
-            <span class="mistake-type">${typeLabel}</span>
-            <span class="mistake-loc">${m.location.surah}:${m.location.ayah}</span>
-          </div>
-          <div class="mistake-detail">Around word ${m.location.word} (${(m.timeMs / 1000).toFixed(1)}s)</div>
-        </li>
-      `;
-    })
-    .join("");
+  listEl.replaceChildren(
+    ...mistakes.map((m) => {
+      const li = document.createElement("li");
+      li.className = "mistake-item";
+      li.dataset.note = m.id;
+
+      const header = document.createElement("div");
+      header.className = "mistake-item-header";
+
+      const typeEl = document.createElement("span");
+      typeEl.className = "mistake-type";
+      typeEl.textContent = EXPLAIN[m.errorClass].label;
+
+      const locEl = document.createElement("span");
+      locEl.className = "mistake-loc";
+      locEl.textContent = `${m.location.surah}:${m.location.ayah}`;
+
+      header.append(typeEl, locEl);
+      li.append(header);
+
+      const wordText = quran?.get(ayahKey(m.location.surah, m.location.ayah))?.words[
+        displayIndex(m.location.surah, m.location.ayah, m.location.word)
+      ];
+      if (wordText) {
+        const ar = document.createElement("div");
+        ar.className = "mistake-word";
+        ar.dir = "rtl";
+        ar.lang = "ar";
+        ar.textContent = wordText;
+        li.append(ar);
+      }
+
+      const detail = document.createElement("div");
+      detail.className = "mistake-detail";
+      detail.textContent = `${EXPLAIN[m.errorClass].text} (word ${m.location.word}, ${(m.timeMs / 1000).toFixed(1)}s)`;
+
+      li.append(detail);
+      return li;
+    }),
+  );
 }
 
-function applyMistakeMarkersOnCurrentPage() {
-  mistakeList.forEach((m) => {
+function syncMistakeMarkersOnCurrentPage() {
+  for (const el of $("mushaf-page-text").querySelectorAll<HTMLElement>(".m-word.mistake")) {
+    el.classList.remove("mistake");
+    el.removeAttribute("title");
+  }
+  for (const m of activeMistakes.values()) {
     const at = displayIndex(m.location.surah, m.location.ayah, m.location.word);
     const el = document.getElementById(`w-${m.location.surah}-${m.location.ayah}-${at}`);
     if (el) {
       el.classList.add("mistake");
-      el.title = `Mistake flagged: ${m.errorClass}`;
+      el.title = EXPLAIN[m.errorClass].text;
     }
-  });
+  }
 }
 
 function setStatus(state: "idle" | "loading" | "listening" | "locked", text: string) {
@@ -404,7 +487,7 @@ function setupEventListeners() {
 
     if (e.code === "Space") {
       e.preventDefault();
-      void toggleRecitation();
+      toggleRecitation();
     } else if (e.code === "ArrowLeft") {
       e.preventDefault();
       if (currentPage < TOTAL_PAGES) renderPage(currentPage + 1);
@@ -413,6 +496,8 @@ function setupEventListeners() {
       if (currentPage > 1) renderPage(currentPage - 1);
     }
   });
+
+  window.addEventListener("pagehide", () => void activeMic?.stop());
 }
 
 void init();
